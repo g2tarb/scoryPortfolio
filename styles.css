@@ -1,0 +1,432 @@
+/* =============================================================================
+   SCORY — Mise en page « musée » + composants verre
+   S’appuie sur les variables de defaut.css (pas de palette dupliquée ici).
+   ============================================================================= */
+
+/* Taille des boîtes inclut padding et bordure (calculs de layout prévisibles) */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--surface-void);
+  color: rgba(245, 242, 255, 0.92);
+  font-family: var(--font-sans);
+  font-optical-sizing: auto;
+}
+
+/* Lien « invisible » jusqu’au focus : premier Tab = saut direct au contenu principal */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: var(--surface-elevated);
+  color: inherit;
+  border-radius: var(--radius-label);
+  z-index: 100;
+}
+.skip-link:focus {
+  left: 0.75rem;
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Scène plein viewport : grille header | carrousel + cartel | footer hors flux */
+#museum-stage {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: 1fr minmax(0, 560px) minmax(260px, 320px);
+  grid-template-areas:
+    "head head label"
+    "carousel carousel label"
+    "carousel carousel label";
+  gap: 1rem 1.25rem;
+  padding: clamp(1rem, 3vw, 2rem);
+  padding-bottom: 0;
+}
+
+/* Une colonne sur mobile : cartel sous le carrousel */
+@media (max-width: 960px) {
+  #museum-stage {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "head"
+      "carousel"
+      "label";
+    grid-template-rows: auto auto auto;
+  }
+}
+
+/* Conteneur où Three.js injecte le canvas ; ne capte pas les clics (interaction sur le carrousel) */
+.neural-host {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.neural-host .neural-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Panneau verre générique (en-tête, cartel) : flou + dégradé + reflet ::before */
+.glass-panel {
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.07),
+      rgba(255, 255, 255, 0.02)
+    ),
+    var(--surface-mist);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius-panel);
+}
+
+.glass-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--glass-highlight);
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.glass-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.museum-header {
+  grid-area: head;
+  padding: 1.25rem 1.5rem;
+  align-self: start;
+}
+
+.museum-kicker {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(245, 242, 255, 0.55);
+}
+
+.museum-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: 0.04em;
+}
+
+.museum-sub {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  color: rgba(245, 242, 255, 0.65);
+}
+
+/* Zone de drag / swipe ; perspective 3D pour les disques ; pan-x pour le tactile horizontal */
+.project-carousel {
+  grid-area: carousel;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1200px;
+  perspective-origin: 50% 42%;
+  min-height: min(52vh, 520px);
+  outline: none;
+  touch-action: pan-x;
+}
+
+.project-carousel:focus-visible {
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-panel);
+}
+
+/* Rail horizontal : GSAP anime la propriété transform translateX (x) */
+.project-track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: clamp(1rem, 4vw, 2.5rem);
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+
+/* Base visuelle des disques : verre fort + reflet radial type galette */
+.card-glass {
+  position: relative;
+  backdrop-filter: blur(var(--glass-blur-strong)) saturate(var(--glass-saturation));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong)) saturate(var(--glass-saturation));
+  background: radial-gradient(
+      circle at 30% 25%,
+      rgba(255, 255, 255, 0.18),
+      rgba(255, 255, 255, 0.02) 52%
+    ),
+    linear-gradient(160deg, rgba(30, 24, 40, 0.75), rgba(12, 10, 18, 0.55));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), 0 0 60px rgba(158, 200, 255, 0.08);
+  transform-style: preserve-3d;
+}
+
+/* Grain fin (SVG turbulence) pour éviter le plastique trop lisse */
+.card-glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  border-radius: var(--radius-disc);
+}
+
+/* Un « vinyle » : cercle, grab, pas de sélection de texte pendant le drag */
+.project-disc {
+  flex: 0 0 auto;
+  width: clamp(200px, 38vmin, 280px);
+  aspect-ratio: 1;
+  border-radius: var(--radius-disc);
+  display: grid;
+  place-items: center;
+  cursor: grab;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: box-shadow 0.35s var(--ease-spring-soft);
+}
+
+.project-disc:active {
+  cursor: grabbing;
+}
+
+/* Disque sélectionné : halo doré léger */
+.project-disc.is-active {
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+    0 0 80px rgba(201, 169, 98, 0.12);
+}
+
+/* Cercles concentriques rappelant les sillons d’un disque */
+.disc-groove {
+  position: absolute;
+  inset: 8%;
+  border-radius: inherit;
+  border: 1px solid var(--glass-border-inner);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+  background: repeating-radial-gradient(
+    circle at 50% 50%,
+    transparent 0,
+    transparent 5px,
+    rgba(255, 255, 255, 0.04) 5px,
+    rgba(255, 255, 255, 0.04) 6px
+  );
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.disc-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.disc-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.disc-meta {
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245, 242, 255, 0.5);
+}
+
+/* Cartel à droite (ou en dessous) : description du projet actif */
+.museum-label {
+  grid-area: label;
+  align-self: stretch;
+  padding: 1.25rem 1.35rem;
+  height: fit-content;
+}
+
+.label-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 242, 255, 0.45);
+}
+
+.label-title {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.65rem;
+}
+
+.label-desc {
+  margin: 0;
+  line-height: 1.55;
+  color: rgba(245, 242, 255, 0.72);
+  font-size: 0.95rem;
+}
+
+/* Loupe expert : overlay plein écran au-dessus du carrousel quand is-visible */
+.expert-loupe {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-spring-soft);
+}
+
+.expert-loupe.is-visible {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* Assombrit les bords pour focaliser au centre (sous le bloc de code) */
+.expert-loupe__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(7, 6, 10, 0.2) 0%,
+    rgba(7, 6, 10, 0.88) 62%,
+    rgba(7, 6, 10, 0.96) 100%
+  );
+  mix-blend-mode: multiply;
+}
+
+/* Fenêtre de code : défilement animé via @keyframes code-scroll */
+.expert-loupe__code {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 1rem 1.25rem;
+  max-width: min(92vw, 640px);
+  max-height: min(50vh, 420px);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: clamp(0.65rem, 1.6vw, 0.8rem);
+  line-height: 1.5;
+  color: rgba(180, 220, 255, 0.88);
+  text-shadow: 0 0 18px rgba(100, 160, 255, 0.35);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 12%, #000 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 12%,
+    #000 78%,
+    transparent 100%
+  );
+}
+
+.expert-loupe__code code {
+  display: block;
+  white-space: pre;
+  animation: code-scroll 18s linear infinite;
+}
+
+.expert-loupe.is-visible .expert-loupe__code code {
+  animation-play-state: running;
+}
+
+.expert-loupe:not(.is-visible) .expert-loupe__code code {
+  animation-play-state: paused;
+}
+
+@keyframes code-scroll {
+  0% {
+    transform: translateY(40%);
+  }
+  100% {
+    transform: translateY(-55%);
+  }
+}
+
+.expert-loupe__hint {
+  position: relative;
+  z-index: 1;
+  margin: 1rem 0 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  color: rgba(245, 242, 255, 0.55);
+}
+
+.museum-footer {
+  position: relative;
+  z-index: 2;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  text-align: center;
+}
+
+/* Signature : texte rempli par un dégradé (clip) */
+.gradient-text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2.4vw, 1.35rem);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.45;
+  background: linear-gradient(
+    120deg,
+    var(--accent-gold) 0%,
+    var(--accent-amber) 28%,
+    var(--accent-ice) 58%,
+    var(--accent-magenta) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Accessibilité : moins d’animation / pas de texte en dégradé illisible */
+@media (prefers-reduced-motion: reduce) {
+  .project-disc,
+  .project-track {
+    transition: none !important;
+  }
+
+  .expert-loupe__code code {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .gradient-text {
+    background: none;
+    -webkit-background-clip: unset;
+    background-clip: unset;
+    color: rgba(245, 242, 255, 0.85);
+  }
+}
