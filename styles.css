@@ -93,6 +93,30 @@ html, body {
 .water-host .water-canvas { display: block; width: 100%; height: 100%; }
 .particle-canvas { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
 
+/* Vignette immersive */
+.stage-vignette {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 45%, transparent 40%, rgba(7,6,10,0.5) 100%);
+}
+
+/* Branding flottant */
+.floating-brand {
+  position: absolute;
+  top: clamp(1rem, 3vw, 2rem); left: clamp(1rem, 3vw, 2rem);
+  z-index: 2; pointer-events: none;
+}
+.floating-title {
+  margin: 0;
+  font-family: var(--font-display); font-weight: 600;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem); letter-spacing: 0.1em;
+  color: rgba(245,242,255,0.15);
+}
+.floating-sub {
+  margin: 0.1rem 0 0;
+  font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(245,242,255,0.08);
+}
+
 /* Glass panel */
 .glass-panel {
   position: relative; z-index: 1;
@@ -329,7 +353,8 @@ html, body {
 
 /* Cartel */
 .museum-label {
-  grid-area: label; align-self: stretch; padding: 1.25rem 1.35rem; height: fit-content;
+  grid-area: label; align-self: end; padding: 1.25rem 1.35rem; height: fit-content;
+  margin-bottom: clamp(1rem, 3vw, 2rem);
   box-shadow: var(--glass-shadow), 0 0 25px var(--theme-glow);
   transition: box-shadow 0.8s ease;
 }
