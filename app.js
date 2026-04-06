@@ -116,9 +116,155 @@ function main() {
   let longPressArmed = true; // annulé si l’utilisateur bouge trop (ce n’est plus un long press)
   let loupeActive = false; // overlay code + zoom caméra
   let loupeTween = null; // tween GSAP courant sur uLoupeProgress
+  let orbitMode = false; // true = projets disposés en cercle
+  let dragStartY = 0;
+  let pointerDownAt = 0;
 
   /** Liste à jour des éléments disque dans le rail */
   const discs = () => [...track.querySelectorAll(".project-disc")];
+
+  /** Rayon du cercle (px) selon la taille du carrousel */
+  function getOrbitRadius() {
+    const w = carousel.clientWidth;
+    const h = carousel.clientHeight;
+    return Math.min(w, h) * 0.36;
+  }
+
+  /** Indique en HTML si la vue circulaire est active (style / tests) */
+  function setOrbitAria(on) {
+    carousel.setAttribute("data-orbit", on ? "true" : "false");
+  }
+
+  /**
+   * Place chaque disque sur le cercle : le projet actif en bas (devant), les autres autour.
+   * @param {boolean} animate — false = recalcul immédiat (resize, reduced motion)
+   */
+  function layoutOrbitDiscs(animate) {
+    const d = discs();
+    const n = d.length;
+    if (n === 0) return;
+    const r = getOrbitRadius();
+    const dur = animate && !reduced ? 0.62 : 0;
+    d.forEach((disc, i) => {
+      const theta = Math.PI / 2 + (i - activeIndex) * ((2 * Math.PI) / n);
+      const x = r * Math.cos(theta);
+      const y = r * Math.sin(theta);
+      const scale = i === activeIndex ? 1.1 : 0.88;
+      if (dur > 0) {
+        gsap.to(disc, {
+          xPercent: -50,
+          yPercent: -50,
+          x,
+          y,
+          scale,
+          duration: dur,
+          ease: EASE_SPRING_HEAVY,
+        });
+      } else {
+        gsap.set(disc, { xPercent: -50, yPercent: -50, x, y, scale });
+      }
+    });
+  }
+
+  /** Passe en vue circulaire : le disque cliqué devient le projet « devant » (bas du cercle) */
+  function enterOrbit(idx) {
+    if (animating || orbitMode) return;
+    animating = true;
+    activeIndex = idx;
+    setActiveClasses(activeIndex);
+    setLabel(activeIndex);
+    gsap.set(track, { x: 0 });
+    orbitMode = true;
+    carousel.classList.add("carousel--orbit");
+    track.classList.add("is-orbit");
+    setOrbitAria(true);
+
+    const d = discs();
+    d.forEach((disc) => {
+      gsap.set(disc, {
+        xPercent: -50,
+        yPercent: -50,
+        x: 0,
+        y: 0,
+        scale: 0.48,
+        rotateX: 0,
+        transformOrigin: "50% 50%",
+      });
+    });
+
+    const n = d.length;
+    const r = getOrbitRadius();
+    const tl = gsap.timeline({
+      onUpdate: () => neural.setTransitionProgress(tl.progress()),
+      onComplete: () => {
+        animating = false;
+        neural.setTransitionProgress(0);
+      },
+    });
+    d.forEach((disc, i) => {
+      const theta = Math.PI / 2 + (i - activeIndex) * ((2 * Math.PI) / n);
+      const x = r * Math.cos(theta);
+      const y = r * Math.sin(theta);
+      const scale = i === activeIndex ? 1.1 : 0.88;
+      tl.to(
+        disc,
+        {
+          xPercent: -50,
+          yPercent: -50,
+          x,
+          y,
+          scale,
+          duration: reduced ? 0 : 0.78,
+          ease: EASE_SPRING_HEAVY,
+        },
+        0
+      );
+    });
+  }
+
+  /** Retour au rail horizontal */
+  function exitOrbit() {
+    if (!orbitMode || animating) return;
+    animating = true;
+    const d = discs();
+    const tl = gsap.timeline({
+      onComplete: () => {
+        orbitMode = false;
+        carousel.classList.remove("carousel--orbit");
+        track.classList.remove("is-orbit");
+        setOrbitAria(false);
+        d.forEach((disc) => gsap.set(disc, { clearProps: "all" }));
+        positionTrack(activeIndex, true);
+        animating = false;
+        neural.setTransitionProgress(0);
+      },
+    });
+    d.forEach((disc) => {
+      tl.to(
+        disc,
+        {
+          xPercent: -50,
+          yPercent: -50,
+          x: 0,
+          y: 0,
+          scale: 0.5,
+          duration: reduced ? 0 : 0.42,
+          ease: "power2.in",
+        },
+        0
+      );
+    });
+  }
+
+  /** Fait tourner la sélection sur le cercle (swipe ou flèches) */
+  function orbitStep(delta) {
+    const n = discs().length;
+    if (n === 0 || !orbitMode || animating) return;
+    activeIndex = (activeIndex + delta + n) % n;
+    setActiveClasses(activeIndex);
+    setLabel(activeIndex);
+    layoutOrbitDiscs(!reduced);
+  }
 
   /** Met à jour le cartel (titre + texte) selon l’index projet */
   function setLabel(i) {
@@ -172,6 +318,7 @@ function main() {
    * `uTransitionProgress` pour le fond neural.
    */
   function goTo(nextIndex) {
+    if (orbitMode) return;
     const d = discs();
     const n = d.length;
     if (n === 0 || animating || nextIndex === activeIndex) return;
@@ -314,6 +461,8 @@ function main() {
     if (animating || loupeActive) return;
     dragPointerId = e.pointerId;
     dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    pointerDownAt = performance.now();
     dragLastX = e.clientX;
     dragLastT = performance.now();
     velocity = 0;
@@ -349,8 +498,8 @@ function main() {
     dragLastX = e.clientX;
     dragLastT = now;
 
-    // Inclinaison live du disque actif + intensité neural selon la vitesse du geste
-    if (!reduced && !loupeActive) {
+    // Inclinaison live du disque actif (vue ligne uniquement) + feedback neural
+    if (!reduced && !loupeActive && !orbitMode) {
       const active = discs()[activeIndex];
       if (active) {
         const tilt = Math.max(-8, Math.min(8, dx * 0.04));
@@ -371,8 +520,40 @@ function main() {
     }
 
     const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    const tapDuration = performance.now() - pointerDownAt;
+    const clickedDisc = e.target.closest(".project-disc");
+
+    const isTap =
+      Math.abs(dx) <= 20 &&
+      Math.abs(dy) <= 20 &&
+      tapDuration < 650 &&
+      clickedDisc &&
+      !loupeActive;
+
+    if (isTap && !animating) {
+      const idx = parseInt(clickedDisc.dataset.index, 10);
+      if (Number.isFinite(idx)) {
+        if (!orbitMode) {
+          enterOrbit(idx);
+        } else if (idx === activeIndex) {
+          exitOrbit();
+        } else {
+          activeIndex = idx;
+          setActiveClasses(activeIndex);
+          setLabel(activeIndex);
+          layoutOrbitDiscs(!reduced);
+        }
+      }
+      const activeDisc = discs()[activeIndex];
+      if (activeDisc && !reduced && !orbitMode) {
+        gsap.to(activeDisc, { rotateX: 0, duration: 0.35, ease: EASE_SPRING_HEAVY });
+      }
+      requestAnimationFrame(applyNeuralSpin);
+      return;
+    }
+
     const active = discs()[activeIndex];
-    // Recentre l’inclinaison du disque avec ressort
     if (active && !reduced) {
       gsap.to(active, {
         rotateX: 0,
@@ -383,10 +564,14 @@ function main() {
 
     requestAnimationFrame(applyNeuralSpin);
 
-    // Seuil de swipe : gauche = projet suivant, droite = précédent
     if (Math.abs(dx) > 56 && !animating) {
-      if (dx < 0) goTo(activeIndex + 1);
-      else goTo(activeIndex - 1);
+      if (orbitMode) {
+        if (dx < 0) orbitStep(1);
+        else orbitStep(-1);
+      } else {
+        if (dx < 0) goTo(activeIndex + 1);
+        else goTo(activeIndex - 1);
+      }
     }
   });
 
@@ -399,15 +584,21 @@ function main() {
     if (active && !reduced) gsap.to(active, { rotateX: 0, duration: 0.3, ease: EASE_SPRING_HEAVY });
   });
 
-  // Clavier quand le carrousel a le focus (tabindex="0")
   carousel.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && orbitMode) {
+      e.preventDefault();
+      exitOrbit();
+      return;
+    }
     if (e.key === "ArrowRight") {
       e.preventDefault();
-      goTo(activeIndex + 1);
+      if (orbitMode) orbitStep(1);
+      else goTo(activeIndex + 1);
     }
     if (e.key === "ArrowLeft") {
       e.preventDefault();
-      goTo(activeIndex - 1);
+      if (orbitMode) orbitStep(-1);
+      else goTo(activeIndex - 1);
     }
   });
 
@@ -415,7 +606,8 @@ function main() {
     "resize",
     () => {
       neural.resize();
-      positionTrack(activeIndex, true);
+      if (orbitMode) layoutOrbitDiscs(false);
+      else positionTrack(activeIndex, true);
     },
     { passive: true }
   );
@@ -423,6 +615,7 @@ function main() {
   setActiveClasses(0);
   setLabel(0);
   positionTrack(0, true);
+  setOrbitAria(false);
 
   if (reduced) {
     neural.setRotationInfluence(0);
