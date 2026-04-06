@@ -208,9 +208,17 @@ function main() {
   if (!stage || !neuralHost || !carousel || !track) return;
 
   const reduced = prefersReducedMotion();
+  const loader = document.getElementById("loader");
 
   /* ---------- Three.js ---------- */
   const neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
+
+  // Masquer le loader après initialisation Three.js
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      if (loader) loader.classList.add("is-hidden");
+    }, 800);
+  });
 
   let water = null;
   let waterSplashTween = null;
@@ -250,11 +258,25 @@ function main() {
   }
 
   /* ---------- Label / cartel ---------- */
-  function setLabel(i) {
+  function setLabel(i, animate) {
     const p = PROJECTS[i];
     if (!p) return;
-    labelTitle.textContent = p.title;
-    labelDesc.textContent = p.desc;
+    if (!animate || reduced) {
+      labelTitle.textContent = p.title;
+      labelDesc.textContent = p.desc;
+      return;
+    }
+    gsap.to([labelTitle, labelDesc], {
+      opacity: 0, y: -6, duration: 0.2, ease: "power2.in",
+      onComplete: () => {
+        labelTitle.textContent = p.title;
+        labelDesc.textContent = p.desc;
+        gsap.fromTo([labelTitle, labelDesc],
+          { opacity: 0, y: 8 },
+          { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", stagger: 0.06 }
+        );
+      },
+    });
   }
 
   function setActiveClasses(i) {
@@ -350,7 +372,7 @@ function main() {
     // Mettre à jour l'état
     activeIndex = nextIndex;
     setActiveClasses(activeIndex);
-    setLabel(activeIndex);
+    setLabel(activeIndex, true);
     updateDots();
 
     // Faire apparaître le nouveau disque
@@ -557,6 +579,23 @@ function main() {
         chatPills.appendChild(input);
         chatPills.appendChild(send);
         input.focus();
+      }
+
+      // Bouton recommencer après le devis
+      if (stepId === "done") {
+        const restart = document.createElement("button");
+        restart.className = "chat-pill";
+        restart.textContent = "↻ Recommencer";
+        restart.addEventListener("click", () => {
+          chatMessages.innerHTML = "";
+          chatData.baseCost = 0;
+          chatData.multiplier = 1;
+          chatData.answers = {};
+          chatPills.innerHTML = "";
+          document.querySelector(".chatbot-status").textContent = "En ligne";
+          renderStep("q1");
+        });
+        chatPills.appendChild(restart);
       }
     }, 700 + Math.random() * 500);
   }

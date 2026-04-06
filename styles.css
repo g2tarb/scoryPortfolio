@@ -16,6 +16,29 @@ html, body {
   font-optical-sizing: auto;
 }
 
+/* Loader */
+.loader {
+  position: fixed; inset: 0; z-index: 999;
+  display: flex; align-items: center; justify-content: center; gap: 0.15em;
+  background: var(--surface-void);
+  transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+.loader.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader__letter {
+  font-family: var(--font-display); font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 600; letter-spacing: 0.06em;
+  color: var(--accent-gold); opacity: 0;
+  animation: loaderIn 0.5s ease forwards;
+}
+.loader__letter:nth-child(2) { animation-delay: 0.08s; }
+.loader__letter:nth-child(3) { animation-delay: 0.16s; }
+.loader__letter:nth-child(4) { animation-delay: 0.24s; }
+.loader__letter:nth-child(5) { animation-delay: 0.32s; }
+@keyframes loaderIn {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
 .skip-link {
   position: absolute; left: -9999px; top: 0.75rem;
   padding: 0.5rem 1rem; background: var(--surface-elevated);
@@ -167,7 +190,9 @@ html, body {
   background: rgba(255,255,255,0.2); cursor: pointer;
   transition: background 0.3s ease, transform 0.3s var(--ease-spring-soft);
 }
+.nav-dot:hover { background: rgba(255,255,255,0.4); transform: scale(1.15); }
 .nav-dot.is-active { background: var(--accent-gold); transform: scale(1.3); }
+.nav-dot.is-active:hover { background: var(--accent-amber); }
 
 /* ===== PANNEAU DÉTAILS (LONG PRESS) ===== */
 .detail-panel {
@@ -293,6 +318,13 @@ html, body {
   font-style: italic; font-weight: 500; line-height: 1.45;
   background: linear-gradient(120deg, var(--accent-gold) 0%, var(--accent-amber) 28%, var(--accent-ice) 58%, var(--accent-magenta) 100%);
   -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Mobile chatbot */
+@media (max-width: 600px) {
+  .chatbot-pills { max-height: 220px; overflow-y: auto; }
+  .chat-pill { font-size: 0.78rem; padding: 0.4rem 0.75rem; }
+  .chat-input { font-size: 0.78rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
