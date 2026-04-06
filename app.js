@@ -1,10 +1,11 @@
 /**
  * SCORY — app.js
- * Navigation flèches (1 disque visible), long press détails, chatbot conversationnel.
+ * Navigation flèches + transitions particules, long press détails, chatbot devis.
  */
 import gsap from "gsap";
 import { FlaynnNeuralBackground } from "./three-neural.js";
 import { WaterReflectionLayer } from "./three-water.js";
+import { ParticleTransition } from "./particles.js";
 
 const EASE_SPRING_HEAVY = "back.out(1.32)";
 
@@ -32,69 +33,154 @@ const PROJECTS = [
   },
 ];
 
-const CODE_LOUPE = `// SCORY — app.js (extrait)
-import gsap from "gsap";
-import { FlaynnNeuralBackground } from "./three-neural.js";
-
-const EASE_SPRING_HEAVY = "back.out(1.32)";
-
-export function mountCarousel(neural, ctx) {
-  const tl = gsap.timeline({
-    onUpdate: () => neural.setTransitionProgress(tl.progress()),
-    onComplete: () => neural.setTransitionProgress(0),
-  });
-  tl.to(current, { rotateX: -15, y: -40, opacity: 0, ease: "power2.in" });
-  tl.fromTo(next, { rotateX: 45, y: 100, opacity: 0 },
-    { rotateX: 0, y: 0, opacity: 1, ease: EASE_SPRING_HEAVY }, 0.12);
-}
-`;
-
-/** Chatbot : arbre de conversation */
+/** Chatbot : 10 questions, 7-8 choix, calcul de prix */
 const CHAT_FLOW = [
   {
-    id: "start",
-    bot: "Bienvenue ! 👋 Quel type de projet avez-vous en tête ?",
+    id: "q1",
+    bot: "Bienvenue ! 👋 Pour commencer, quel type de projet avez-vous en tête ?",
     options: [
-      { label: "Site vitrine", next: "budget", value: "Site vitrine" },
-      { label: "Landing page", next: "budget", value: "Landing page" },
-      { label: "SaaS / App web", next: "budget", value: "SaaS / App web" },
-      { label: "Autre chose", next: "other", value: "Autre" },
+      { label: "Site vitrine", next: "q2", cost: 800 },
+      { label: "Landing page", next: "q2", cost: 500 },
+      { label: "E-commerce", next: "q2", cost: 3000 },
+      { label: "SaaS / App web", next: "q2", cost: 5000 },
+      { label: "Portfolio créatif", next: "q2", cost: 1200 },
+      { label: "Blog / Média", next: "q2", cost: 1000 },
+      { label: "Application mobile", next: "q2", cost: 6000 },
+      { label: "Projet sur-mesure", next: "q2", cost: 4000 },
     ],
   },
   {
-    id: "other",
-    bot: "Pas de problème ! Décrivez-moi votre projet en quelques mots :",
-    freeText: true,
-    next: "budget",
-  },
-  {
-    id: "budget",
-    bot: "Super choix ! Et côté budget, vous êtes sur quelle fourchette ?",
+    id: "q2",
+    bot: "Excellent choix ! Que voulez-vous qu'on ressente en regardant votre site ?",
     options: [
-      { label: "< 1 500 €", next: "timeline", value: "< 1 500 €" },
-      { label: "1 500 – 3 000 €", next: "timeline", value: "1 500 – 3 000 €" },
-      { label: "3 000 € +", next: "timeline", value: "3 000 € +" },
-      { label: "À définir", next: "timeline", value: "À définir" },
+      { label: "Luxe & Premium", next: "q3", cost: 800 },
+      { label: "Moderne & High-Tech", next: "q3", cost: 500 },
+      { label: "Chaleureux & Authentique", next: "q3", cost: 300 },
+      { label: "Minimaliste & Épuré", next: "q3", cost: 200 },
+      { label: "Créatif & Artistique", next: "q3", cost: 700 },
+      { label: "Corporate & Sérieux", next: "q3", cost: 300 },
+      { label: "Fun & Dynamique", next: "q3", cost: 500 },
+      { label: "Nature & Éco-responsable", next: "q3", cost: 350 },
     ],
   },
   {
-    id: "timeline",
-    bot: "Dernière question : c'est pour quand ?",
+    id: "q3",
+    bot: "Très bien ! Combien de pages souhaitez-vous pour votre site ?",
     options: [
-      { label: "Urgent (< 2 sem)", next: "contact", value: "Urgent" },
-      { label: "Ce mois-ci", next: "contact", value: "Ce mois" },
-      { label: "Pas pressé", next: "contact", value: "Pas pressé" },
+      { label: "One page", next: "q4", cost: 0 },
+      { label: "2–3 pages", next: "q4", cost: 200 },
+      { label: "4–6 pages", next: "q4", cost: 500 },
+      { label: "7–10 pages", next: "q4", cost: 900 },
+      { label: "11–20 pages", next: "q4", cost: 1500 },
+      { label: "20+ pages", next: "q4", cost: 2500 },
+      { label: "Je ne sais pas encore", next: "q4", cost: 500 },
+    ],
+  },
+  {
+    id: "q4",
+    bot: "Et côté design, quel niveau attendez-vous ?",
+    options: [
+      { label: "Template adapté", next: "q5", cost: 0 },
+      { label: "Semi-personnalisé", next: "q5", cost: 500 },
+      { label: "Design 100% sur-mesure", next: "q5", cost: 1500 },
+      { label: "Direction artistique complète", next: "q5", cost: 2200 },
+      { label: "Motion design intégré", next: "q5", cost: 1800 },
+      { label: "3D / Expérience immersive", next: "q5", cost: 2800 },
+      { label: "J'ai déjà une maquette", next: "q5", cost: 100 },
+      { label: "Je ne sais pas", next: "q5", cost: 600 },
+    ],
+  },
+  {
+    id: "q5",
+    bot: "Quelle fonctionnalité est la plus importante pour vous ?",
+    options: [
+      { label: "Formulaire de contact", next: "q6", cost: 100 },
+      { label: "Blog intégré", next: "q6", cost: 400 },
+      { label: "Paiement en ligne", next: "q6", cost: 800 },
+      { label: "Espace membre / Login", next: "q6", cost: 1000 },
+      { label: "Réservation / Calendrier", next: "q6", cost: 700 },
+      { label: "Chat en direct", next: "q6", cost: 500 },
+      { label: "Dashboard / Back-office", next: "q6", cost: 1200 },
+      { label: "Multi-langue", next: "q6", cost: 600 },
+    ],
+  },
+  {
+    id: "q6",
+    bot: "Pour le contenu du site, qui s'en charge ?",
+    options: [
+      { label: "Je fournis tout", next: "q7", cost: 0 },
+      { label: "Rédaction des textes incluse", next: "q7", cost: 500 },
+      { label: "Shooting photo pro", next: "q7", cost: 600 },
+      { label: "Vidéo / Motion incluse", next: "q7", cost: 900 },
+      { label: "Illustrations sur-mesure", next: "q7", cost: 700 },
+      { label: "Optimisation SEO incluse", next: "q7", cost: 400 },
+      { label: "Je ne sais pas encore", next: "q7", cost: 300 },
+    ],
+  },
+  {
+    id: "q7",
+    bot: "Parlons animations ! Quel niveau souhaitez-vous ?",
+    options: [
+      { label: "Aucune, sobre et efficace", next: "q8", cost: 0 },
+      { label: "Subtiles (hover, fades)", next: "q8", cost: 200 },
+      { label: "Modérées (scroll, parallax)", next: "q8", cost: 500 },
+      { label: "Avancées (GSAP, timelines)", next: "q8", cost: 1000 },
+      { label: "Immersives (Three.js, WebGL)", next: "q8", cost: 2200 },
+      { label: "Micro-interactions poussées", next: "q8", cost: 700 },
+      { label: "Curseur personnalisé", next: "q8", cost: 300 },
+      { label: "Maximum de wow-effect !", next: "q8", cost: 1500 },
+    ],
+  },
+  {
+    id: "q8",
+    bot: "Sur quels appareils votre site doit-il être parfait ?",
+    options: [
+      { label: "Desktop uniquement", next: "q9", cost: 0 },
+      { label: "Mobile first", next: "q9", cost: 200 },
+      { label: "Responsive classique", next: "q9", cost: 300 },
+      { label: "Tablette aussi", next: "q9", cost: 400 },
+      { label: "PWA (installable)", next: "q9", cost: 800 },
+      { label: "App native en plus", next: "q9", cost: 3000 },
+      { label: "Tous les écrans", next: "q9", cost: 500 },
+    ],
+  },
+  {
+    id: "q9",
+    bot: "Quel suivi souhaitez-vous après la livraison ?",
+    options: [
+      { label: "Aucun, je gère seul", next: "q10", cost: 0 },
+      { label: "Corrections ponctuelles", next: "q10", cost: 150 },
+      { label: "Mises à jour mensuelles", next: "q10", cost: 350 },
+      { label: "Support prioritaire 7j/7", next: "q10", cost: 600 },
+      { label: "Formation à l'outil", next: "q10", cost: 400 },
+      { label: "Hébergement & domaine inclus", next: "q10", cost: 250 },
+      { label: "Analytics & rapports", next: "q10", cost: 400 },
+      { label: "Pack tout inclus", next: "q10", cost: 900 },
+    ],
+  },
+  {
+    id: "q10",
+    bot: "Dernière question ! Quel est votre délai idéal ?",
+    options: [
+      { label: "Hier (urgence absolue) 🔥", next: "contact", multiplier: 1.5 },
+      { label: "Moins d'une semaine", next: "contact", multiplier: 1.4 },
+      { label: "2 semaines", next: "contact", multiplier: 1.2 },
+      { label: "1 mois", next: "contact", multiplier: 1.0 },
+      { label: "2–3 mois", next: "contact", multiplier: 0.95 },
+      { label: "Pas pressé du tout", next: "contact", multiplier: 0.9 },
+      { label: "À définir ensemble", next: "contact", multiplier: 1.0 },
+      { label: "Flexible", next: "contact", multiplier: 0.95 },
     ],
   },
   {
     id: "contact",
-    bot: "Parfait ! Laissez-moi votre email et Scory vous recontacte sous 24h :",
+    bot: "Parfait ! Laissez-moi votre email pour recevoir votre devis personnalisé :",
     freeText: true,
     next: "done",
   },
   {
     id: "done",
-    bot: "Merci ! 🎯 Scory va analyser votre projet et vous recontacter très vite. À bientôt !",
+    bot: "",
     options: [],
   },
 ];
@@ -111,20 +197,19 @@ function main() {
   const track = document.getElementById("project-track");
   const labelTitle = document.getElementById("label-title");
   const labelDesc = document.getElementById("label-desc");
-  const loupe = document.getElementById("expert-loupe");
-  const loupeCode = loupe.querySelector("#expert-code-scroll code");
   const detailPanel = document.getElementById("detail-panel");
   const detailTitle = document.getElementById("detail-title");
   const detailText = document.getElementById("detail-text");
   const arrowLeft = document.getElementById("arrow-left");
   const arrowRight = document.getElementById("arrow-right");
   const dotsContainer = document.getElementById("nav-dots");
+  const particleCanvas = document.getElementById("particle-canvas");
 
   if (!stage || !neuralHost || !carousel || !track) return;
 
-  loupeCode.textContent = CODE_LOUPE;
   const reduced = prefersReducedMotion();
 
+  /* ---------- Three.js ---------- */
   const neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
 
   let water = null;
@@ -135,6 +220,10 @@ function main() {
   }
   gsap.set(neuralHost, { opacity: 1 });
 
+  /* ---------- Particules ---------- */
+  const particles = new ParticleTransition(particleCanvas);
+
+  /* ---------- État ---------- */
   let activeIndex = 0;
   let animating = false;
   let longPressTimer = null;
@@ -142,11 +231,10 @@ function main() {
 
   const discs = () => [...track.querySelectorAll(".project-disc")];
 
-  // Build dots
+  /* ---------- Dots ---------- */
   function buildDots() {
     dotsContainer.innerHTML = "";
-    const d = discs();
-    d.forEach((_, i) => {
+    discs().forEach((_, i) => {
       const dot = document.createElement("button");
       dot.className = "nav-dot" + (i === activeIndex ? " is-active" : "");
       dot.setAttribute("aria-label", `Projet ${i + 1}`);
@@ -156,10 +244,12 @@ function main() {
   }
 
   function updateDots() {
-    const dots = dotsContainer.querySelectorAll(".nav-dot");
-    dots.forEach((d, i) => d.classList.toggle("is-active", i === activeIndex));
+    dotsContainer.querySelectorAll(".nav-dot").forEach((d, i) =>
+      d.classList.toggle("is-active", i === activeIndex)
+    );
   }
 
+  /* ---------- Label / cartel ---------- */
   function setLabel(i) {
     const p = PROJECTS[i];
     if (!p) return;
@@ -174,9 +264,18 @@ function main() {
     });
   }
 
-  /** Sync fond eau */
+  /* ---------- Fond eau / neural pour Scory ---------- */
   async function syncProjectWater() {
     if (!water || !waterHost) return;
+
+    // Disque Scory (index 3) → fond neural Three.js seul, pas d'image
+    if (activeIndex === 3) {
+      if (waterSplashTween) waterSplashTween.kill();
+      gsap.to(neuralHost, { opacity: 1, duration: 0.8, ease: "power2.out" });
+      gsap.to(waterHost, { opacity: 0, duration: 0.8, ease: "power2.out" });
+      return;
+    }
+
     const el = discs()[activeIndex];
     const url = el?.dataset?.image;
     if (!url) return;
@@ -198,23 +297,25 @@ function main() {
     waterSplashTween = gsap.timeline()
       .to(neuralHost, { opacity: 0.14, duration: 1.15, ease: "power2.out" }, 0)
       .to(waterHost, { opacity: 1, duration: 1.05, ease: "power2.out" }, 0)
-      .to(proxy, { p: 0.1, duration: 2.45, ease: "power3.out", onUpdate: () => water.setProgress(proxy.p) }, 0);
+      .to(proxy, {
+        p: 0.1, duration: 2.45, ease: "power3.out",
+        onUpdate: () => water.setProgress(proxy.p),
+      }, 0);
   }
 
-  /** Navigation : transition d'un disque à l'autre */
-  function goTo(nextIndex) {
+  /* ---------- Navigation avec transition particules ---------- */
+  async function goTo(nextIndex) {
     const d = discs();
     const n = d.length;
     if (n === 0 || animating) return;
-    // Wrap around
     if (nextIndex < 0) nextIndex = n - 1;
     if (nextIndex >= n) nextIndex = 0;
     if (nextIndex === activeIndex) return;
 
     animating = true;
     const currentDisc = d[activeIndex];
-    const nextDisc = d[nextIndex];
     const goingRight = nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0);
+    const direction = goingRight ? 1 : -1;
 
     if (reduced) {
       activeIndex = nextIndex;
@@ -226,51 +327,57 @@ function main() {
       return;
     }
 
-    // Exit current disc
-    const exitY = goingRight ? -60 : 60;
-    const enterY = goingRight ? 80 : -80;
+    // Position du disque pour les particules
+    const rect = currentDisc.getBoundingClientRect();
 
-    const tl = gsap.timeline({
-      onUpdate: () => neural.setTransitionProgress(tl.progress()),
-      onComplete: () => {
-        activeIndex = nextIndex;
-        gsap.set(currentDisc, { clearProps: "transform,opacity" });
-        gsap.set(nextDisc, { clearProps: "transform" });
-        setActiveClasses(activeIndex);
-        setLabel(activeIndex);
-        updateDots();
-        neural.setTransitionProgress(0);
-        animating = false;
-        void syncProjectWater();
-      },
+    // Masquer le disque courant
+    gsap.set(currentDisc, { opacity: 0, pointerEvents: "none" });
+
+    // Transition shader neural
+    const tProxy = { p: 0 };
+    gsap.to(tProxy, {
+      p: 1, duration: 1.2, ease: "power2.inOut",
+      onUpdate: () => neural.setTransitionProgress(tProxy.p),
+      onComplete: () => neural.setTransitionProgress(0),
     });
 
-    // Current out
-    tl.to(currentDisc, {
-      rotateX: -15, y: exitY, opacity: 0, duration: 0.4, ease: "power2.in",
-    }, 0);
+    // Transition particules
+    await particles.transition(rect, direction);
 
-    // Make next visible before animating in
-    nextDisc.classList.add("is-active");
-    nextDisc.style.pointerEvents = "auto";
-    gsap.set(nextDisc, { rotateX: 30, y: enterY, opacity: 0, position: "relative" });
+    // Nettoyer les styles inline du disque précédent
+    gsap.set(currentDisc, { clearProps: "opacity,pointerEvents,scale,transform" });
 
-    tl.to(nextDisc, {
-      rotateX: 0, y: 0, opacity: 1, duration: 0.65, ease: EASE_SPRING_HEAVY,
-    }, 0.15);
+    // Mettre à jour l'état
+    activeIndex = nextIndex;
+    setActiveClasses(activeIndex);
+    setLabel(activeIndex);
+    updateDots();
+
+    // Faire apparaître le nouveau disque
+    const nextDisc = d[activeIndex];
+    gsap.fromTo(nextDisc,
+      { opacity: 0, scale: 0.9 },
+      {
+        opacity: 1, scale: 1, duration: 0.35, ease: EASE_SPRING_HEAVY,
+        onComplete: () => gsap.set(nextDisc, { clearProps: "opacity,scale,transform" }),
+      }
+    );
+
+    animating = false;
+    void syncProjectWater();
   }
 
-  // Arrow clicks
+  /* ---------- Flèches ---------- */
   arrowLeft.addEventListener("click", () => { if (!animating) goTo(activeIndex - 1); });
   arrowRight.addEventListener("click", () => { if (!animating) goTo(activeIndex + 1); });
 
-  // Keyboard
+  /* ---------- Clavier ---------- */
   carousel.addEventListener("keydown", (e) => {
     if (e.key === "ArrowRight") { e.preventDefault(); goTo(activeIndex + 1); }
     if (e.key === "ArrowLeft") { e.preventDefault(); goTo(activeIndex - 1); }
   });
 
-  // ===== LONG PRESS → DETAIL PANEL =====
+  /* ---------- Long press → panneau détails ---------- */
   function openDetail() {
     if (detailVisible) return;
     detailVisible = true;
@@ -280,7 +387,6 @@ function main() {
     detailText.textContent = p.detail;
     detailPanel.classList.add("is-visible");
     detailPanel.setAttribute("aria-hidden", "false");
-
     const finish = () => {
       window.removeEventListener("pointerup", finish);
       window.removeEventListener("pointercancel", finish);
@@ -323,9 +429,11 @@ function main() {
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
   });
 
-  // Swipe support
+  /* ---------- Swipe tactile ---------- */
   let swipeStartX = 0;
-  carousel.addEventListener("touchstart", (e) => { swipeStartX = e.touches[0].clientX; }, { passive: true });
+  carousel.addEventListener("touchstart", (e) => {
+    swipeStartX = e.touches[0].clientX;
+  }, { passive: true });
   carousel.addEventListener("touchend", (e) => {
     const dx = e.changedTouches[0].clientX - swipeStartX;
     if (Math.abs(dx) > 60 && !animating) {
@@ -334,13 +442,14 @@ function main() {
     }
   });
 
-  // Resize
+  /* ---------- Resize ---------- */
   window.addEventListener("resize", () => {
     neural.resize();
     if (water) water.resize();
+    particles.resize();
   }, { passive: true });
 
-  // Init
+  /* ---------- Init ---------- */
   setActiveClasses(0);
   setLabel(0);
   buildDots();
@@ -351,11 +460,13 @@ function main() {
     neural.setTransitionProgress(0);
   }
 
-  // ===== CHATBOT =====
+  /* =================================================================
+     CHATBOT — 10 questions, calcul de prix théorique
+     ================================================================= */
   const chatMessages = document.getElementById("chatbot-messages");
   const chatPills = document.getElementById("chatbot-pills");
   const chatTyping = document.getElementById("chatbot-typing");
-  const chatData = {}; // collected answers
+  const chatData = { baseCost: 0, multiplier: 1, answers: {} };
 
   function getStep(id) { return CHAT_FLOW.find((s) => s.id === id); }
 
@@ -378,6 +489,10 @@ function main() {
   function showTyping() { chatTyping.style.display = "flex"; }
   function hideTyping() { chatTyping.style.display = "none"; }
 
+  function formatPrice(n) {
+    return Math.round(n).toLocaleString("fr-FR");
+  }
+
   function renderStep(stepId) {
     const step = getStep(stepId);
     if (!step) return;
@@ -385,9 +500,26 @@ function main() {
     chatPills.innerHTML = "";
     showTyping();
 
+    // Indicateur de progression
+    const chatStatus = document.querySelector(".chatbot-status");
+    const qNum = stepId.startsWith("q") ? parseInt(stepId.slice(1)) : null;
+    if (qNum) chatStatus.textContent = `${qNum} / 10`;
+    else if (stepId === "contact") chatStatus.textContent = "Presque fini !";
+    else if (stepId === "done") chatStatus.textContent = "Devis prêt ✓";
+
     setTimeout(() => {
       hideTyping();
-      addBotMessage(step.bot);
+
+      // Message dynamique pour le résultat final
+      let botText = step.bot;
+      if (stepId === "done") {
+        const total = Math.round(chatData.baseCost * chatData.multiplier);
+        const low = Math.round(total * 0.85);
+        const high = Math.round(total * 1.15);
+        botText = `Merci ! 🎯 D'après vos réponses, votre projet est estimé entre ${formatPrice(low)}€ et ${formatPrice(high)}€ TTC. Scory vous recontacte sous 24h avec un devis détaillé. À bientôt !`;
+      }
+
+      addBotMessage(botText);
 
       if (step.options && step.options.length > 0) {
         step.options.forEach((opt) => {
@@ -395,7 +527,9 @@ function main() {
           btn.className = "chat-pill";
           btn.textContent = opt.label;
           btn.addEventListener("click", () => {
-            chatData[stepId] = opt.value;
+            if (typeof opt.cost === "number") chatData.baseCost += opt.cost;
+            if (typeof opt.multiplier === "number") chatData.multiplier = opt.multiplier;
+            chatData.answers[stepId] = opt.label;
             addUserMessage(opt.label);
             chatPills.innerHTML = "";
             renderStep(opt.next);
@@ -404,16 +538,16 @@ function main() {
         });
       } else if (step.freeText) {
         const input = document.createElement("input");
-        input.type = "text";
-        input.placeholder = "Tapez ici…";
-        input.style.cssText = "flex:1;padding:0.5rem 1rem;border-radius:999px;border:1px solid rgba(192,132,252,0.3);background:rgba(192,132,252,0.08);color:rgba(245,242,255,0.9);font-size:0.85rem;font-family:var(--font-sans);outline:none;";
+        input.type = stepId === "contact" ? "email" : "text";
+        input.placeholder = stepId === "contact" ? "votre@email.com" : "Tapez ici…";
+        input.className = "chat-input";
         const send = document.createElement("button");
         send.className = "chat-pill";
         send.textContent = "Envoyer";
         const submit = () => {
           const val = input.value.trim();
           if (!val) return;
-          chatData[stepId] = val;
+          chatData.answers[stepId] = val;
           addUserMessage(val);
           chatPills.innerHTML = "";
           renderStep(step.next);
@@ -424,14 +558,14 @@ function main() {
         chatPills.appendChild(send);
         input.focus();
       }
-    }, 800 + Math.random() * 400);
+    }, 700 + Math.random() * 500);
   }
 
   // Lancer le chatbot quand il est visible
   const chatObserver = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting) {
       chatObserver.disconnect();
-      renderStep("start");
+      renderStep("q1");
     }
   }, { threshold: 0.3 });
   chatObserver.observe(document.getElementById("chatbot-section"));

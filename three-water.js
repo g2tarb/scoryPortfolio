@@ -30,7 +30,7 @@ export class WaterReflectionLayer {
       /** Dimensions texture (px) — pour cadrage « contain » sans crop agressif */
       uTextureSize: { value: new THREE.Vector2(1, 1) },
       /** < 1 = dézoom supplémentaire après le contain (respiration autour de l’image) */
-      uFrameZoom: { value: 0.88 },
+      uFrameZoom: { value: 1.0 },
     };
 
     this._clock = new THREE.Clock();
@@ -157,6 +157,11 @@ export class WaterReflectionLayer {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h, false);
+    // Ajuster le plan pour couvrir le frustum caméra (évite le zoom excessif)
+    const vFov = this.camera.fov * Math.PI / 180;
+    const frustumH = 2 * Math.tan(vFov / 2) * this.camera.position.z;
+    const frustumW = frustumH * this.camera.aspect;
+    this.mesh.scale.set(frustumW / 6.2, frustumH / 6.2, 1);
   }
 
   /**
