@@ -149,9 +149,9 @@ html, body {
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.12) inset, 0 0 80px var(--theme-glow-disc);
 }
 
-/* Méta-disque : léger accent violet */
+/* Méta-disque : glow adapté au thème */
 .disc--meta.is-active {
-  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(192,132,252,0.2) inset, 0 0 80px rgba(192,132,252,0.1);
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.12) inset, 0 0 80px var(--theme-glow-disc);
 }
 
 .disc-groove {
@@ -221,10 +221,22 @@ html, body {
 .detail-panel__hint { margin: 0; font-size: 0.72rem; color: rgba(245,242,255,0.4); letter-spacing: 0.1em; text-transform: uppercase; }
 
 /* Cartel */
-.museum-label { grid-area: label; align-self: stretch; padding: 1.25rem 1.35rem; height: fit-content; }
+.museum-label { grid-area: label; align-self: stretch; padding: 1.25rem 1.35rem; height: fit-content; transition: box-shadow 0.8s ease; }
 .label-kicker { margin: 0 0 0.35rem; font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,242,255,0.45); }
 .label-title { margin: 0 0 0.75rem; font-family: var(--font-display); font-weight: 600; font-size: 1.65rem; }
+.label-num {
+  margin: 0 0 0.35rem; font-family: var(--font-mono); font-size: 2.2rem;
+  font-weight: 700; color: var(--accent-gold); opacity: 0.25;
+  letter-spacing: -0.02em; line-height: 1;
+}
 .label-desc { margin: 0; line-height: 1.55; color: rgba(245,242,255,0.72); font-size: 0.95rem; }
+.label-stack { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.85rem; }
+.label-chip {
+  padding: 0.2rem 0.55rem; border-radius: var(--radius-label);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.65rem; letter-spacing: 0.08em; color: rgba(245,242,255,0.55);
+  font-family: var(--font-mono); text-transform: uppercase;
+}
 
 /* ===== SCROLL HINT ===== */
 .scroll-hint {

@@ -15,21 +15,25 @@ const PROJECTS = [
     title: "4dayvelopment",
     desc: "Projet web — développement et mise en scène de l'expérience.",
     detail: "4Dayvelopment livre des écosystèmes digitaux complets (branding, site, automations, funnel de conversion) en 4 jours ouvrés. Stack : Astro, Node.js, n8n, GSAP. Livré ou c'est gratuit.",
+    stack: ["Node.js", "Express", "Three.js", "GSAP", "n8n", "Zod"],
   },
   {
     title: "Clara Martinez",
     desc: "Direction artistique et identité visuelle — univers soigné, narration claire.",
     detail: "Identité visuelle complète pour Clara Martinez : logo, charte graphique, site vitrine responsive. Approche minimaliste avec des accents dorés sur fond sombre.",
+    stack: ["HTML5", "Canvas API", "Vanilla JS", "Lucide Icons", "Aurora BG"],
   },
   {
     title: "Flaynn",
     desc: "Expérience digitale immersive — interface, motion et ambiance Flaynn.",
     detail: "Flaynn est une plateforme SaaS de scoring et matching pour startups et investisseurs. Scoring IA via Claude API, génération de fiches PDF, pipeline n8n automatisé.",
+    stack: ["Fastify 5", "PostgreSQL", "Three.js", "GSAP", "Stripe", "JWT"],
   },
   {
     title: "Portfolio Scory",
     desc: "Ce musée digital — le portfolio que vous explorez en ce moment.",
     detail: "Portfolio conçu comme un musée interactif : fond neural Three.js, reflets eau via shader GLSL, carrousel à disques vinyle, animations GSAP spring. 100% vanilla JS.",
+    stack: ["Three.js", "GLSL", "GSAP", "Vanilla JS"],
   },
 ];
 
@@ -258,8 +262,10 @@ function main() {
   const waterHost = document.getElementById("water-host");
   const carousel = document.getElementById("project-carousel");
   const track = document.getElementById("project-track");
+  const labelNum = document.getElementById("label-num");
   const labelTitle = document.getElementById("label-title");
   const labelDesc = document.getElementById("label-desc");
+  const labelStack = document.getElementById("label-stack");
   const detailPanel = document.getElementById("detail-panel");
   const detailTitle = document.getElementById("detail-title");
   const detailText = document.getElementById("detail-text");
@@ -340,22 +346,39 @@ function main() {
   }
 
   /* ---------- Label / cartel ---------- */
+  function renderStack(stack) {
+    labelStack.innerHTML = "";
+    if (!stack) return;
+    stack.forEach((tag) => {
+      const chip = document.createElement("span");
+      chip.className = "label-chip";
+      chip.textContent = tag;
+      labelStack.appendChild(chip);
+    });
+  }
+
   function setLabel(i, animate) {
     const p = PROJECTS[i];
     if (!p) return;
+    const num = String(i + 1).padStart(2, "0");
     if (!animate || reduced) {
+      labelNum.textContent = num;
       labelTitle.textContent = p.title;
       labelDesc.textContent = p.desc;
+      renderStack(p.stack);
       return;
     }
-    gsap.to([labelTitle, labelDesc], {
+    const els = [labelNum, labelTitle, labelDesc, labelStack];
+    gsap.to(els, {
       opacity: 0, y: -6, duration: 0.2, ease: "power2.in",
       onComplete: () => {
+        labelNum.textContent = num;
         labelTitle.textContent = p.title;
         labelDesc.textContent = p.desc;
-        gsap.fromTo([labelTitle, labelDesc],
+        renderStack(p.stack);
+        gsap.fromTo(els,
           { opacity: 0, y: 8 },
-          { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", stagger: 0.06 }
+          { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", stagger: 0.05 }
         );
       },
     });
