@@ -290,11 +290,16 @@ function main() {
   /* ---------- Three.js ---------- */
   const neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
 
-  // Masquer le loader après initialisation Three.js
+  // Masquer le loader + animation d'entrée
   requestAnimationFrame(() => {
     setTimeout(() => {
       if (loader) loader.classList.add("is-hidden");
-    }, 800);
+      if (!reduced) {
+        gsap.from(".floating-brand", { opacity: 0, y: -20, duration: 0.8, delay: 0.15, ease: "power2.out" });
+        gsap.from(".project-carousel", { opacity: 0, y: 50, duration: 1, delay: 0.35, ease: "power2.out" });
+        gsap.from(".museum-label", { opacity: 0, x: 30, duration: 0.8, delay: 0.55, ease: "power2.out" });
+      }
+    }, 900);
   });
 
   let water = null;
@@ -388,10 +393,16 @@ function main() {
     gsap.to(els, {
       opacity: 0, y: -6, duration: 0.2, ease: "power2.in",
       onComplete: () => {
-        labelNum.textContent = num;
         labelTitle.textContent = p.title;
         labelDesc.textContent = p.desc;
         renderStack(p.stack);
+        // Compteur animé sur le numéro
+        const target = parseInt(num);
+        const counter = { val: parseInt(labelNum.textContent) || 0 };
+        gsap.to(counter, {
+          val: target, duration: 0.4, ease: "power2.out",
+          onUpdate: () => { labelNum.textContent = String(Math.round(counter.val)).padStart(2, "0"); },
+        });
         gsap.fromTo(els,
           { opacity: 0, y: 8 },
           { opacity: 1, y: 0, duration: 0.3, ease: "power2.out", stagger: 0.05 }
@@ -607,6 +618,61 @@ function main() {
     if (water) water.resize();
     particles.resize();
   }, { passive: true });
+
+  /* ---------- Curseur custom + Tilt 3D + Neural feedback ---------- */
+  const cursorDot = document.getElementById("cursor-dot");
+  const cursorRing = document.getElementById("cursor-ring");
+  const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+
+  if (!isTouchDevice && cursorDot && cursorRing) {
+    document.addEventListener("mousemove", (e) => {
+      gsap.set(cursorDot, { x: e.clientX, y: e.clientY });
+      gsap.to(cursorRing, { x: e.clientX, y: e.clientY, duration: 0.28, ease: "power2.out" });
+      // Shader neural réagit au mouvement souris
+      if (!reduced) {
+        const influence = Math.hypot(e.clientX / window.innerWidth - 0.5, e.clientY / window.innerHeight - 0.5) * 0.35;
+        neural.setRotationInfluence(influence);
+      }
+    });
+    // Hover ring sur éléments interactifs
+    document.addEventListener("mouseover", (e) => {
+      const hit = e.target.closest("a, button, .project-disc, .chat-pill, .nav-dot, .nav-arrow, input");
+      cursorRing.classList.toggle("is-hover", !!hit);
+    });
+  }
+
+  // Effet magnétique sur les flèches
+  if (!isTouchDevice) {
+    [arrowLeft, arrowRight].forEach((arrow) => {
+      const svg = arrow.querySelector("svg");
+      arrow.addEventListener("mousemove", (e) => {
+        const rect = arrow.getBoundingClientRect();
+        const dx = (e.clientX - rect.left - rect.width / 2) * 0.35;
+        const dy = (e.clientY - rect.top - rect.height / 2) * 0.35;
+        gsap.to(svg, { x: dx, y: dy, duration: 0.25, ease: "power2.out" });
+      });
+      arrow.addEventListener("mouseleave", () => {
+        gsap.to(svg, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.4)" });
+      });
+    });
+  }
+
+  // Tilt 3D du disque au survol
+  if (!isTouchDevice && !reduced) {
+    carousel.addEventListener("mousemove", (e) => {
+      if (animating) return;
+      const disc = discs().find((d) => d.classList.contains("is-active"));
+      if (!disc) return;
+      const rect = disc.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      gsap.to(disc, { rotateY: x * 14, rotateX: -y * 14, duration: 0.4, ease: "power2.out" });
+    });
+    carousel.addEventListener("mouseleave", () => {
+      const disc = discs().find((d) => d.classList.contains("is-active"));
+      if (disc) gsap.to(disc, { rotateY: 0, rotateX: 0, duration: 0.6, ease: "power2.out" });
+    });
+  }
 
   /* ---------- Init ---------- */
   setActiveClasses(0);
