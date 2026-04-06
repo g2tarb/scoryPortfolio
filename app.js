@@ -15,20 +15,16 @@ const EASE_SPRING_HEAVY = "back.out(1.32)";
 /** Textes du cartel d’exposition (titres + descriptions) — alignés sur les articles HTML */
 const PROJECTS = [
   {
-    title: "Nébula",
-    desc: "Installation lumineuse et interface tactile — une orbite de particules réagit au geste.",
+    title: "4dayvelopment",
+    desc: "Projet web — développement et mise en scène de l’expérience.",
   },
   {
-    title: "Atlas",
-    desc: "Cartographies vivantes et narration data — le récit se déploie au scroll.",
+    title: "Clara Martinez",
+    desc: "Direction artistique et identité visuelle — univers soigné, narration claire.",
   },
   {
-    title: "Velum",
-    desc: "Identité shader-driven — matière, brume et typographie en tension.",
-  },
-  {
-    title: "Agora",
-    desc: "Plateforme full-stack — API, auth et expérience utilisateur monolithique.",
+    title: "Flaynn",
+    desc: "Expérience digitale immersive — interface, motion et ambiance Flaynn.",
   },
 ];
 

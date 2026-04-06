@@ -54,53 +54,40 @@
         tabindex="0"
       >
         <div class="project-track" id="project-track">
-          <!-- Chaque article = un « disque » projet (titre court + meta) -->
           <article
             class="project-disc card-glass"
             data-index="0"
-            data-image="https://picsum.photos/seed/scory-nebula/1600/1000"
+            data-image="./image/fond4Day.png"
             tabindex="-1"
           >
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
-              <span class="disc-title">Nébula</span>
-              <span class="disc-meta">WebGL · UI</span>
+              <span class="disc-title">4dayvelopment</span>
+              <span class="disc-meta">Projet web</span>
             </div>
           </article>
           <article
             class="project-disc card-glass"
             data-index="1"
-            data-image="https://picsum.photos/seed/scory-atlas/1600/1000"
+            data-image="./image/fondClara.png"
             tabindex="-1"
           >
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
-              <span class="disc-title">Atlas</span>
-              <span class="disc-meta">Data · Motion</span>
+              <span class="disc-title">Clara Martinez</span>
+              <span class="disc-meta">Design & identité</span>
             </div>
           </article>
           <article
             class="project-disc card-glass"
             data-index="2"
-            data-image="https://picsum.photos/seed/scory-velum/1600/1000"
+            data-image="./image/fondFlaynn.png"
             tabindex="-1"
           >
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
-              <span class="disc-title">Velum</span>
-              <span class="disc-meta">Shader · Brand</span>
-            </div>
-          </article>
-          <article
-            class="project-disc card-glass"
-            data-index="3"
-            data-image="https://picsum.photos/seed/scory-agora/1600/1000"
-            tabindex="-1"
-          >
-            <div class="disc-groove" aria-hidden="true"></div>
-            <div class="disc-label">
-              <span class="disc-title">Agora</span>
-              <span class="disc-meta">Full-stack</span>
+              <span class="disc-title">Flaynn</span>
+              <span class="disc-meta">Expérience digitale</span>
             </div>
           </article>
         </div>
@@ -109,13 +96,13 @@
       <!-- Cartel : texte long synchronisé par app.js avec le disque actif -->
       <aside class="museum-label glass-panel" id="museum-label" aria-live="polite">
         <p class="label-kicker">Cartel</p>
-        <h2 class="label-title" id="label-title">Nébula</h2>
+        <h2 class="label-title" id="label-title">4dayvelopment</h2>
         <p class="label-desc" id="label-desc">
-          Installation lumineuse et interface tactile — une orbite de particules réagit au geste.
+          Projet web — développement et mise en scène de l’expérience.
         </p>
       </aside>
 
-      <!-- Overlay « loupe expert » : code injecté dans <code>, visible au long press -->
+      <!-- Overlay « loupe expert » : code injecté dans le <pre> de l’overlay -->
       <div id="expert-loupe" class="expert-loupe" aria-hidden="true">
         <div class="expert-loupe__vignette" aria-hidden="true"></div>
         <pre class="expert-loupe__code" id="expert-code-scroll"><code></code></pre>
