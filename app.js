@@ -1,39 +1,42 @@
 /**
- * Application principale SCORY : carrousel type « vinyles », fond WebGL neural,
- * et loupe « expert » (long press) avec feedback sur le shader Three.js.
+ * SCORY — app.js
+ * Navigation flèches (1 disque visible), long press détails, chatbot conversationnel.
  */
 import gsap from "gsap";
 import { FlaynnNeuralBackground } from "./three-neural.js";
 import { WaterReflectionLayer } from "./three-water.js";
 
-/**
- * Courbe d’animation pour l’arrivée du disque suivant — calibrée comme
- * --ease-spring-heavy dans defaut.css (sensation ressort / stabilisation).
- */
 const EASE_SPRING_HEAVY = "back.out(1.32)";
 
-/** Textes du cartel d’exposition (titres + descriptions) — alignés sur les articles HTML */
+/** Projets : titre, desc courte, détails (long press) */
 const PROJECTS = [
   {
     title: "4dayvelopment",
-    desc: "Projet web — développement et mise en scène de l’expérience.",
+    desc: "Projet web — développement et mise en scène de l'expérience.",
+    detail: "4Dayvelopment livre des écosystèmes digitaux complets (branding, site, automations, funnel de conversion) en 4 jours ouvrés. Stack : Astro, Node.js, n8n, GSAP. Livré ou c'est gratuit.",
   },
   {
     title: "Clara Martinez",
     desc: "Direction artistique et identité visuelle — univers soigné, narration claire.",
+    detail: "Identité visuelle complète pour Clara Martinez : logo, charte graphique, site vitrine responsive. Approche minimaliste avec des accents dorés sur fond sombre.",
   },
   {
     title: "Flaynn",
     desc: "Expérience digitale immersive — interface, motion et ambiance Flaynn.",
+    detail: "Flaynn est une plateforme SaaS de scoring et matching pour startups et investisseurs. Scoring IA via Claude API, génération de fiches PDF, pipeline n8n automatisé.",
+  },
+  {
+    title: "Portfolio Scory",
+    desc: "Ce musée digital — le portfolio que vous explorez en ce moment.",
+    detail: "Portfolio conçu comme un musée interactif : fond neural Three.js, reflets eau via shader GLSL, carrousel à disques vinyle, animations GSAP spring. 100% vanilla JS.",
   },
 ];
 
-/** Faux code affiché dans la loupe (chaîne injectée dans le <pre> de l’overlay) */
-const CODE_LOUPE = `// SCORY — app.js (extrait — envers du décor)
+const CODE_LOUPE = `// SCORY — app.js (extrait)
 import gsap from "gsap";
 import { FlaynnNeuralBackground } from "./three-neural.js";
 
-const EASE_SPRING_HEAVY = "back.out(1.32)"; // miroir de --ease-spring-heavy
+const EASE_SPRING_HEAVY = "back.out(1.32)";
 
 export function mountCarousel(neural, ctx) {
   const tl = gsap.timeline({
@@ -41,47 +44,65 @@ export function mountCarousel(neural, ctx) {
     onComplete: () => neural.setTransitionProgress(0),
   });
   tl.to(current, { rotateX: -15, y: -40, opacity: 0, ease: "power2.in" });
-  tl.to(track, { x: targetX, duration: 0.55, ease: "power3.inOut" }, 0);
-  tl.fromTo(
-    next,
-    { rotateX: 45, y: 100, opacity: 0 },
-    { rotateX: 0, y: 0, opacity: 1, ease: EASE_SPRING_HEAVY },
-    0.12
-  );
-  return tl;
-}
-
-// La loupe expert : long-press → uLoupeProgress → zoom caméra + code
-function onExpertLoupe(neural, progress) {
-  neural.setLoupeProgress(progress);
+  tl.fromTo(next, { rotateX: 45, y: 100, opacity: 0 },
+    { rotateX: 0, y: 0, opacity: 1, ease: EASE_SPRING_HEAVY }, 0.12);
 }
 `;
 
-/** Détecte la préférence système « moins d’animations » (accessibilité) */
+/** Chatbot : arbre de conversation */
+const CHAT_FLOW = [
+  {
+    id: "start",
+    bot: "Bienvenue ! 👋 Quel type de projet avez-vous en tête ?",
+    options: [
+      { label: "Site vitrine", next: "budget", value: "Site vitrine" },
+      { label: "Landing page", next: "budget", value: "Landing page" },
+      { label: "SaaS / App web", next: "budget", value: "SaaS / App web" },
+      { label: "Autre chose", next: "other", value: "Autre" },
+    ],
+  },
+  {
+    id: "other",
+    bot: "Pas de problème ! Décrivez-moi votre projet en quelques mots :",
+    freeText: true,
+    next: "budget",
+  },
+  {
+    id: "budget",
+    bot: "Super choix ! Et côté budget, vous êtes sur quelle fourchette ?",
+    options: [
+      { label: "< 1 500 €", next: "timeline", value: "< 1 500 €" },
+      { label: "1 500 – 3 000 €", next: "timeline", value: "1 500 – 3 000 €" },
+      { label: "3 000 € +", next: "timeline", value: "3 000 € +" },
+      { label: "À définir", next: "timeline", value: "À définir" },
+    ],
+  },
+  {
+    id: "timeline",
+    bot: "Dernière question : c'est pour quand ?",
+    options: [
+      { label: "Urgent (< 2 sem)", next: "contact", value: "Urgent" },
+      { label: "Ce mois-ci", next: "contact", value: "Ce mois" },
+      { label: "Pas pressé", next: "contact", value: "Pas pressé" },
+    ],
+  },
+  {
+    id: "contact",
+    bot: "Parfait ! Laissez-moi votre email et Scory vous recontacte sous 24h :",
+    freeText: true,
+    next: "done",
+  },
+  {
+    id: "done",
+    bot: "Merci ! 🎯 Scory va analyser votre projet et vous recontacter très vite. À bientôt !",
+    options: [],
+  },
+];
+
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Lit l’espace entre les flex items (#project-track) pour calculer la position du rail */
-function getGapPx(el) {
-  const g = getComputedStyle(el).gap || getComputedStyle(el).columnGap;
-  return parseFloat(g) || 0;
-}
-
-/**
- * Calcule la translation horizontale (GSAP `x`) du rail pour centrer le disque `index`
- * dans la zone visible du carrousel.
- */
-function getTrackXForIndex(carousel, track, discs, index) {
-  const gap = getGapPx(track);
-  let left = 0;
-  for (let i = 0; i < index; i++) {
-    left += discs[i].offsetWidth + gap;
-  }
-  return carousel.clientWidth / 2 - left - discs[index].offsetWidth / 2;
-}
-
-/** Point d’entrée : récupère le DOM, instancie le fond neural, branche les gestes */
 function main() {
   const stage = document.getElementById("museum-stage");
   const neuralHost = document.getElementById("neural-host");
@@ -92,48 +113,78 @@ function main() {
   const labelDesc = document.getElementById("label-desc");
   const loupe = document.getElementById("expert-loupe");
   const loupeCode = loupe.querySelector("#expert-code-scroll code");
+  const detailPanel = document.getElementById("detail-panel");
+  const detailTitle = document.getElementById("detail-title");
+  const detailText = document.getElementById("detail-text");
+  const arrowLeft = document.getElementById("arrow-left");
+  const arrowRight = document.getElementById("arrow-right");
+  const dotsContainer = document.getElementById("nav-dots");
 
   if (!stage || !neuralHost || !carousel || !track) return;
 
   loupeCode.textContent = CODE_LOUPE;
-
   const reduced = prefersReducedMotion();
-  // Fond Three.js : timeScale réduit si l’utilisateur a demandé moins de mouvement
-  const neural = new FlaynnNeuralBackground(neuralHost, {
-    timeScale: reduced ? 0.22 : 1,
-  });
 
-  /** Calque « reflet eau » (capture projet) — optionnel si #water-host absent */
+  const neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
+
   let water = null;
-  /** @type {gsap.core.Timeline | gsap.core.Tween | null} */
   let waterSplashTween = null;
   if (waterHost) {
-    water = new WaterReflectionLayer(waterHost, {
-      timeScale: reduced ? 0.22 : 1,
-    });
+    water = new WaterReflectionLayer(waterHost, { timeScale: reduced ? 0.22 : 1 });
     gsap.set(waterHost, { opacity: 0 });
   }
   gsap.set(neuralHost, { opacity: 1 });
 
-  /**
-   * Charge la texture du disque actif et anime le fade neural → eau + « éclaboussure » uProgress.
-   */
+  let activeIndex = 0;
+  let animating = false;
+  let longPressTimer = null;
+  let detailVisible = false;
+
+  const discs = () => [...track.querySelectorAll(".project-disc")];
+
+  // Build dots
+  function buildDots() {
+    dotsContainer.innerHTML = "";
+    const d = discs();
+    d.forEach((_, i) => {
+      const dot = document.createElement("button");
+      dot.className = "nav-dot" + (i === activeIndex ? " is-active" : "");
+      dot.setAttribute("aria-label", `Projet ${i + 1}`);
+      dot.addEventListener("click", () => goTo(i));
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  function updateDots() {
+    const dots = dotsContainer.querySelectorAll(".nav-dot");
+    dots.forEach((d, i) => d.classList.toggle("is-active", i === activeIndex));
+  }
+
+  function setLabel(i) {
+    const p = PROJECTS[i];
+    if (!p) return;
+    labelTitle.textContent = p.title;
+    labelDesc.textContent = p.desc;
+  }
+
+  function setActiveClasses(i) {
+    discs().forEach((d, idx) => {
+      d.classList.toggle("is-active", idx === i);
+      d.setAttribute("aria-current", idx === i ? "true" : "false");
+    });
+  }
+
+  /** Sync fond eau */
   async function syncProjectWater() {
     if (!water || !waterHost) return;
     const el = discs()[activeIndex];
     const url = el?.dataset?.image;
     if (!url) return;
-    try {
-      await water.loadTexture(url);
-    } catch (e) {
-      console.warn("[SCORY] Texture reflet eau :", e);
-      return;
-    }
-    runWaterSplashAnimation();
+    try { await water.loadTexture(url); } catch { return; }
+    runWaterSplash();
   }
 
-  /** Éclaboussure (uProgress fort) puis ondulation calme ; le neural s’estompe. */
-  function runWaterSplashAnimation() {
+  function runWaterSplash() {
     if (!water || !waterHost) return;
     if (waterSplashTween) waterSplashTween.kill();
     if (reduced) {
@@ -144,545 +195,246 @@ function main() {
     }
     water.setProgress(1);
     const proxy = { p: 1 };
-    waterSplashTween = gsap
-      .timeline()
+    waterSplashTween = gsap.timeline()
       .to(neuralHost, { opacity: 0.14, duration: 1.15, ease: "power2.out" }, 0)
       .to(waterHost, { opacity: 1, duration: 1.05, ease: "power2.out" }, 0)
-      .to(
-        proxy,
-        {
-          p: 0.1,
-          duration: 2.45,
-          ease: "power3.out",
-          onUpdate: () => water.setProgress(proxy.p),
-        },
-        0
-      );
+      .to(proxy, { p: 0.1, duration: 2.45, ease: "power3.out", onUpdate: () => water.setProgress(proxy.p) }, 0);
   }
 
-  let activeIndex = 0; // index du projet actuellement « sélectionné »
-  let animating = false; // évite les transitions qui se chevauchent
-  let dragPointerId = null; // pointerId pour suivre le bon doigt / souris
-  let dragStartX = 0; // origine du drag (décision swipe)
-  let dragLastX = 0;
-  let dragLastT = 0; // horodatage pour estimer la vélocité
-  let velocity = 0; // utilisée pour le feedback organique sur le shader
-  let longPressTimer = null; // timer du maintien pour la loupe expert
-  let longPressArmed = true; // annulé si l’utilisateur bouge trop (ce n’est plus un long press)
-  let loupeActive = false; // overlay code + zoom caméra
-  let loupeTween = null; // tween GSAP courant sur uLoupeProgress
-  let orbitMode = false; // true = projets disposés en cercle
-  let dragStartY = 0;
-  let pointerDownAt = 0;
-
-  /** Liste à jour des éléments disque dans le rail */
-  const discs = () => [...track.querySelectorAll(".project-disc")];
-
-  /** Rayon du cercle (px) selon la taille du carrousel */
-  function getOrbitRadius() {
-    const w = carousel.clientWidth;
-    const h = carousel.clientHeight;
-    return Math.min(w, h) * 0.36;
-  }
-
-  /** Indique en HTML si la vue circulaire est active (style / tests) */
-  function setOrbitAria(on) {
-    carousel.setAttribute("data-orbit", on ? "true" : "false");
-  }
-
-  /**
-   * Place chaque disque sur le cercle : le projet actif en bas (devant), les autres autour.
-   * @param {boolean} animate — false = recalcul immédiat (resize, reduced motion)
-   */
-  function layoutOrbitDiscs(animate) {
-    const d = discs();
-    const n = d.length;
-    if (n === 0) return;
-    const r = getOrbitRadius();
-    const dur = animate && !reduced ? 0.62 : 0;
-    d.forEach((disc, i) => {
-      const theta = Math.PI / 2 + (i - activeIndex) * ((2 * Math.PI) / n);
-      const x = r * Math.cos(theta);
-      const y = r * Math.sin(theta);
-      const scale = i === activeIndex ? 1.1 : 0.88;
-      if (dur > 0) {
-        gsap.to(disc, {
-          xPercent: -50,
-          yPercent: -50,
-          x,
-          y,
-          scale,
-          duration: dur,
-          ease: EASE_SPRING_HEAVY,
-        });
-      } else {
-        gsap.set(disc, { xPercent: -50, yPercent: -50, x, y, scale });
-      }
-    });
-  }
-
-  /** Passe en vue circulaire : le disque cliqué devient le projet « devant » (bas du cercle) */
-  function enterOrbit(idx) {
-    if (animating || orbitMode) return;
-    animating = true;
-    activeIndex = idx;
-    setActiveClasses(activeIndex);
-    setLabel(activeIndex);
-    gsap.set(track, { x: 0 });
-    orbitMode = true;
-    carousel.classList.add("carousel--orbit");
-    track.classList.add("is-orbit");
-    setOrbitAria(true);
-
-    const d = discs();
-    d.forEach((disc) => {
-      gsap.set(disc, {
-        xPercent: -50,
-        yPercent: -50,
-        x: 0,
-        y: 0,
-        scale: 0.48,
-        rotateX: 0,
-        transformOrigin: "50% 50%",
-      });
-    });
-
-    const n = d.length;
-    const r = getOrbitRadius();
-    const tl = gsap.timeline({
-      onUpdate: () => neural.setTransitionProgress(tl.progress()),
-      onComplete: () => {
-        animating = false;
-        neural.setTransitionProgress(0);
-        void syncProjectWater();
-      },
-    });
-    d.forEach((disc, i) => {
-      const theta = Math.PI / 2 + (i - activeIndex) * ((2 * Math.PI) / n);
-      const x = r * Math.cos(theta);
-      const y = r * Math.sin(theta);
-      const scale = i === activeIndex ? 1.1 : 0.88;
-      tl.to(
-        disc,
-        {
-          xPercent: -50,
-          yPercent: -50,
-          x,
-          y,
-          scale,
-          duration: reduced ? 0 : 0.78,
-          ease: EASE_SPRING_HEAVY,
-        },
-        0
-      );
-    });
-  }
-
-  /** Retour au rail horizontal */
-  function exitOrbit() {
-    if (!orbitMode || animating) return;
-    animating = true;
-    const d = discs();
-    const tl = gsap.timeline({
-      onComplete: () => {
-        orbitMode = false;
-        carousel.classList.remove("carousel--orbit");
-        track.classList.remove("is-orbit");
-        setOrbitAria(false);
-        d.forEach((disc) => gsap.set(disc, { clearProps: "all" }));
-        positionTrack(activeIndex, true);
-        animating = false;
-        neural.setTransitionProgress(0);
-      },
-    });
-    d.forEach((disc) => {
-      tl.to(
-        disc,
-        {
-          xPercent: -50,
-          yPercent: -50,
-          x: 0,
-          y: 0,
-          scale: 0.5,
-          duration: reduced ? 0 : 0.42,
-          ease: "power2.in",
-        },
-        0
-      );
-    });
-  }
-
-  /** Fait tourner la sélection sur le cercle (swipe ou flèches) */
-  function orbitStep(delta) {
-    const n = discs().length;
-    if (n === 0 || !orbitMode || animating) return;
-    activeIndex = (activeIndex + delta + n) % n;
-    setActiveClasses(activeIndex);
-    setLabel(activeIndex);
-    layoutOrbitDiscs(!reduced);
-    void syncProjectWater();
-  }
-
-  /** Met à jour le cartel (titre + texte) selon l’index projet */
-  function setLabel(i) {
-    const p = PROJECTS[i];
-    if (!p) return;
-    labelTitle.textContent = p.title;
-    labelDesc.textContent = p.desc;
-  }
-
-  /** Marque visuellement le disque actif et l’état pour les lecteurs d’écran */
-  function setActiveClasses(i) {
-    discs().forEach((d, idx) => {
-      d.classList.toggle("is-active", idx === i);
-      d.setAttribute("aria-current", idx === i ? "true" : "false");
-    });
-  }
-
-  /**
-   * Après un geste, amortit la vélocité et pousse `uRotationInfluence` sur le shader
-   * jusqu’à retomber à zéro (effet « spin » résiduel).
-   */
-  function applyNeuralSpin() {
-    const spin = Math.min(1.8, Math.abs(velocity) / 420);
-    neural.setRotationInfluence(spin);
-    velocity *= 0.94;
-    if (Math.abs(velocity) > 0.01) {
-      requestAnimationFrame(applyNeuralSpin);
-    } else {
-      neural.setRotationInfluence(0);
-    }
-  }
-
-  /** Centre le rail sur un index (avec ou sans animation douce) */
-  function positionTrack(index, useInstant) {
-    const d = discs();
-    const x = getTrackXForIndex(carousel, track, d, index);
-    if (reduced || useInstant) {
-      gsap.set(track, { x });
-    } else {
-      gsap.to(track, {
-        x,
-        duration: 0.45,
-        ease: "power3.out",
-      });
-    }
-  }
-
-  /**
-   * Passe au projet `nextIndex` : animation GSAP du disque courant (sortie),
-   * translation du rail, entrée du suivant avec ressort — `onUpdate` alimente
-   * `uTransitionProgress` pour le fond neural.
-   */
+  /** Navigation : transition d'un disque à l'autre */
   function goTo(nextIndex) {
-    if (orbitMode) return;
     const d = discs();
     const n = d.length;
-    if (n === 0 || animating || nextIndex === activeIndex) return;
-    if (nextIndex < 0 || nextIndex >= n) return;
+    if (n === 0 || animating) return;
+    // Wrap around
+    if (nextIndex < 0) nextIndex = n - 1;
+    if (nextIndex >= n) nextIndex = 0;
+    if (nextIndex === activeIndex) return;
 
     animating = true;
     const currentDisc = d[activeIndex];
     const nextDisc = d[nextIndex];
-    const targetX = getTrackXForIndex(carousel, track, d, nextIndex);
+    const goingRight = nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0);
 
-    // Mode réduit : pas d’animation, saut direct + MAJ texte / classes
     if (reduced) {
       activeIndex = nextIndex;
-      gsap.set([currentDisc, nextDisc], { clearProps: "transform,opacity" });
-      positionTrack(activeIndex, true);
       setActiveClasses(activeIndex);
       setLabel(activeIndex);
+      updateDots();
       animating = false;
       void syncProjectWater();
       return;
     }
 
-    // État initial : suivant « en bas », penché ; courant prêt à pivoter vers l’arrière
-    gsap.set(nextDisc, { rotateX: 45, y: 100, opacity: 0, transformOrigin: "50% 50%" });
-    gsap.set(currentDisc, { transformOrigin: "50% 50%" });
+    // Exit current disc
+    const exitY = goingRight ? -60 : 60;
+    const enterY = goingRight ? 80 : -80;
 
     const tl = gsap.timeline({
-      defaults: { overwrite: "auto" },
-      // progresse 0→1 pendant toute la timeline → morph du shader de fond
       onUpdate: () => neural.setTransitionProgress(tl.progress()),
       onComplete: () => {
         activeIndex = nextIndex;
-        gsap.set(currentDisc, { clearProps: "all" });
-        gsap.set(nextDisc, { clearProps: "all" });
+        gsap.set(currentDisc, { clearProps: "transform,opacity" });
+        gsap.set(nextDisc, { clearProps: "transform" });
         setActiveClasses(activeIndex);
         setLabel(activeIndex);
+        updateDots();
         neural.setTransitionProgress(0);
         animating = false;
         void syncProjectWater();
       },
     });
 
-    // Disque actuel : inclinaison -15° sur X, monte et disparaît
-    tl.to(
-      currentDisc,
-      {
-        rotateX: -15,
-        y: -40,
-        opacity: 0,
-        duration: 0.46,
-        ease: "power2.in",
-      },
-      0
-    );
+    // Current out
+    tl.to(currentDisc, {
+      rotateX: -15, y: exitY, opacity: 0, duration: 0.4, ease: "power2.in",
+    }, 0);
 
-    // Rail : glisse pour amener le suivant au centre
-    tl.to(
-      track,
-      {
-        x: targetX,
-        duration: 0.56,
-        ease: "power3.inOut",
-      },
-      0
-    );
+    // Make next visible before animating in
+    nextDisc.classList.add("is-active");
+    nextDisc.style.pointerEvents = "auto";
+    gsap.set(nextDisc, { rotateX: 30, y: enterY, opacity: 0, position: "relative" });
 
-    // Nouveau disque : arrive du bas avec rotation, se stabilise avec ressort
-    tl.to(
-      nextDisc,
-      {
-        rotateX: 0,
-        y: 0,
-        opacity: 1,
-        duration: 0.74,
-        ease: EASE_SPRING_HEAVY,
-      },
-      0.12
-    );
+    tl.to(nextDisc, {
+      rotateX: 0, y: 0, opacity: 1, duration: 0.65, ease: EASE_SPRING_HEAVY,
+    }, 0.15);
   }
 
-  /**
-   * Ouvre la loupe : overlay visible, tween brutal vers uLoupeProgress = 1 (zoom shader + caméra).
-   * Écoute `pointerup`/`pointercancel` sur `window` car l’overlay recouvre le carrousel.
-   */
-  function openLoupe() {
-    if (loupeActive || reduced) return;
-    loupeActive = true;
-    loupe.classList.add("is-visible");
-    loupe.setAttribute("aria-hidden", "false");
+  // Arrow clicks
+  arrowLeft.addEventListener("click", () => { if (!animating) goTo(activeIndex - 1); });
+  arrowRight.addEventListener("click", () => { if (!animating) goTo(activeIndex + 1); });
 
-    if (loupeTween) loupeTween.kill();
-    const o = { p: neural.getLoupeProgress() };
-    loupeTween = gsap.to(o, {
-      p: 1,
-      duration: 0.38,
-      ease: "power4.in",
-      onUpdate: () => neural.setLoupeProgress(o.p),
-    });
+  // Keyboard
+  carousel.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowRight") { e.preventDefault(); goTo(activeIndex + 1); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); goTo(activeIndex - 1); }
+  });
 
-    const finishLoupe = () => {
-      window.removeEventListener("pointerup", finishLoupe);
-      window.removeEventListener("pointercancel", finishLoupe);
-      if (!loupeActive) return;
-      try {
-        if (dragPointerId != null) {
-          carousel.releasePointerCapture(dragPointerId);
-        }
-      } catch {
-        /* ignore */
-      }
-      dragPointerId = null;
-      closeLoupe();
-      const activeDisc = discs()[activeIndex];
-      if (activeDisc) gsap.set(activeDisc, { clearProps: "rotateX" });
-      requestAnimationFrame(applyNeuralSpin);
+  // ===== LONG PRESS → DETAIL PANEL =====
+  function openDetail() {
+    if (detailVisible) return;
+    detailVisible = true;
+    const p = PROJECTS[activeIndex];
+    if (!p) return;
+    detailTitle.textContent = p.title;
+    detailText.textContent = p.detail;
+    detailPanel.classList.add("is-visible");
+    detailPanel.setAttribute("aria-hidden", "false");
+
+    const finish = () => {
+      window.removeEventListener("pointerup", finish);
+      window.removeEventListener("pointercancel", finish);
+      closeDetail();
     };
-    window.addEventListener("pointerup", finishLoupe);
-    window.addEventListener("pointercancel", finishLoupe);
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", finish);
   }
 
-  /** Ferme la loupe : tween fluide avec rebond (back.out) sur le zoom */
-  function closeLoupe() {
-    if (!loupeActive) return;
-    loupeActive = false;
-    loupe.classList.remove("is-visible");
-    loupe.setAttribute("aria-hidden", "true");
-
-    if (loupeTween) loupeTween.kill();
-    const o = { p: neural.getLoupeProgress() };
-    loupeTween = gsap.to(o, {
-      p: 0,
-      duration: 0.85,
-      ease: "back.out(1.45)",
-      onUpdate: () => neural.setLoupeProgress(o.p),
-      onComplete: () => neural.setLoupeProgress(0),
-    });
+  function closeDetail() {
+    if (!detailVisible) return;
+    detailVisible = false;
+    detailPanel.classList.remove("is-visible");
+    detailPanel.setAttribute("aria-hidden", "true");
   }
 
-  /* --- Pointer / swipe : drag horizontal, swipe pour changer de disque, long press = loupe --- */
+  let longPressArmed = true;
+  let dragStartX = 0;
 
   carousel.addEventListener("pointerdown", (e) => {
-    if (animating || loupeActive) return;
-    dragPointerId = e.pointerId;
+    if (animating || detailVisible) return;
     dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    pointerDownAt = performance.now();
-    dragLastX = e.clientX;
-    dragLastT = performance.now();
-    velocity = 0;
-    // Garantit les événements pointer sur ce nœud pendant le drag
-    carousel.setPointerCapture(e.pointerId);
-
     longPressArmed = true;
     const target = e.target.closest(".project-disc");
-    // Long press uniquement sur le disque déjà actif → ouvre la loupe après 420 ms
     if (target && target.classList.contains("is-active")) {
       longPressTimer = window.setTimeout(() => {
-        if (longPressArmed) openLoupe();
-      }, 420);
+        if (longPressArmed) openDetail();
+      }, 500);
     }
   });
 
   carousel.addEventListener("pointermove", (e) => {
-    if (e.pointerId !== dragPointerId) return;
-    const dx = e.clientX - dragStartX;
-    // Mouvement horizontal : ce n’est plus un long press pur
-    if (Math.abs(dx) > 12) {
+    if (Math.abs(e.clientX - dragStartX) > 12) {
       longPressArmed = false;
-      if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        longPressTimer = null;
-      }
-    }
-
-    const now = performance.now();
-    const dt = Math.max(1, now - dragLastT);
-    const inst = (e.clientX - dragLastX) / dt;
-    velocity = velocity * 0.65 + inst * 350;
-    dragLastX = e.clientX;
-    dragLastT = now;
-
-    // Inclinaison live du disque actif (vue ligne uniquement) + feedback neural
-    if (!reduced && !loupeActive && !orbitMode) {
-      const active = discs()[activeIndex];
-      if (active) {
-        const tilt = Math.max(-8, Math.min(8, dx * 0.04));
-        gsap.set(active, { rotateX: tilt, transformOrigin: "50% 50%" });
-      }
-      neural.setRotationInfluence(Math.min(1.6, Math.abs(velocity) / 380));
+      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     }
   });
 
-  carousel.addEventListener("pointerup", (e) => {
-    if (e.pointerId !== dragPointerId) return;
-    carousel.releasePointerCapture(e.pointerId);
-    dragPointerId = null;
-
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      longPressTimer = null;
-    }
-
-    const dx = e.clientX - dragStartX;
-    const dy = e.clientY - dragStartY;
-    const tapDuration = performance.now() - pointerDownAt;
-    const clickedDisc = e.target.closest(".project-disc");
-
-    const isTap =
-      Math.abs(dx) <= 20 &&
-      Math.abs(dy) <= 20 &&
-      tapDuration < 650 &&
-      clickedDisc &&
-      !loupeActive;
-
-    if (isTap && !animating) {
-      const idx = parseInt(clickedDisc.dataset.index, 10);
-      if (Number.isFinite(idx)) {
-        if (!orbitMode) {
-          enterOrbit(idx);
-        } else if (idx === activeIndex) {
-          exitOrbit();
-        } else {
-          activeIndex = idx;
-          setActiveClasses(activeIndex);
-          setLabel(activeIndex);
-          layoutOrbitDiscs(!reduced);
-          void syncProjectWater();
-        }
-      }
-      const activeDisc = discs()[activeIndex];
-      if (activeDisc && !reduced && !orbitMode) {
-        gsap.to(activeDisc, { rotateX: 0, duration: 0.35, ease: EASE_SPRING_HEAVY });
-      }
-      requestAnimationFrame(applyNeuralSpin);
-      return;
-    }
-
-    const active = discs()[activeIndex];
-    if (active && !reduced) {
-      gsap.to(active, {
-        rotateX: 0,
-        duration: 0.35,
-        ease: EASE_SPRING_HEAVY,
-      });
-    }
-
-    requestAnimationFrame(applyNeuralSpin);
-
-    if (Math.abs(dx) > 56 && !animating) {
-      if (orbitMode) {
-        if (dx < 0) orbitStep(1);
-        else orbitStep(-1);
-      } else {
-        if (dx < 0) goTo(activeIndex + 1);
-        else goTo(activeIndex - 1);
-      }
-    }
+  carousel.addEventListener("pointerup", () => {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
   });
 
-  carousel.addEventListener("pointercancel", (e) => {
-    if (e.pointerId !== dragPointerId) return;
-    dragPointerId = null;
-    if (longPressTimer) clearTimeout(longPressTimer);
-    longPressTimer = null;
-    const active = discs()[activeIndex];
-    if (active && !reduced) gsap.to(active, { rotateX: 0, duration: 0.3, ease: EASE_SPRING_HEAVY });
-  });
-
-  carousel.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && orbitMode) {
-      e.preventDefault();
-      exitOrbit();
-      return;
-    }
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      if (orbitMode) orbitStep(1);
-      else goTo(activeIndex + 1);
-    }
-    if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      if (orbitMode) orbitStep(-1);
+  // Swipe support
+  let swipeStartX = 0;
+  carousel.addEventListener("touchstart", (e) => { swipeStartX = e.touches[0].clientX; }, { passive: true });
+  carousel.addEventListener("touchend", (e) => {
+    const dx = e.changedTouches[0].clientX - swipeStartX;
+    if (Math.abs(dx) > 60 && !animating) {
+      if (dx < 0) goTo(activeIndex + 1);
       else goTo(activeIndex - 1);
     }
   });
 
-  window.addEventListener(
-    "resize",
-    () => {
-      neural.resize();
-      if (water) water.resize();
-      if (orbitMode) layoutOrbitDiscs(false);
-      else positionTrack(activeIndex, true);
-    },
-    { passive: true }
-  );
+  // Resize
+  window.addEventListener("resize", () => {
+    neural.resize();
+    if (water) water.resize();
+  }, { passive: true });
 
+  // Init
   setActiveClasses(0);
   setLabel(0);
-  positionTrack(0, true);
-  setOrbitAria(false);
+  buildDots();
   void syncProjectWater();
 
   if (reduced) {
     neural.setRotationInfluence(0);
     neural.setTransitionProgress(0);
   }
+
+  // ===== CHATBOT =====
+  const chatMessages = document.getElementById("chatbot-messages");
+  const chatPills = document.getElementById("chatbot-pills");
+  const chatTyping = document.getElementById("chatbot-typing");
+  const chatData = {}; // collected answers
+
+  function getStep(id) { return CHAT_FLOW.find((s) => s.id === id); }
+
+  function addBotMessage(text) {
+    const div = document.createElement("div");
+    div.className = "chat-msg chat-msg--bot";
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function addUserMessage(text) {
+    const div = document.createElement("div");
+    div.className = "chat-msg chat-msg--user";
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function showTyping() { chatTyping.style.display = "flex"; }
+  function hideTyping() { chatTyping.style.display = "none"; }
+
+  function renderStep(stepId) {
+    const step = getStep(stepId);
+    if (!step) return;
+
+    chatPills.innerHTML = "";
+    showTyping();
+
+    setTimeout(() => {
+      hideTyping();
+      addBotMessage(step.bot);
+
+      if (step.options && step.options.length > 0) {
+        step.options.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.className = "chat-pill";
+          btn.textContent = opt.label;
+          btn.addEventListener("click", () => {
+            chatData[stepId] = opt.value;
+            addUserMessage(opt.label);
+            chatPills.innerHTML = "";
+            renderStep(opt.next);
+          });
+          chatPills.appendChild(btn);
+        });
+      } else if (step.freeText) {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = "Tapez ici…";
+        input.style.cssText = "flex:1;padding:0.5rem 1rem;border-radius:999px;border:1px solid rgba(192,132,252,0.3);background:rgba(192,132,252,0.08);color:rgba(245,242,255,0.9);font-size:0.85rem;font-family:var(--font-sans);outline:none;";
+        const send = document.createElement("button");
+        send.className = "chat-pill";
+        send.textContent = "Envoyer";
+        const submit = () => {
+          const val = input.value.trim();
+          if (!val) return;
+          chatData[stepId] = val;
+          addUserMessage(val);
+          chatPills.innerHTML = "";
+          renderStep(step.next);
+        };
+        send.addEventListener("click", submit);
+        input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+        chatPills.appendChild(input);
+        chatPills.appendChild(send);
+        input.focus();
+      }
+    }, 800 + Math.random() * 400);
+  }
+
+  // Lancer le chatbot quand il est visible
+  const chatObserver = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      chatObserver.disconnect();
+      renderStep("start");
+    }
+  }, { threshold: 0.3 });
+  chatObserver.observe(document.getElementById("chatbot-section"));
 }
 
 main();

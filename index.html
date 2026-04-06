@@ -5,19 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#07060a" />
     <title>SCORY — Musée Digital</title>
-    <!-- Polices : titrage (Cormorant), interface (DM Sans), code loupe (JetBrains Mono) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <!-- Tokens puis styles de mise en page -->
     <link rel="stylesheet" href="./defaut.css" />
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Polyfill import maps pour navigateurs plus anciens -->
     <script async src="https://unpkg.com/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
-    <!-- Résolution des modules npm (Three.js, GSAP) depuis le CDN -->
     <script type="importmap">
       {
         "imports": {
@@ -28,81 +24,84 @@
     </script>
   </head>
   <body>
-    <!-- Lien d’évitement : focus clavier vers la scène principale -->
     <a class="skip-link" href="#museum-stage">Aller au musée</a>
 
-    <!-- Scène plein écran : fond neural + calque « eau » (capture projet) + UI -->
     <main id="museum-stage" aria-label="Scène principale SCORY">
       <div id="neural-host" class="neural-host" aria-hidden="true"></div>
       <div id="water-host" class="water-host" aria-hidden="true"></div>
 
-      <!-- En-tête musée : titre SCORY -->
       <header class="museum-header glass-panel">
         <p class="museum-kicker">Portfolio</p>
         <h1 class="museum-title">SCORY</h1>
         <p class="museum-sub">Sélecteur de projets — Musée digital</p>
       </header>
 
-      <!-- Carrousel horizontal : swipe / drag / flèches ; long press sur disque actif = loupe -->
+      <!-- Carrousel : un seul disque visible à la fois -->
       <div
         id="project-carousel"
         class="project-carousel"
         role="region"
         aria-roledescription="carrousel"
         aria-label="Projets sur disques"
-        data-orbit="false"
         tabindex="0"
       >
         <div class="project-track" id="project-track">
-          <article
-            class="project-disc card-glass"
-            data-index="0"
-            data-image="./image/fond4Day.png"
-            tabindex="-1"
-          >
+          <article class="project-disc card-glass" data-index="0" data-image="./image/fond4Day.png" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">4dayvelopment</span>
               <span class="disc-meta">Projet web</span>
             </div>
           </article>
-          <article
-            class="project-disc card-glass"
-            data-index="1"
-            data-image="./image/fondClara.png"
-            tabindex="-1"
-          >
+          <article class="project-disc card-glass" data-index="1" data-image="./image/fondClara.png" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">Clara Martinez</span>
               <span class="disc-meta">Design & identité</span>
             </div>
           </article>
-          <article
-            class="project-disc card-glass"
-            data-index="2"
-            data-image="./image/fondFlaynn.png"
-            tabindex="-1"
-          >
+          <article class="project-disc card-glass" data-index="2" data-image="./image/fondFlaynn.png" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">Flaynn</span>
-              <span class="disc-meta">Expérience digitale</span>
+              <span class="disc-meta">SaaS Startup</span>
+            </div>
+          </article>
+          <article class="project-disc card-glass disc--meta" data-index="3" data-image="./image/fond4Day.png" tabindex="-1">
+            <div class="disc-groove" aria-hidden="true"></div>
+            <div class="disc-label">
+              <span class="disc-title">Portfolio Scory</span>
+              <span class="disc-meta">Ce musée digital</span>
             </div>
           </article>
         </div>
+
+        <!-- Flèches -->
+        <button class="nav-arrow nav-arrow--left" id="arrow-left" aria-label="Projet précédent">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="nav-arrow nav-arrow--right" id="arrow-right" aria-label="Projet suivant">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+        <div class="nav-dots" id="nav-dots"></div>
       </div>
 
-      <!-- Cartel : texte long synchronisé par app.js avec le disque actif -->
+      <!-- Cartel -->
       <aside class="museum-label glass-panel" id="museum-label" aria-live="polite">
         <p class="label-kicker">Cartel</p>
         <h2 class="label-title" id="label-title">4dayvelopment</h2>
-        <p class="label-desc" id="label-desc">
-          Projet web — développement et mise en scène de l’expérience.
-        </p>
+        <p class="label-desc" id="label-desc">Projet web — développement et mise en scène de l'expérience.</p>
       </aside>
 
-      <!-- Overlay « loupe expert » : code injecté dans le <pre> de l’overlay -->
+      <!-- Panneau détails (long press) -->
+      <div id="detail-panel" class="detail-panel glass-panel" aria-hidden="true">
+        <div class="detail-panel__icon">🔍</div>
+        <h3 class="detail-panel__title" id="detail-title"></h3>
+        <p class="detail-panel__text" id="detail-text"></p>
+        <p class="detail-panel__hint">Relâchez pour fermer</p>
+      </div>
+
+      <!-- Loupe expert legacy -->
       <div id="expert-loupe" class="expert-loupe" aria-hidden="true">
         <div class="expert-loupe__vignette" aria-hidden="true"></div>
         <pre class="expert-loupe__code" id="expert-code-scroll"><code></code></pre>
@@ -110,14 +109,30 @@
       </div>
     </main>
 
-    <!-- Signature en dégradé (voir .gradient-text dans styles.css) -->
+    <!-- Chatbot -->
+    <section id="chatbot-section" class="chatbot-section">
+      <div class="chatbot-container glass-panel">
+        <div class="chatbot-header">
+          <span class="chatbot-avatar">🤖</span>
+          <span class="chatbot-name">Scory Assistant</span>
+          <span class="chatbot-status">En ligne</span>
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages"></div>
+        <div class="chatbot-input-area" id="chatbot-input-area">
+          <div class="chatbot-pills" id="chatbot-pills"></div>
+          <div class="chatbot-typing" id="chatbot-typing" style="display:none">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <footer class="museum-footer">
       <p class="gradient-text museum-signature">
-        Impossible avec Scory (Scory c'est moi) n'a que de limite votre imagination.
+        Impossible avec Scory n'a que de limite votre imagination.
       </p>
     </footer>
 
-    <!-- Point d’entrée ES module : carrousel + Three + GSAP -->
     <script type="module" src="./app.js"></script>
   </body>
 </html>
