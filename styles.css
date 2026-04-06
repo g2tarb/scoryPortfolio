@@ -73,9 +73,26 @@ body {
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  opacity: 1;
 }
 
 .neural-host .neural-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Reflet eau (capture projet) — au-dessus du neural, opacité pilotée par GSAP */
+.water-host {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: none;
+}
+
+.water-host .water-canvas {
   display: block;
   width: 100%;
   height: 100%;

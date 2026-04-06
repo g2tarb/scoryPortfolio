@@ -4,6 +4,7 @@
  */
 import gsap from "gsap";
 import { FlaynnNeuralBackground } from "./three-neural.js";
+import { WaterReflectionLayer } from "./three-water.js";
 
 /**
  * Courbe d’animation pour l’arrivée du disque suivant — calibrée comme
@@ -88,6 +89,7 @@ function getTrackXForIndex(carousel, track, discs, index) {
 function main() {
   const stage = document.getElementById("museum-stage");
   const neuralHost = document.getElementById("neural-host");
+  const waterHost = document.getElementById("water-host");
   const carousel = document.getElementById("project-carousel");
   const track = document.getElementById("project-track");
   const labelTitle = document.getElementById("label-title");
@@ -104,6 +106,63 @@ function main() {
   const neural = new FlaynnNeuralBackground(neuralHost, {
     timeScale: reduced ? 0.22 : 1,
   });
+
+  /** Calque « reflet eau » (capture projet) — optionnel si #water-host absent */
+  let water = null;
+  /** @type {gsap.core.Timeline | gsap.core.Tween | null} */
+  let waterSplashTween = null;
+  if (waterHost) {
+    water = new WaterReflectionLayer(waterHost, {
+      timeScale: reduced ? 0.22 : 1,
+    });
+    gsap.set(waterHost, { opacity: 0 });
+  }
+  gsap.set(neuralHost, { opacity: 1 });
+
+  /**
+   * Charge la texture du disque actif et anime le fade neural → eau + « éclaboussure » uProgress.
+   */
+  async function syncProjectWater() {
+    if (!water || !waterHost) return;
+    const el = discs()[activeIndex];
+    const url = el?.dataset?.image;
+    if (!url) return;
+    try {
+      await water.loadTexture(url);
+    } catch (e) {
+      console.warn("[SCORY] Texture reflet eau :", e);
+      return;
+    }
+    runWaterSplashAnimation();
+  }
+
+  /** Éclaboussure (uProgress fort) puis ondulation calme ; le neural s’estompe. */
+  function runWaterSplashAnimation() {
+    if (!water || !waterHost) return;
+    if (waterSplashTween) waterSplashTween.kill();
+    if (reduced) {
+      water.setProgress(0.12);
+      gsap.set(neuralHost, { opacity: 0.2 });
+      gsap.set(waterHost, { opacity: 1 });
+      return;
+    }
+    water.setProgress(1);
+    const proxy = { p: 1 };
+    waterSplashTween = gsap
+      .timeline()
+      .to(neuralHost, { opacity: 0.14, duration: 1.15, ease: "power2.out" }, 0)
+      .to(waterHost, { opacity: 1, duration: 1.05, ease: "power2.out" }, 0)
+      .to(
+        proxy,
+        {
+          p: 0.1,
+          duration: 2.45,
+          ease: "power3.out",
+          onUpdate: () => water.setProgress(proxy.p),
+        },
+        0
+      );
+  }
 
   let activeIndex = 0; // index du projet actuellement « sélectionné »
   let animating = false; // évite les transitions qui se chevauchent
@@ -199,6 +258,7 @@ function main() {
       onComplete: () => {
         animating = false;
         neural.setTransitionProgress(0);
+        void syncProjectWater();
       },
     });
     d.forEach((disc, i) => {
@@ -264,6 +324,7 @@ function main() {
     setActiveClasses(activeIndex);
     setLabel(activeIndex);
     layoutOrbitDiscs(!reduced);
+    void syncProjectWater();
   }
 
   /** Met à jour le cartel (titre + texte) selon l’index projet */
@@ -337,6 +398,7 @@ function main() {
       setActiveClasses(activeIndex);
       setLabel(activeIndex);
       animating = false;
+      void syncProjectWater();
       return;
     }
 
@@ -356,6 +418,7 @@ function main() {
         setLabel(activeIndex);
         neural.setTransitionProgress(0);
         animating = false;
+        void syncProjectWater();
       },
     });
 
@@ -543,6 +606,7 @@ function main() {
           setActiveClasses(activeIndex);
           setLabel(activeIndex);
           layoutOrbitDiscs(!reduced);
+          void syncProjectWater();
         }
       }
       const activeDisc = discs()[activeIndex];
@@ -606,6 +670,7 @@ function main() {
     "resize",
     () => {
       neural.resize();
+      if (water) water.resize();
       if (orbitMode) layoutOrbitDiscs(false);
       else positionTrack(activeIndex, true);
     },
@@ -616,6 +681,7 @@ function main() {
   setLabel(0);
   positionTrack(0, true);
   setOrbitAria(false);
+  void syncProjectWater();
 
   if (reduced) {
     neural.setRotationInfluence(0);

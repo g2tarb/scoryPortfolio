@@ -31,10 +31,10 @@
     <!-- Lien d’évitement : focus clavier vers la scène principale -->
     <a class="skip-link" href="#museum-stage">Aller au musée</a>
 
-    <!-- Scène plein écran : fond WebGL (neural-host) + UI par-dessus -->
+    <!-- Scène plein écran : fond neural + calque « eau » (capture projet) + UI -->
     <main id="museum-stage" aria-label="Scène principale SCORY">
-      <!-- Cible vide : app.js y attache FlaynnNeuralBackground (canvas) -->
       <div id="neural-host" class="neural-host" aria-hidden="true"></div>
+      <div id="water-host" class="water-host" aria-hidden="true"></div>
 
       <!-- En-tête musée : titre SCORY -->
       <header class="museum-header glass-panel">
@@ -55,28 +55,48 @@
       >
         <div class="project-track" id="project-track">
           <!-- Chaque article = un « disque » projet (titre court + meta) -->
-          <article class="project-disc card-glass" data-index="0" tabindex="-1">
+          <article
+            class="project-disc card-glass"
+            data-index="0"
+            data-image="https://picsum.photos/seed/scory-nebula/1600/1000"
+            tabindex="-1"
+          >
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">Nébula</span>
               <span class="disc-meta">WebGL · UI</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="1" tabindex="-1">
+          <article
+            class="project-disc card-glass"
+            data-index="1"
+            data-image="https://picsum.photos/seed/scory-atlas/1600/1000"
+            tabindex="-1"
+          >
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">Atlas</span>
               <span class="disc-meta">Data · Motion</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="2" tabindex="-1">
+          <article
+            class="project-disc card-glass"
+            data-index="2"
+            data-image="https://picsum.photos/seed/scory-velum/1600/1000"
+            tabindex="-1"
+          >
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">Velum</span>
               <span class="disc-meta">Shader · Brand</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="3" tabindex="-1">
+          <article
+            class="project-disc card-glass"
+            data-index="3"
+            data-image="https://picsum.photos/seed/scory-agora/1600/1000"
+            tabindex="-1"
+          >
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">Agora</span>
