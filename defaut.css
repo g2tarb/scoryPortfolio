@@ -55,6 +55,15 @@
   --theme-glow-strong: rgba(201, 169, 98, 0.25);
   --theme-glow-disc: rgba(201, 169, 98, 0.12);
 
+  /* Chatbot tints (accent / warm) */
+  --theme-tint-a: rgba(192, 132, 252, 0.08);
+  --theme-tint-b: rgba(192, 132, 252, 0.18);
+  --theme-tint-c: rgba(192, 132, 252, 0.30);
+  --theme-tint-d: rgba(192, 132, 252, 0.55);
+  --theme-warm-a: rgba(232, 184, 109, 0.10);
+  --theme-warm-b: rgba(232, 184, 109, 0.20);
+  --theme-warm-c: rgba(232, 184, 109, 0.25);
+
   /* Anneau de focus clavier (accessibilité) */
   --focus-ring: 0 0 0 2px var(--surface-deep), 0 0 0 4px var(--accent-ice);
 }

@@ -37,6 +37,14 @@ const PROJECTS = [
   },
 ];
 
+/** Convertit hex → rgba */
+function hexToRgba(hex, a) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
 /**
  * Thèmes visuels par projet — couleurs, polices, filtre neural.
  * Extraits des vrais projets Clara Martinez, 4dayvelopment et Flaynn.
@@ -315,6 +323,14 @@ function main() {
     s.setProperty("--font-display", t.fontDisplay);
     s.setProperty("--font-sans", t.fontSans);
     neuralHost.style.filter = t.neuralFilter;
+    // Couleurs chatbot (calculées depuis les hex)
+    s.setProperty("--theme-tint-a", hexToRgba(t.magenta, 0.08));
+    s.setProperty("--theme-tint-b", hexToRgba(t.magenta, 0.18));
+    s.setProperty("--theme-tint-c", hexToRgba(t.magenta, 0.3));
+    s.setProperty("--theme-tint-d", hexToRgba(t.magenta, 0.55));
+    s.setProperty("--theme-warm-a", hexToRgba(t.amber, 0.1));
+    s.setProperty("--theme-warm-b", hexToRgba(t.amber, 0.2));
+    s.setProperty("--theme-warm-c", hexToRgba(t.amber, 0.25));
     // Mettre à jour les couleurs des particules
     particles.setColors(t.particleColors);
   }
@@ -505,8 +521,13 @@ function main() {
     if (e.key === "ArrowRight") { e.preventDefault(); goTo(activeIndex + 1); }
     if (e.key === "ArrowLeft") { e.preventDefault(); goTo(activeIndex - 1); }
   });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && detailVisible) closeDetail();
+  });
 
   /* ---------- Long press → panneau détails ---------- */
+  const detailStack = document.getElementById("detail-stack");
+
   function openDetail() {
     if (detailVisible) return;
     detailVisible = true;
@@ -514,6 +535,15 @@ function main() {
     if (!p) return;
     detailTitle.textContent = p.title;
     detailText.textContent = p.detail;
+    detailStack.innerHTML = "";
+    if (p.stack) {
+      p.stack.forEach((tag) => {
+        const chip = document.createElement("span");
+        chip.className = "label-chip";
+        chip.textContent = tag;
+        detailStack.appendChild(chip);
+      });
+    }
     detailPanel.classList.add("is-visible");
     detailPanel.setAttribute("aria-hidden", "false");
     const finish = () => {
@@ -596,6 +626,7 @@ function main() {
   const chatMessages = document.getElementById("chatbot-messages");
   const chatPills = document.getElementById("chatbot-pills");
   const chatTyping = document.getElementById("chatbot-typing");
+  const chatProgress = document.getElementById("chatbot-progress");
   const chatData = { baseCost: 0, multiplier: 1, answers: {} };
 
   function getStep(id) { return CHAT_FLOW.find((s) => s.id === id); }
@@ -633,9 +664,16 @@ function main() {
     // Indicateur de progression
     const chatStatus = document.querySelector(".chatbot-status");
     const qNum = stepId.startsWith("q") ? parseInt(stepId.slice(1)) : null;
-    if (qNum) chatStatus.textContent = `${qNum} / 10`;
-    else if (stepId === "contact") chatStatus.textContent = "Presque fini !";
-    else if (stepId === "done") chatStatus.textContent = "Devis prêt ✓";
+    if (qNum) {
+      chatStatus.textContent = `${qNum} / 10`;
+      chatProgress.style.setProperty("--chat-progress", (qNum / 10 * 100) + "%");
+    } else if (stepId === "contact") {
+      chatStatus.textContent = "Presque fini !";
+      chatProgress.style.setProperty("--chat-progress", "95%");
+    } else if (stepId === "done") {
+      chatStatus.textContent = "Devis prêt ✓";
+      chatProgress.style.setProperty("--chat-progress", "100%");
+    }
 
     setTimeout(() => {
       hideTyping();
@@ -701,6 +739,7 @@ function main() {
           chatData.answers = {};
           chatPills.innerHTML = "";
           document.querySelector(".chatbot-status").textContent = "En ligne";
+          chatProgress.style.setProperty("--chat-progress", "0%");
           renderStep("q1");
         });
         chatPills.appendChild(restart);

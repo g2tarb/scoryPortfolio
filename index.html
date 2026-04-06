@@ -10,6 +10,7 @@
     <meta property="og:type" content="website" />
     <title>SCORY — Musée Digital</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%2307060a' width='32' height='32' rx='6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='%23c9a962' font-family='serif' font-size='20' font-weight='600'%3ES%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://unpkg.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -115,6 +116,7 @@
         <div class="detail-panel__icon">🔍</div>
         <h3 class="detail-panel__title" id="detail-title"></h3>
         <p class="detail-panel__text" id="detail-text"></p>
+        <div class="detail-panel__stack" id="detail-stack"></div>
         <p class="detail-panel__hint">Relâchez pour fermer</p>
       </div>
 
@@ -129,6 +131,7 @@
     <!-- Chatbot -->
     <section id="chatbot-section" class="chatbot-section">
       <div class="chatbot-container glass-panel">
+        <div class="chatbot-progress" id="chatbot-progress"></div>
         <div class="chatbot-header">
           <span class="chatbot-avatar">🤖</span>
           <span class="chatbot-name">Scory Assistant</span>
@@ -148,8 +151,20 @@
       <p class="gradient-text museum-signature">
         Avec Scory, seule votre imagination est la limite.
       </p>
+      <p class="footer-copy">© 2026 Scory — Musée Digital. Tous droits réservés.</p>
     </footer>
 
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CreativeWork",
+      "name": "SCORY — Musée Digital",
+      "description": "Portfolio interactif conçu comme un musée digital immersif avec Three.js, GSAP et WebGL.",
+      "creator": { "@type": "Organization", "name": "Scory" },
+      "inLanguage": "fr",
+      "genre": "Portfolio"
+    }
+    </script>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
