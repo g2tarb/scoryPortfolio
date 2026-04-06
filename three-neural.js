@@ -1,16 +1,13 @@
 import * as THREE from "three";
 
 /**
- * Fond plein écran type « réseau neural » pour le musée digital.
- * Les uniformes uTime, uTransitionProgress, uRotationInfluence et uLoupeProgress
- * sont pilotés depuis app.js pour lier navigation, drag et loupe au rendu shader.
+ * Fond musée : plan shader atmosphérique + grille 3D (triangles filaires, carrés, petits triangles)
+ * animée. Les uniformes restent pilotés par app.js (carrousel, drag, loupe).
  */
 export class FlaynnNeuralBackground {
   /**
-   * @param {HTMLElement} container — parent (ex. #neural-host), dimensions = zone de rendu
+   * @param {HTMLElement} container
    * @param {{ canvas?: HTMLCanvasElement; timeScale?: number }} [opts]
-   *        canvas : optionnel ; sinon un <canvas> est créé et inséré en tête du container
-   *        timeScale : multiplicateur du temps (ex. 0.22 si prefers-reduced-motion)
    */
   constructor(container, opts = {}) {
     this.container = container;
@@ -20,17 +17,15 @@ export class FlaynnNeuralBackground {
       this.container.prepend(this.canvas);
     }
 
-    // Uniforms partagés entre JS et le fragment shader GLSL
     this.uniforms = {
-      uTime: { value: 0 }, // temps écoulé → animation continue du motif
-      uTransitionProgress: { value: 0 }, // 0–1 pendant un changement de disque (morph)
-      uRotationInfluence: { value: 0 }, // intensité liée au drag / vélocité
-      uLoupeProgress: { value: 0 }, // 0–1 zoom « expert » + halo central
-      uResolution: { value: new THREE.Vector2(1, 1) }, // taille pixels → aspect correct
+      uTime: { value: 0 },
+      uTransitionProgress: { value: 0 },
+      uRotationInfluence: { value: 0 },
+      uLoupeProgress: { value: 0 },
+      uResolution: { value: new THREE.Vector2(1, 1) },
     };
 
-    this._clock = new THREE.Clock(); // delta temps entre frames
-    /** @private Ralentit ou accélère l’écoulement de uTime (accessibilité) */
+    this._clock = new THREE.Clock();
     this._timeScale = typeof opts.timeScale === "number" ? opts.timeScale : 1;
     this._running = true;
     this._raf = 0;
@@ -38,15 +33,17 @@ export class FlaynnNeuralBackground {
     this._buildScene();
     this.resize();
     window.addEventListener("resize", this._onResize);
-    this._tick(); // boucle requestAnimationFrame
+    this._tick();
   }
 
-  /** Crée renderer, caméra, plan plein écran avec ShaderMaterial */
+  /**
+   * Construit la scène : groupe focal (shader + grille animée), caméra perspective.
+   */
   _buildScene() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true,
-      alpha: true, // fond transparent pour laisser voir le CSS derrière si besoin
+      alpha: true,
       powerPreference: "high-performance",
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -54,11 +51,14 @@ export class FlaynnNeuralBackground {
 
     const aspect = this.container.clientWidth / Math.max(this.container.clientHeight, 1);
     this.camera = new THREE.PerspectiveCamera(42, aspect, 0.1, 100);
-    this.camera.position.z = 2.4; // recul par défaut ; rapproché quand uLoupe augmente
+    this.camera.position.z = 2.4;
 
     this.scene = new THREE.Scene();
 
-    // Vertex minimal : passe les UV au fragment
+    // Tout ce qui doit réagir à la loupe (zoom) est sous ce groupe
+    this.focalGroup = new THREE.Group();
+    this.scene.add(this.focalGroup);
+
     const vertexShader = `
       varying vec2 vUv;
       void main() {
@@ -67,7 +67,6 @@ export class FlaynnNeuralBackground {
       }
     `;
 
-    // Fragment : bruit + ondes → aspect « filaire / neural », réagit aux uniformes
     const fragmentShader = `
       uniform float uTime;
       uniform float uTransitionProgress;
@@ -76,12 +75,10 @@ export class FlaynnNeuralBackground {
       uniform vec2 uResolution;
       varying vec2 vUv;
 
-      // Pseudo-aléa déterministe par cellule
       float hash(vec2 p) {
         return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
       }
 
-      // Bruit interpolé type Value noise
       float noise(vec2 p) {
         vec2 i = floor(p);
         vec2 f = fract(p);
@@ -95,12 +92,9 @@ export class FlaynnNeuralBackground {
 
       void main() {
         vec2 uv = vUv;
-        // Coordonnées centrées avec bon ratio d’aspect
         vec2 p = (uv - 0.5) * vec2(uResolution.x / uResolution.y, 1.0);
 
-        // uRotationInfluence accélère légèrement l’écoulement visuel (feedback drag)
         float t = uTime * (0.35 + uRotationInfluence * 0.85);
-        // uTransitionProgress fait tourner la phase du motif pendant le carrousel
         float morph = uTransitionProgress * 6.28318;
 
         float n = noise(p * 3.2 + t * 0.15);
@@ -117,36 +111,141 @@ export class FlaynnNeuralBackground {
         col = mix(col, c3, pulse * 0.22 * (0.4 + uTransitionProgress));
         col += c4 * (0.08 + uRotationInfluence * 0.12) * web;
 
-        // Assombrit les bords pour recentrer le regard
         float vignette = 1.0 - dot(p, p) * 0.85;
         vignette = smoothstep(0.0, 1.0, vignette);
 
-        // uLoupeProgress : halo au centre (tunnel / zoom mental)
         float tunnel = smoothstep(0.0, 1.0, uLoupeProgress);
         float centerGlow = exp(-length(p) * (3.0 - tunnel * 1.8));
         col += vec3(0.15, 0.2, 0.35) * centerGlow * tunnel;
 
         col *= mix(0.55, 1.0, vignette);
-        gl_FragColor = vec4(col, 0.92);
+        gl_FragColor = vec4(col, 0.88);
       }
     `;
 
-    const geo = new THREE.PlaneGeometry(6, 6);
+    const planeGeo = new THREE.PlaneGeometry(6, 6);
     this.material = new THREE.ShaderMaterial({
       uniforms: this.uniforms,
       vertexShader,
       fragmentShader,
       transparent: true,
-      depthWrite: false, // évite d’occulter d’autres objets si la scène s’enrichit
+      depthWrite: false,
     });
 
-    this.mesh = new THREE.Mesh(geo, this.material);
-    this.scene.add(this.mesh);
+    this.neuralMesh = new THREE.Mesh(planeGeo, this.material);
+    this.neuralMesh.position.z = -0.06;
+    this.focalGroup.add(this.neuralMesh);
+
+    // Grille 3D : triangles (wireframe) + carrés (lignes) + petits triangles (line loops)
+    this.gridGroup = new THREE.Group();
+    this.gridGroup.position.z = 0.04;
+    this._buildAnimatedGrid(this.gridGroup);
+    this.focalGroup.add(this.gridGroup);
+  }
+
+  /**
+   * Plane subdivisé en fil de fer = uniquement des arêtes de triangles.
+   * Grille de lignes horizontales/verticales = carrés (sans diagonales).
+   * Quelques LineLoop triangulaires pour accentuer la forme « triangle ».
+   */
+  _buildAnimatedGrid(group) {
+    const triColor = 0x7a9cff;
+    const squareColor = 0xc9a962;
+    const accentColor = 0xe8b86d;
+
+    // 1) Maillage triangulaire (chaque cellule du plane = 2 triangles visibles en wireframe)
+    const wfSegX = 22;
+    const wfSegY = 14;
+    const wfW = 4.8;
+    const wfH = 4.2;
+    const wfGeo = new THREE.PlaneGeometry(wfW, wfH, wfSegX, wfSegY);
+    const wfMat = new THREE.MeshBasicMaterial({
+      color: triColor,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.11,
+      depthWrite: false,
+    });
+    const wfMesh = new THREE.Mesh(wfGeo, wfMat);
+    wfMesh.name = "grid-wireframe-triangles";
+    group.add(wfMesh);
+
+    // 2) Grille de carrés : uniquement lignes H/V (pas les diagonales des tris)
+    const sqDivX = 14;
+    const sqDivY = 10;
+    const sqW = wfW * 0.98;
+    const sqH = wfH * 0.98;
+    const squareLines = this._createSquareGridLines(sqW, sqH, sqDivX, sqDivY, squareColor, 0.22);
+    squareLines.name = "grid-square-lines";
+    group.add(squareLines);
+
+    // 3) Petits contours triangulaires dispersés (rappel visuel « triangle »)
+    const nDecor = 18;
+    const rng = (i) => {
+      const s = Math.sin(i * 12.9898) * 43758.5453;
+      return s - Math.floor(s);
+    };
+    for (let i = 0; i < nDecor; i++) {
+      const r = 0.055 + rng(i) * 0.07;
+      const tri = this._createTriangleLineLoop(r, accentColor, 0.28 + rng(i + 3) * 0.2);
+      const gx = (rng(i + 1) - 0.5) * wfW * 0.85;
+      const gy = (rng(i + 2) - 0.5) * wfH * 0.85;
+      tri.position.set(gx, gy, 0.002 + i * 0.0001);
+      tri.userData.phase = rng(i + 4) * Math.PI * 2;
+      tri.userData.speed = 0.4 + rng(i + 5) * 0.9;
+      group.add(tri);
+    }
+
+    this._decorTriangles = group.children.filter((c) => c.userData.phase != null);
+  }
+
+  /**
+   * Lignes horizontales et verticales régulières → quadrillage type « carrés ».
+   */
+  _createSquareGridLines(width, height, divisionsX, divisionsY, color, opacity) {
+    const points = [];
+    const dx = width / divisionsX;
+    const dy = height / divisionsY;
+    const hx = width / 2;
+    const hy = height / 2;
+    for (let i = 0; i <= divisionsX; i++) {
+      const x = -hx + i * dx;
+      points.push(new THREE.Vector3(x, -hy, 0), new THREE.Vector3(x, hy, 0));
+    }
+    for (let j = 0; j <= divisionsY; j++) {
+      const y = -hy + j * dy;
+      points.push(new THREE.Vector3(-hx, y, 0), new THREE.Vector3(hx, y, 0));
+    }
+    const geo = new THREE.BufferGeometry().setFromPoints(points);
+    const mat = new THREE.LineBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+    });
+    return new THREE.LineSegments(geo, mat);
+  }
+
+  /** Triangle équilatéral filaire (LineLoop). */
+  _createTriangleLineLoop(radius, color, opacity) {
+    const h = radius;
+    const pts = [
+      new THREE.Vector3(0, h, 0),
+      new THREE.Vector3(-h * 0.866025, -h * 0.5, 0),
+      new THREE.Vector3(h * 0.866025, -h * 0.5, 0),
+    ];
+    const geo = new THREE.BufferGeometry().setFromPoints(pts);
+    const mat = new THREE.LineBasicMaterial({
+      color,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+    });
+    return new THREE.LineLoop(geo, mat);
   }
 
   _onResize = () => this.resize();
 
-  /** Recalcule taille du canvas, matrice caméra et uResolution */
   resize() {
     const w = this.container.clientWidth;
     const h = Math.max(this.container.clientHeight, 1);
@@ -156,55 +255,81 @@ export class FlaynnNeuralBackground {
     this.renderer.setSize(w, h, false);
   }
 
-  /**
-   * Synchronise le shader avec la navigation carrousel (0 = repos, 1 = fin de transition).
-   * @param {number} v
-   */
   setTransitionProgress(v) {
     this.uniforms.uTransitionProgress.value = THREE.MathUtils.clamp(v, 0, 1);
   }
 
-  /**
-   * Intensité organique liée à la vitesse du geste sur les disques.
-   * @param {number} v
-   */
   setRotationInfluence(v) {
     this.uniforms.uRotationInfluence.value = THREE.MathUtils.clamp(v, 0, 2);
   }
 
   /**
-   * Mode loupe : shader (halo) + rapprochement caméra + léger avance du plan.
-   * @param {number} v 0..1
+   * Loupe : rapproche la caméra et tout le focalGroup (shader + grille).
    */
   setLoupeProgress(v) {
     const p = THREE.MathUtils.clamp(v, 0, 1);
     this.uniforms.uLoupeProgress.value = p;
     const z = THREE.MathUtils.lerp(2.4, 0.95, p);
     this.camera.position.z = z;
-    this.mesh.position.z = THREE.MathUtils.lerp(0, 0.15, p);
+    this.focalGroup.position.z = THREE.MathUtils.lerp(0, 0.15, p);
   }
 
-  /** Lit la valeur courante pour repartir d’un tween GSAP sans saut */
   getLoupeProgress() {
     return this.uniforms.uLoupeProgress.value;
   }
 
-  /** Boucle de rendu : incrémente uTime et dessine la scène */
+  /**
+   * Animation continue : la grille ondule / tourne légèrement ; les petits triangles pulsent.
+   * L'intensité du drag (uRotationInfluence) amplifie le mouvement.
+   */
   _tick = () => {
     if (!this._running) return;
     const dt = this._clock.getDelta();
     this.uniforms.uTime.value += dt * this._timeScale;
+
+    const t = this.uniforms.uTime.value;
+    const inf = this.uniforms.uRotationInfluence.value;
+    const wobble = 1 + inf * 0.55;
+
+    if (this.gridGroup) {
+      this.gridGroup.rotation.z = Math.sin(t * 0.17) * 0.055 * wobble;
+      this.gridGroup.rotation.y = Math.sin(t * 0.11) * 0.04 * wobble;
+      this.gridGroup.rotation.x = Math.sin(t * 0.09) * 0.028 * wobble;
+      this.gridGroup.position.y = Math.sin(t * 0.42) * 0.045 * wobble;
+      this.gridGroup.position.x = Math.cos(t * 0.36) * 0.038 * wobble;
+      // Léger « respiration » d’échelle
+      const s = 1 + Math.sin(t * 0.25) * 0.015 * wobble;
+      this.gridGroup.scale.setScalar(s);
+    }
+
+    if (this._decorTriangles) {
+      for (const line of this._decorTriangles) {
+        const ph = line.userData.phase;
+        const sp = line.userData.speed;
+        line.rotation.z = ph + t * sp * 0.35;
+        const pulse = 0.92 + Math.sin(t * sp + ph) * 0.08;
+        line.scale.setScalar(pulse);
+      }
+    }
+
     this.renderer.render(this.scene, this.camera);
     this._raf = requestAnimationFrame(this._tick);
   };
 
-  /** Libère GPU et écouteurs (si la page est démontée dynamiquement) */
   dispose() {
     this._running = false;
     cancelAnimationFrame(this._raf);
     window.removeEventListener("resize", this._onResize);
-    this.material.dispose();
-    this.mesh.geometry.dispose();
+
+    this.scene.traverse((obj) => {
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) {
+        const m = obj.material;
+        if (Array.isArray(m)) m.forEach((x) => x.dispose());
+        else m.dispose();
+      }
+    });
+
     this.renderer.dispose();
   }
 }
