@@ -27,6 +27,10 @@ export class WaterReflectionLayer {
       /** 0 = eau calme, 1 = forte distorsion (éclaboussure au changement de projet) */
       uProgress: { value: 0.14 },
       uResolution: { value: new THREE.Vector2(1, 1) },
+      /** Dimensions texture (px) — pour cadrage « contain » sans crop agressif */
+      uTextureSize: { value: new THREE.Vector2(1, 1) },
+      /** < 1 = dézoom supplémentaire après le contain (respiration autour de l’image) */
+      uFrameZoom: { value: 0.88 },
     };
 
     this._clock = new THREE.Clock();
@@ -54,8 +58,8 @@ export class WaterReflectionLayer {
     this.renderer.setClearColor(0x000000, 0);
 
     const aspect = this.container.clientWidth / Math.max(this.container.clientHeight, 1);
-    this.camera = new THREE.PerspectiveCamera(42, aspect, 0.1, 100);
-    this.camera.position.z = 2.2;
+    this.camera = new THREE.PerspectiveCamera(38, aspect, 0.1, 100);
+    this.camera.position.z = 2.75;
 
     this.scene = new THREE.Scene();
 
@@ -72,28 +76,48 @@ export class WaterReflectionLayer {
       uniform float uTime;
       uniform float uProgress;
       uniform vec2 uResolution;
+      uniform vec2 uTextureSize;
+      uniform float uFrameZoom;
       varying vec2 vUv;
 
+      /* object-fit: contain — toute l’image visible, bandes sombres (évite le crop type « zoom ») */
+      vec2 containUv(vec2 st) {
+        float Rc = uResolution.x / max(uResolution.y, 1.0);
+        float Ri = uTextureSize.x / max(uTextureSize.y, 0.0001);
+        vec2 u = st;
+        if (Rc > Ri) {
+          float s = Ri / Rc;
+          u.x = (u.x - 0.5) * s + 0.5;
+        } else {
+          float s = Rc / Ri;
+          u.y = (u.y - 0.5) * s + 0.5;
+        }
+        u = (u - 0.5) * uFrameZoom + 0.5;
+        return u;
+      }
+
       void main() {
-        vec2 uv = vUv;
+        vec2 uvBase = containUv(vUv);
         float pr = clamp(uProgress, 0.0, 1.2);
         float t = uTime;
 
         vec2 wave = vec2(
-          sin(uv.y * 22.0 + t * 1.9) * cos(uv.x * 16.0 - t * 1.15),
-          cos(uv.x * 19.0 - t * 1.35) * sin(uv.y * 17.0 + t * 1.05)
+          sin(uvBase.y * 22.0 + t * 1.9) * cos(uvBase.x * 16.0 - t * 1.15),
+          cos(uvBase.x * 19.0 - t * 1.35) * sin(uvBase.y * 17.0 + t * 1.05)
         ) * (0.01 + pr * 0.062);
 
         vec2 ripple = vec2(
-          sin(t * 3.4 + uv.x * 48.0),
-          cos(t * 2.9 + uv.y * 44.0)
+          sin(t * 3.4 + uvBase.x * 48.0),
+          cos(t * 2.9 + uvBase.y * 44.0)
         ) * (0.0035 + pr * 0.028);
 
-        vec2 uv2 = uv + wave + ripple;
+        vec2 uv2 = uvBase + wave + ripple;
+        vec2 uvClamped = clamp(uv2, vec2(0.001), vec2(0.999));
 
-        vec4 tex = texture2D(uTexture, uv2);
+        vec4 tex = texture2D(uTexture, uvClamped);
+        float inside = step(0.0, uv2.x) * step(uv2.x, 1.0) * step(0.0, uv2.y) * step(uv2.y, 1.0);
 
-        vec3 col = tex.rgb;
+        vec3 col = tex.rgb * inside + vec3(0.03, 0.028, 0.045) * (1.0 - inside);
         col = pow(max(col, vec3(0.001)), vec3(1.06));
         col *= 0.58;
         col *= vec3(0.82, 0.88, 1.06);
@@ -104,14 +128,14 @@ export class WaterReflectionLayer {
         vig = smoothstep(0.2, 1.0, vig);
         col *= mix(0.72, 1.0, vig);
 
-        float scan = sin(uv.y * uResolution.y * 0.25 + t * 2.0) * 0.012 * pr;
+        float scan = sin(uvBase.y * uResolution.y * 0.25 + t * 2.0) * 0.012 * pr;
         col += vec3(scan * 0.15);
 
         gl_FragColor = vec4(col, 1.0);
       }
     `;
 
-    const geo = new THREE.PlaneGeometry(5.5, 5.5);
+    const geo = new THREE.PlaneGeometry(6.2, 6.2);
     this.material = new THREE.ShaderMaterial({
       uniforms: this.uniforms,
       vertexShader,
@@ -147,6 +171,14 @@ export class WaterReflectionLayer {
   }
 
   /**
+   * Réglage fin du cadrage après contain (ex. 0.92 = un peu plus d’air autour de l’image).
+   * @param {number} z typiquement 0.82–0.95
+   */
+  setFrameZoom(z) {
+    this.uniforms.uFrameZoom.value = THREE.MathUtils.clamp(z, 0.65, 1.0);
+  }
+
+  /**
    * Charge une capture d’écran (URL). Résout quand la texture est prête.
    * @param {string} url
    * @returns {Promise<void>}
@@ -167,6 +199,10 @@ export class WaterReflectionLayer {
           tex.minFilter = THREE.LinearMipmapLinearFilter;
           tex.magFilter = THREE.LinearFilter;
           tex.generateMipmaps = true;
+          const img = tex.image;
+          const iw = img?.width || 1;
+          const ih = img?.height || 1;
+          this.uniforms.uTextureSize.value.set(iw, ih);
           this.uniforms.uTexture.value = tex;
           this._currentUrl = url;
           resolve();
