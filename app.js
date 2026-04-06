@@ -33,6 +33,69 @@ const PROJECTS = [
   },
 ];
 
+/**
+ * Thèmes visuels par projet — couleurs, polices, filtre neural.
+ * Extraits des vrais projets Clara Martinez, 4dayvelopment et Flaynn.
+ */
+const THEMES = [
+  // 0 — 4dayvelopment
+  {
+    gold: "#DA5426",
+    amber: "#f2b13b",
+    ice: "#884083",
+    magenta: "#DA5426",
+    glow: "rgba(218,84,38,0.12)",
+    glowStrong: "rgba(218,84,38,0.25)",
+    glowDisc: "rgba(218,84,38,0.15)",
+    fontDisplay: "'Syne', system-ui, sans-serif",
+    fontSans: "'Inter', system-ui, sans-serif",
+    neuralFilter: "hue-rotate(-25deg) saturate(1.3) brightness(1.1)",
+    particleColors: [[218,84,38],[242,177,59],[136,64,131],[240,240,240],[255,160,80]],
+  },
+  // 1 — Clara Martinez
+  {
+    gold: "#C9A84C",
+    amber: "#E8D49A",
+    ice: "#C9A84C",
+    magenta: "#A8863A",
+    glow: "rgba(201,168,76,0.12)",
+    glowStrong: "rgba(201,168,76,0.25)",
+    glowDisc: "rgba(201,168,76,0.18)",
+    fontDisplay: "'Playfair Display', 'Times New Roman', serif",
+    fontSans: "'Inter', system-ui, sans-serif",
+    neuralFilter: "hue-rotate(5deg) saturate(0.85) brightness(0.95)",
+    particleColors: [[201,168,76],[232,212,154],[168,134,58],[245,240,232],[180,155,90]],
+  },
+  // 2 — Flaynn
+  {
+    gold: "#7B2D8E",
+    amber: "#C13584",
+    ice: "#10b981",
+    magenta: "#C13584",
+    glow: "rgba(123,45,142,0.12)",
+    glowStrong: "rgba(123,45,142,0.25)",
+    glowDisc: "rgba(123,45,142,0.18)",
+    fontDisplay: "'IBM Plex Sans', system-ui, sans-serif",
+    fontSans: "'IBM Plex Sans', system-ui, sans-serif",
+    neuralFilter: "hue-rotate(75deg) saturate(1.4) brightness(1.05)",
+    particleColors: [[123,45,142],[193,53,132],[16,185,129],[240,240,243],[59,130,246]],
+  },
+  // 3 — Portfolio Scory (défaut)
+  {
+    gold: "#c9a962",
+    amber: "#e8b86d",
+    ice: "#9ec8ff",
+    magenta: "#c084fc",
+    glow: "rgba(201,169,98,0.12)",
+    glowStrong: "rgba(201,169,98,0.25)",
+    glowDisc: "rgba(201,169,98,0.12)",
+    fontDisplay: "'Cormorant Garamond', 'Times New Roman', serif",
+    fontSans: "'DM Sans', system-ui, sans-serif",
+    neuralFilter: "none",
+    particleColors: [[201,169,98],[158,200,255],[192,132,252],[232,184,109],[245,242,255]],
+  },
+];
+
 /** Chatbot : 10 questions, 7-8 choix, calcul de prix */
 const CHAT_FLOW = [
   {
@@ -231,6 +294,25 @@ function main() {
   /* ---------- Particules ---------- */
   const particles = new ParticleTransition(particleCanvas);
 
+  /* ---------- Thème dynamique ---------- */
+  function applyTheme(index) {
+    const t = THEMES[index];
+    if (!t) return;
+    const s = document.documentElement.style;
+    s.setProperty("--accent-gold", t.gold);
+    s.setProperty("--accent-amber", t.amber);
+    s.setProperty("--accent-ice", t.ice);
+    s.setProperty("--accent-magenta", t.magenta);
+    s.setProperty("--theme-glow", t.glow);
+    s.setProperty("--theme-glow-strong", t.glowStrong);
+    s.setProperty("--theme-glow-disc", t.glowDisc);
+    s.setProperty("--font-display", t.fontDisplay);
+    s.setProperty("--font-sans", t.fontSans);
+    neuralHost.style.filter = t.neuralFilter;
+    // Mettre à jour les couleurs des particules
+    particles.setColors(t.particleColors);
+  }
+
   /* ---------- État ---------- */
   let activeIndex = 0;
   let animating = false;
@@ -344,6 +426,7 @@ function main() {
       setActiveClasses(activeIndex);
       setLabel(activeIndex);
       updateDots();
+      applyTheme(activeIndex);
       animating = false;
       void syncProjectWater();
       return;
@@ -374,6 +457,7 @@ function main() {
     setActiveClasses(activeIndex);
     setLabel(activeIndex, true);
     updateDots();
+    applyTheme(activeIndex);
 
     // Faire apparaître le nouveau disque
     const nextDisc = d[activeIndex];
@@ -475,6 +559,7 @@ function main() {
   setActiveClasses(0);
   setLabel(0);
   buildDots();
+  applyTheme(0);
   void syncProjectWater();
 
   if (reduced) {

@@ -66,8 +66,13 @@ html, body {
 }
 
 /* Three.js hosts */
-.neural-host { position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 1; }
+.neural-host { position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 1; transition: filter 1.2s ease; }
 .neural-host .neural-canvas { display: block; width: 100%; height: 100%; }
+.neural-host::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 40%, var(--theme-glow-strong) 0%, transparent 65%);
+  transition: background 1.2s ease; mix-blend-mode: screen;
+}
 .water-host { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: none; }
 .water-host .water-canvas { display: block; width: 100%; height: 100%; }
 .particle-canvas { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
@@ -141,7 +146,7 @@ html, body {
 .project-disc.is-active { opacity: 1; pointer-events: auto; position: relative; }
 
 .project-disc.is-active {
-  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.12) inset, 0 0 80px rgba(201,169,98,0.12);
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.12) inset, 0 0 80px var(--theme-glow-disc);
 }
 
 /* Méta-disque : léger accent violet */
@@ -173,7 +178,7 @@ html, body {
 }
 .nav-arrow:hover {
   background: rgba(255,255,255,0.12);
-  box-shadow: 0 0 24px rgba(201,169,98,0.15);
+  box-shadow: 0 0 24px var(--theme-glow-strong);
   transform: translateY(-50%) scale(1.1);
 }
 .nav-arrow:active { transform: translateY(-50%) scale(0.95); }
@@ -245,7 +250,7 @@ html, body {
   position: relative; z-index: 2;
   padding: clamp(1.5rem, 4vw, 3rem);
   max-width: 600px; margin: 0 auto;
-  background: radial-gradient(ellipse at 50% 0%, rgba(192,132,252,0.06) 0%, transparent 70%);
+  background: radial-gradient(ellipse at 50% 0%, var(--theme-glow) 0%, transparent 70%);
 }
 .chatbot-container {
   padding: 0; overflow: hidden;

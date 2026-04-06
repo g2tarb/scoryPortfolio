@@ -9,6 +9,10 @@ export class ParticleTransition {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
     this._raf = 0;
+    this._colors = [
+      [201, 169, 98], [158, 200, 255], [192, 132, 252],
+      [232, 184, 109], [245, 242, 255], [110, 231, 183],
+    ];
     this.resize();
   }
 
@@ -17,16 +21,16 @@ export class ParticleTransition {
     this.canvas.height = window.innerHeight;
   }
 
+  /** Change la palette de couleurs (appelé par applyTheme) */
+  setColors(colors) {
+    if (Array.isArray(colors) && colors.length > 0) {
+      this._colors = colors;
+    }
+  }
+
   /** Génère des particules disposées en cercle plein */
   _makeParticles(cx, cy, radius, count = 300) {
-    const colors = [
-      [201, 169, 98],
-      [158, 200, 255],
-      [192, 132, 252],
-      [232, 184, 109],
-      [245, 242, 255],
-      [110, 231, 183],
-    ];
+    const colors = this._colors;
     const out = [];
     for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2;
