@@ -31,6 +31,8 @@ export class WaterReflectionLayer {
       uTextureSize: { value: new THREE.Vector2(1, 1) },
       /** < 1 = dézoom supplémentaire après le contain (respiration autour de l’image) */
       uFrameZoom: { value: 1.0 },
+      /** Facteur de fondu des vagues : 1 = plein effet, 0 = image nette */
+      uFade: { value: 1.0 },
     };
 
     this._clock = new THREE.Clock();
@@ -82,6 +84,7 @@ export class WaterReflectionLayer {
       uniform vec2 uResolution;
       uniform vec2 uTextureSize;
       uniform float uFrameZoom;
+      uniform float uFade;
       varying vec2 vUv;
 
       /* object-fit: contain — toute l’image visible, bandes sombres (évite le crop type « zoom ») */
@@ -105,15 +108,17 @@ export class WaterReflectionLayer {
         float pr = clamp(uProgress, 0.0, 1.2);
         float t = uTime;
 
+        float fade = clamp(uFade, 0.0, 1.0);
+
         vec2 wave = vec2(
           sin(uvBase.y * 22.0 + t * 1.9) * cos(uvBase.x * 16.0 - t * 1.15),
           cos(uvBase.x * 19.0 - t * 1.35) * sin(uvBase.y * 17.0 + t * 1.05)
-        ) * (0.01 + pr * 0.062);
+        ) * (0.01 + pr * 0.062) * fade;
 
         vec2 ripple = vec2(
           sin(t * 3.4 + uvBase.x * 48.0),
           cos(t * 2.9 + uvBase.y * 44.0)
-        ) * (0.0035 + pr * 0.028);
+        ) * (0.0035 + pr * 0.028) * fade;
 
         vec2 uv2 = uvBase + wave + ripple;
         vec2 uvClamped = clamp(uv2, vec2(0.001), vec2(0.999));
@@ -132,7 +137,7 @@ export class WaterReflectionLayer {
         vig = smoothstep(0.2, 1.0, vig);
         col *= mix(0.72, 1.0, vig);
 
-        float scan = sin(uvBase.y * uResolution.y * 0.25 + t * 2.0) * 0.012 * pr;
+        float scan = sin(uvBase.y * uResolution.y * 0.25 + t * 2.0) * 0.012 * pr * fade;
         col += vec3(scan * 0.15);
 
         gl_FragColor = vec4(col, 1.0);
@@ -227,6 +232,7 @@ export class WaterReflectionLayer {
   _restartAnim() {
     this._animElapsed = 0;
     this._frozen = false;
+    this.uniforms.uFade.value = 1.0;
     this._clock.getDelta(); // purge le delta accumulé
     if (this._running) {
       cancelAnimationFrame(this._raf);
@@ -242,14 +248,20 @@ export class WaterReflectionLayer {
       this._animElapsed += dt;
       this.uniforms.uTime.value += dt * this._timeScale;
 
-      if (this._animElapsed >= this._animDuration) {
+      /* Fondu progressif : les vagues s'atténuent sur la durée */
+      const t = Math.min(this._animElapsed / this._animDuration, 1);
+      /* Courbe ease-in : les vagues restent fortes au début, s'estompent vite à la fin */
+      this.uniforms.uFade.value = Math.max(0, 1 - t * t);
+
+      if (t >= 1) {
+        this.uniforms.uFade.value = 0;
         this._frozen = true;
       }
     }
 
     this.renderer.render(this.scene, this.camera);
 
-    /* Si gelé, un dernier rendu puis on arrête la boucle */
+    /* Si gelé, dernier rendu fait — on arrête la boucle */
     if (this._frozen) return;
     this._raf = requestAnimationFrame(this._tick);
   };
