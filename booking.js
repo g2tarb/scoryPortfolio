@@ -5,8 +5,15 @@
  */
 
 const SLOTS = ["09:00","10:00","11:00","14:00","15:00","16:00","17:00"];
-const MONTHS_FR = ["Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Aout","Septembre","Octobre","Novembre","Decembre"];
-const JOURS_FR = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+const MONTHS = {
+  fr: ["Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Aout","Septembre","Octobre","Novembre","Decembre"],
+  en: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+};
+const JOURS = {
+  fr: ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"],
+  en: ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+};
+function lang() { return document.documentElement.lang || "fr"; }
 
 /**
  * @param {{ trapFocus: Function, isValidEmail: Function, contactEmail: string, getChatCompleted: ()=>boolean }} deps
@@ -35,7 +42,7 @@ export function initBooking({ trapFocus, isValidEmail, contactEmail, getChatComp
   }
 
   function formatDate(date) {
-    return `${JOURS_FR[date.getDay()]} ${date.getDate()} ${MONTHS_FR[date.getMonth()]} ${date.getFullYear()}`;
+    return `${JOURS[lang()][date.getDay()]} ${date.getDate()} ${MONTHS[lang()][date.getMonth()]} ${date.getFullYear()}`;
   }
 
   function open() {
@@ -60,7 +67,7 @@ export function initBooking({ trapFocus, isValidEmail, contactEmail, getChatComp
   }
 
   function renderCalendar() {
-    calMonthLabel.textContent = `${MONTHS_FR[calMonth]} ${calYear}`;
+    calMonthLabel.textContent = `${MONTHS[lang()][calMonth]} ${calYear}`;
     calGrid.innerHTML = "";
     let startDay = new Date(calYear, calMonth, 1).getDay();
     if (startDay === 0) startDay = 7;

@@ -183,10 +183,22 @@ async function main() {
       const newLang = getLang() === "fr" ? "en" : "fr";
       setLang(newLang);
       langToggle.textContent = newLang.toUpperCase();
-      // Rafraichir le cartel avec les nouvelles traductions
+      // Rafraichir le cartel
       setLabel(activeIndex);
-      // Rafraichir le titre de page
-      const project = PROJECTS()[activeIndex];
+      // Rafraichir les titres/meta sur les disques
+      const projects = PROJECTS();
+      _discsCache.forEach((disc, i) => {
+        const p = projects[i];
+        if (!p) return;
+        const titleEl = disc.querySelector(".disc-title");
+        const metaEl = disc.querySelector(".disc-meta");
+        if (titleEl) titleEl.textContent = p.title;
+        if (metaEl) metaEl.textContent = p.desc.split("—")[0].trim().substring(0, 30);
+      });
+      // Rafraichir les dots
+      buildDots();
+      // Titre de page
+      const project = projects[activeIndex];
       document.title = activeIndex === SCORY_INDEX
         ? (newLang === "fr" ? "SCORY — Musee Digital" : "SCORY — Digital Museum")
         : `${project?.title || ""} — SCORY`;

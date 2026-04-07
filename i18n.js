@@ -80,6 +80,18 @@ export const TRANSLATIONS = {
   },
   "footer.copy": { fr: "Scory — Musee Digital. Tous droits reserves.", en: "Scory — Digital Museum. All rights reserved." },
   "footer.legal": { fr: "Mentions legales", en: "Legal notice" },
+  // Skip link
+  "skip": { fr: "Aller au musee", en: "Go to museum" },
+  // Easter egg
+  "easter.text": { fr: "🎉 Bravo ! Vous avez trouve le secret de Scory.", en: "🎉 Congrats! You found Scory's secret." },
+  // Calendrier jours
+  "cal.mon": { fr: "Lun", en: "Mon" },
+  "cal.tue": { fr: "Mar", en: "Tue" },
+  "cal.wed": { fr: "Mer", en: "Wed" },
+  "cal.thu": { fr: "Jeu", en: "Thu" },
+  "cal.fri": { fr: "Ven", en: "Fri" },
+  "cal.sat": { fr: "Sam", en: "Sat" },
+  "cal.sun": { fr: "Dim", en: "Sun" },
   // Toast
   "toast.chat": {
     fr: "Repondez d'abord au chatbot juste au-dessus pour estimer votre projet",

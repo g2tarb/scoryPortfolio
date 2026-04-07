@@ -91,10 +91,10 @@
 
     <noscript>
       <div style="padding:3rem;text-align:center;color:#c9a962;font-family:serif;font-size:1.3rem;">
-        SCORY necessite JavaScript pour fonctionner.<br>Activez JavaScript dans votre navigateur.
+        SCORY requires JavaScript to work. / SCORY necessite JavaScript pour fonctionner.
       </div>
     </noscript>
-    <a class="skip-link" href="#museum-stage">Aller au musee</a>
+    <a class="skip-link" href="#museum-stage" data-i18n="skip">Aller au musee</a>
 
     <main id="museum-stage" aria-label="Scene principale SCORY">
       <div id="neural-host" class="neural-host" aria-hidden="true"></div>
@@ -121,29 +121,29 @@
           <article class="project-disc card-glass disc--meta" data-index="0" data-image="./image/fond4Day.jpg" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
-              <span class="disc-title">Portfolio Scory</span>
-              <span class="disc-meta">Musee digital</span>
+              <span class="disc-title" data-i18n="disc.0.title">Portfolio Scory</span>
+              <span class="disc-meta" data-i18n="disc.0.meta">Musee digital</span>
             </div>
           </article>
           <article class="project-disc card-glass" data-index="1" data-image="./image/fond4Day.jpg" data-image-mobile="./image/4dayMobile.jpg" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
-              <span class="disc-title">4dayvelopment</span>
-              <span class="disc-meta">Agence web</span>
+              <span class="disc-title" data-i18n="disc.1.title">4dayvelopment</span>
+              <span class="disc-meta" data-i18n="disc.1.meta">Agence web</span>
             </div>
           </article>
           <article class="project-disc card-glass" data-index="2" data-image="./image/fondClara.jpg" data-image-mobile="./image/claramartinezMobile.jpg" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
-              <span class="disc-title">Clara Martinez</span>
-              <span class="disc-meta">Coaching premium</span>
+              <span class="disc-title" data-i18n="disc.2.title">Clara Martinez</span>
+              <span class="disc-meta" data-i18n="disc.2.meta">Coaching premium</span>
             </div>
           </article>
           <article class="project-disc card-glass" data-index="3" data-image="./image/fondFlaynn.jpg" data-image-mobile="./image/flaynnMobile.jpg" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
-              <span class="disc-title">Flaynn</span>
-              <span class="disc-meta">SaaS B2B</span>
+              <span class="disc-title" data-i18n="disc.3.title">Flaynn</span>
+              <span class="disc-meta" data-i18n="disc.3.meta">SaaS B2B</span>
             </div>
           </article>
         </div>
@@ -307,7 +307,7 @@
     <div id="booking-overlay" class="booking-overlay" aria-hidden="true">
       <div class="booking-modal glass-panel" id="booking-modal">
         <button class="booking-close" id="booking-close" aria-label="Fermer">&times;</button>
-        <h2 class="booking-title gradient-text">Prendre rendez-vous</h2>
+        <h2 class="booking-title gradient-text" data-i18n="booking.title">Prendre rendez-vous</h2>
 
         <!-- Etape 1 : calendrier -->
         <div class="booking-step" id="booking-step-cal">
@@ -318,7 +318,7 @@
               <button class="booking-cal__arrow" id="cal-next" aria-label="Mois suivant"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 6 15 12 9 18"/></svg></button>
             </div>
             <div class="booking-cal__weekdays">
-              <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
+              <span data-i18n="cal.mon">Lun</span><span data-i18n="cal.tue">Mar</span><span data-i18n="cal.wed">Mer</span><span data-i18n="cal.thu">Jeu</span><span data-i18n="cal.fri">Ven</span><span data-i18n="cal.sat">Sam</span><span data-i18n="cal.sun">Dim</span>
             </div>
             <div class="booking-cal__grid" id="cal-grid"></div>
           </div>
@@ -328,23 +328,23 @@
         <div class="booking-step booking-step--hidden" id="booking-step-time">
           <p class="booking-date-chosen" id="booking-date-chosen"></p>
           <div class="booking-slots" id="booking-slots"></div>
-          <button class="booking-back" id="booking-back-cal">← Changer de date</button>
+          <button class="booking-back" id="booking-back-cal" data-i18n="booking.back.date">← Changer de date</button>
         </div>
 
         <!-- Etape 3 : formulaire -->
         <div class="booking-step booking-step--hidden" id="booking-step-form">
           <p class="booking-date-chosen" id="booking-summary"></p>
-          <input type="text" class="booking-input" id="booking-name" placeholder="Votre nom" required />
-          <input type="email" class="booking-input" id="booking-email" placeholder="Votre email" required />
-          <textarea class="booking-input booking-textarea" id="booking-msg" placeholder="Un mot sur votre projet (optionnel)" rows="3"></textarea>
-          <button class="booking-submit detail-panel__cta" id="booking-submit">Confirmer le rendez-vous</button>
-          <button class="booking-back" id="booking-back-time">← Changer l'heure</button>
+          <input type="text" class="booking-input" id="booking-name" data-i18n="booking.name" data-i18n-attr="placeholder" placeholder="Votre nom" required />
+          <input type="email" class="booking-input" id="booking-email" data-i18n="booking.email" data-i18n-attr="placeholder" placeholder="Votre email" required />
+          <textarea class="booking-input booking-textarea" id="booking-msg" data-i18n="booking.msg" data-i18n-attr="placeholder" placeholder="Un mot sur votre projet (optionnel)" rows="3"></textarea>
+          <button class="booking-submit detail-panel__cta" id="booking-submit" data-i18n="booking.submit">Confirmer le rendez-vous</button>
+          <button class="booking-back" id="booking-back-time" data-i18n="booking.back.time">← Changer l'heure</button>
         </div>
 
         <!-- Etape 4 : confirmation -->
         <div class="booking-step booking-step--hidden" id="booking-step-done">
           <div class="booking-done-icon">✓</div>
-          <p class="booking-done-text">Demande envoyee ! Un email pre-rempli s'est ouvert dans votre messagerie. Scory vous recontacte sous 24h.</p>
+          <p class="booking-done-text" data-i18n="booking.done">Demande envoyee ! Un email pre-rempli s'est ouvert dans votre messagerie. Scory vous recontacte sous 24h.</p>
           <p class="booking-done-detail" id="booking-done-detail"></p>
         </div>
       </div>
@@ -360,7 +360,7 @@
 
     <!-- Easter egg overlay (hidden) -->
     <div id="easter-egg" class="easter-egg-overlay" aria-hidden="true">
-      <p class="easter-egg-text">🎉 Bravo ! Vous avez trouve le secret de Scory.</p>
+      <p class="easter-egg-text" data-i18n="easter.text">🎉 Bravo ! Vous avez trouve le secret de Scory.</p>
     </div>
 
     <script type="application/ld+json">

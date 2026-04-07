@@ -423,6 +423,9 @@ body {
 /* Hint "maintenez" clignotant */
 .project-disc.is-active .disc-label::after {
   content: "\261D cliquez pour decouvrir";
+}
+html[lang="en"] .project-disc.is-active .disc-label::after {
+  content: "\261D click to discover";
   display: block; margin-top: 0.4rem;
   font-size: clamp(0.48rem, 1.5vmin, 0.58rem); letter-spacing: 0.08em; text-transform: uppercase;
   font-family: var(--font-sans);
