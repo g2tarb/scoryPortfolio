@@ -641,10 +641,12 @@ function main() {
 
   let longPressArmed = true;
   let dragStartX = 0;
+  let dragStartY = 0;
 
   carousel.addEventListener("pointerdown", (e) => {
     if (animating || detailVisible) return;
     dragStartX = e.clientX;
+    dragStartY = e.clientY;
     longPressArmed = true;
     const target = e.target.closest(".project-disc");
     if (target && target.classList.contains("is-active")) {
@@ -655,7 +657,10 @@ function main() {
   });
 
   carousel.addEventListener("pointermove", (e) => {
-    if (Math.abs(e.clientX - dragStartX) > 12) {
+    const dx = Math.abs(e.clientX - dragStartX);
+    const dy = Math.abs(e.clientY - dragStartY);
+    // Seuil large (30px) pour éviter les faux positifs du trackpad Mac
+    if (dx + dy > 30) {
       longPressArmed = false;
       if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
     }
