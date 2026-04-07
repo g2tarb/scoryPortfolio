@@ -9,7 +9,7 @@ import { PROJECTS, THEMES, CHAT_FLOW } from "./data.js";
 
 /* ---------- Constantes ---------- */
 const EASE_SPRING_HEAVY = "back.out(1.32)";
-const LOADER_DELAY_MS = 1000;
+const LOADER_DELAY_MS = 1500;
 const CLOSE_OUTSIDE_DELAY_MS = 600;
 const WATER_FADE_DELAY_MS = 5000;
 const DISC_SPIN_SPEED = 0.06;
@@ -153,9 +153,8 @@ async function main() {
     activeProjectBg = null;
   }
 
-  // PHASE 3 : Masquer le loader une fois Three.js pret (ou timeout)
-  const loaderTimeout = new Promise((r) => setTimeout(r, LOADER_DELAY_MS));
-  Promise.all([threeReady, loaderTimeout]).then(() => {
+  // PHASE 3 : Montrer le site apres le loader (n'attend PAS Three.js)
+  setTimeout(() => {
     if (loader) loader.classList.add("is-hidden");
     if (!reduced) {
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -165,8 +164,9 @@ async function main() {
         .from(".museum-label", { opacity: 0, x: 30, duration: 0.7 }, 0.4)
         .from(".scroll-hint", { opacity: 0, y: 15, duration: 0.5 }, 0.7);
     }
-    void syncProjectWater();
-  });
+  }, LOADER_DELAY_MS);
+  // Three.js lance le fond quand il est pret (independamment du loader)
+  threeReady.then(() => void syncProjectWater());
 
   let water = null;
   let waterSplashTween = null;
@@ -965,16 +965,22 @@ async function main() {
     } else { konamiIdx = 0; }
   });
 
-  /* ---------- Chatbot + Booking (modules externes, lazy) ---------- */
+  /* ---------- Chatbot + Booking (sequentiel) ---------- */
   let chatStateRef = { completed: false };
+  let bookingApi = null;
   import("./chatbot.js").then(({ initChatbot, chatState }) => {
     chatStateRef = chatState;
-    initChatbot({ isValidEmail });
+    initChatbot({
+      isValidEmail,
+      onComplete: () => { if (bookingApi) bookingApi.openBooking(); },
+    });
+    return import("./booking.js");
+  }).then(({ initBooking }) => {
+    bookingApi = initBooking({
+      trapFocus, isValidEmail, contactEmail: CONTACT_EMAIL,
+      getChatCompleted: () => chatStateRef.completed,
+    });
   });
-  import("./booking.js").then(({ initBooking }) => initBooking({
-    trapFocus, isValidEmail, contactEmail: CONTACT_EMAIL,
-    getChatCompleted: () => chatStateRef.completed,
-  }));
 }
 
 /* ---------- Boot ---------- */

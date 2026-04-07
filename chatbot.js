@@ -9,8 +9,8 @@ const STEP_ORDER = ["name","rate","q1","q2","q3","q4","q5","q6","q7","q8","q9","
 /** Etat global du chatbot — accessible depuis l'exterieur */
 export const chatState = { completed: false };
 
-/** @param {{ isValidEmail: (e:string)=>boolean }} deps */
-export function initChatbot({ isValidEmail }) {
+/** @param {{ isValidEmail: (e:string)=>boolean, onComplete?: ()=>void }} deps */
+export function initChatbot({ isValidEmail, onComplete }) {
   const chatMessages = document.getElementById("chatbot-messages");
   const chatPills = document.getElementById("chatbot-pills");
   const chatTyping = document.getElementById("chatbot-typing");
@@ -47,6 +47,7 @@ export function initChatbot({ isValidEmail }) {
 
     const chatStatus = document.getElementById("chatbot-status-text");
     const stepIdx = STEP_ORDER.indexOf(stepId);
+    if (!chatStatus) return;
     if (stepId === "done") {
       chatStatus.textContent = "Devis pret";
       chatProgress.style.setProperty("--chat-progress", "100%");
@@ -125,6 +126,17 @@ export function initChatbot({ isValidEmail }) {
 
       if (stepId === "done") {
         chatState.completed = true;
+        // Proposer de prendre RDV
+        const rdvBtn = document.createElement("button");
+        rdvBtn.className = "chat-pill";
+        rdvBtn.style.background = "linear-gradient(135deg, var(--accent-gold), var(--accent-amber))";
+        rdvBtn.style.color = "var(--surface-void)";
+        rdvBtn.style.fontWeight = "600";
+        rdvBtn.textContent = "Prendre rendez-vous";
+        rdvBtn.addEventListener("click", () => {
+          if (typeof onComplete === "function") onComplete();
+        });
+        chatPills.appendChild(rdvBtn);
         const restart = document.createElement("button");
         restart.className = "chat-pill";
         restart.textContent = "Recommencer";

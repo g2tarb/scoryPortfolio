@@ -825,7 +825,7 @@ body {
 
 /* ===== EASTER EGG ===== */
 .easter-egg-overlay {
-  position: fixed; inset: 0; z-index: 10000;
+  position: fixed; inset: 0; z-index: 500;
   place-items: center;
   background: rgba(7,6,10,0.85);
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -1085,8 +1085,9 @@ body {
 }
 @media (max-width: 600px) {
   .toast-ephemere {
-    white-space: normal; max-width: 90vw;
-    font-size: 0.75rem; padding: 0.7rem 1.2rem;
+    white-space: normal; max-width: 88vw;
+    font-size: 0.75rem; padding: 0.65rem 1rem;
+    bottom: 3.5rem;
     bottom: 4rem;
   }
 }

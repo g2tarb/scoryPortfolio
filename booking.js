@@ -185,4 +185,7 @@ export function initBooking({ trapFocus, isValidEmail, contactEmail, getChatComp
     document.getElementById("booking-email").value = "";
     document.getElementById("booking-msg").value = "";
   });
+
+  // Exposer la fonction open pour que le chatbot puisse l'appeler
+  return { openBooking: open };
 }
