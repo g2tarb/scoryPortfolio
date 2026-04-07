@@ -1,7 +1,7 @@
 /**
  * SCORY — Aurora Borealis (Clara Martinez)
  * Canvas 2D : rubans ondulants + halo souris.
- * Adapte pour mobile portrait (rubans etales sur toute la hauteur).
+ * Proportionnel a l'ecran (pas de deformation portrait/paysage).
  */
 export class AuroraBorealis {
   constructor(container) {
@@ -15,16 +15,12 @@ export class AuroraBorealis {
     this.tx = 0.5; this.ty = 0.38;
     this._running = false;
     this._raf = 0;
-    // Bandes de base (desktop) — ajustees dynamiquement pour mobile
-    this._baseBands = [
-      { y:.24, amp:.10, freq:.55, spd:.25, thk:.13, ph:Math.PI*1.4, c1:[201,168,76], c2:[100,55,185] },
-      { y:.32, amp:.10, freq:.70, spd:.42, thk:.20, ph:0,            c1:[80,55,180],  c2:[30,160,150] },
-      { y:.44, amp:.08, freq:1.05,spd:.30, thk:.16, ph:Math.PI*.8,   c1:[50,90,210],  c2:[130,60,215] },
-      { y:.52, amp:.06, freq:1.30,spd:.55, thk:.10, ph:Math.PI*.4,   c1:[60,110,220], c2:[30,170,155] },
-      { y:.65, amp:.07, freq:.80, spd:.35, thk:.14, ph:Math.PI*1.1,  c1:[120,60,200], c2:[40,140,170] },
-      { y:.78, amp:.05, freq:1.10,spd:.45, thk:.11, ph:Math.PI*.2,   c1:[70,80,210],  c2:[160,50,180] },
+    this.bands = [
+      { y:.32, amp:.10, freq:.70, spd:.42, ph:0,             thk:.20, c1:[80,55,180],  c2:[30,160,150] },
+      { y:.44, amp:.08, freq:1.05,spd:.30, ph:Math.PI*.8,    thk:.16, c1:[50,90,210],  c2:[130,60,215] },
+      { y:.24, amp:.07, freq:.55, spd:.25, ph:Math.PI*1.4,   thk:.13, c1:[201,168,76], c2:[100,55,185] },
+      { y:.52, amp:.06, freq:1.30,spd:.55, ph:Math.PI*.4,    thk:.10, c1:[60,110,220], c2:[30,170,155] },
     ];
-    this.bands = [];
     this._onMouse = (e) => { this.tx = e.clientX / innerWidth; this.ty = e.clientY / innerHeight; };
     this._onResize = () => this.resize();
     window.addEventListener("resize", this._onResize, { passive: true });
@@ -34,20 +30,10 @@ export class AuroraBorealis {
   resize() {
     this.canvas.width = this.container.clientWidth || innerWidth;
     this.canvas.height = this.container.clientHeight || innerHeight;
-    this.W = this.canvas.width; this.H = this.canvas.height;
-    const isPortrait = this.H > this.W;
-    if (isPortrait) {
-      // Mobile portrait : utiliser les 6 bandes reparties sur toute la hauteur
-      // Amplifier l'epaisseur et l'amplitude
-      this.bands = this._baseBands.map((b) => ({
-        ...b,
-        amp: b.amp * 1.4,
-        thk: b.thk * 1.5,
-      }));
-    } else {
-      // Desktop/paysage : 4 bandes originales
-      this.bands = this._baseBands.slice(0, 4);
-    }
+    this.W = this.canvas.width;
+    this.H = this.canvas.height;
+    // Dimension de reference = min(W,H) pour garder les proportions
+    this.S = Math.min(this.W, this.H);
   }
   start() { if (this._running) return; this._running = true; this.resize(); this._loop(); }
   stop()  { this._running = false; cancelAnimationFrame(this._raf); }
@@ -60,19 +46,21 @@ export class AuroraBorealis {
     ctx.fillStyle = "#08080F";
     ctx.fillRect(0, 0, W, H);
     for (const b of this.bands) this._drawBand(b);
-    // Halo lumineux qui suit la souris/le centre
-    const gx = this.mx * W, gy = this.my * H * .7, gr = Math.max(W, H) * .45;
+    const gx = this.mx * W, gy = this.my * H * .7, gr = this.S * .5;
     const h = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
-    h.addColorStop(0, "rgba(201,168,76,.12)");
-    h.addColorStop(.4, "rgba(80,55,180,.08)");
+    h.addColorStop(0, "rgba(201,168,76,.10)");
+    h.addColorStop(.4, "rgba(80,55,180,.07)");
     h.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = h; ctx.fillRect(0, 0, W, H);
     this._raf = requestAnimationFrame(() => this._loop());
   }
   _drawBand(b) {
-    const { ctx, W, H, t, mx, my } = this;
+    const { ctx, W, H, S, t, mx, my } = this;
     const N = 64, step = W / N;
-    const yBase = (b.y + (my - .5) * .06) * H, amp = b.amp * H, thk = b.thk * H;
+    // Position Y relative a la hauteur, mais amplitude et epaisseur relatives a S (= min dimension)
+    const yBase = (b.y + (my - .5) * .06) * H;
+    const amp = b.amp * S;
+    const thk = b.thk * S;
     const ph = (mx - .5) * .45;
     const top = [];
     for (let i = 0; i <= N; i++) {
@@ -94,8 +82,8 @@ export class AuroraBorealis {
     const g = ctx.createLinearGradient(0, minY, 0, maxY);
     const [r1,g1,b1] = b.c1, [r2,g2,b2] = b.c2;
     g.addColorStop(0, `rgba(${r1},${g1},${b1},0)`);
-    g.addColorStop(.22, `rgba(${r1},${g1},${b1},.22)`);
-    g.addColorStop(.60, `rgba(${r2},${g2},${b2},.18)`);
+    g.addColorStop(.22, `rgba(${r1},${g1},${b1},.20)`);
+    g.addColorStop(.60, `rgba(${r2},${g2},${b2},.16)`);
     g.addColorStop(1, `rgba(${r2},${g2},${b2},0)`);
     ctx.fillStyle = g; ctx.fill(); ctx.restore();
   }
