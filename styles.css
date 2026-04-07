@@ -305,16 +305,18 @@ html, body {
 .disc-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; letter-spacing: 0.06em; }
 .disc-meta { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(245,242,255,0.5); }
 
-/* Tooltip long press */
+/* Hint "maintenez" clignotant */
 .project-disc.is-active .disc-label::after {
-  content: "maintenez pour détails";
-  display: block; margin-top: 0.6rem;
-  font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
-  color: rgba(245,242,255,0.2);
-  opacity: 0; animation: tooltipFade 6s ease 3s forwards;
+  content: "☝ maintenez pour découvrir";
+  display: block; margin-top: 0.7rem;
+  font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase;
+  font-family: var(--font-sans);
+  color: var(--accent-gold);
+  animation: hintBlink 2.4s ease-in-out infinite;
 }
-@keyframes tooltipFade {
-  0% { opacity: 0; } 30% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; }
+@keyframes hintBlink {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.6; }
 }
 
 /* ===== FLÈCHES DE NAVIGATION ===== */
@@ -537,7 +539,7 @@ html, body {
   .project-disc, .project-track { transition: none !important; }
   .disc-groove { animation: none !important; }
   .project-disc.is-active { animation: none !important; }
-  .project-disc .disc-label::after { animation: none !important; opacity: 0 !important; }
+  .project-disc .disc-label::after { animation: none !important; opacity: 0.3 !important; }
   .nav-arrow { animation: none !important; }
   .gradient-text { background: none; -webkit-background-clip: unset; background-clip: unset; color: rgba(245,242,255,0.85); }
   .chat-msg { animation: none !important; }
