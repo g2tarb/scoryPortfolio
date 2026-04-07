@@ -300,8 +300,8 @@ body {
 }
 
 /* Seul le disque actif est visible */
-.project-disc { opacity: 0; pointer-events: none; position: absolute; }
-.project-disc.is-active { opacity: 1; pointer-events: auto; position: relative; }
+.project-disc { opacity: 0; pointer-events: none; position: absolute; visibility: hidden; overflow: hidden; }
+.project-disc.is-active { opacity: 1; pointer-events: auto; position: relative; visibility: visible; }
 
 .project-disc.is-active {
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.12) inset, 0 0 60px var(--theme-glow-disc);
