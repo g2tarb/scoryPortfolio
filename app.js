@@ -121,11 +121,31 @@ const THEMES = [
   },
 ];
 
-/** Chatbot : 10 questions, 7-8 choix, calcul de prix */
+/** Chatbot : prénom + note + 10 questions + contact + devis */
 const CHAT_FLOW = [
   {
+    id: "name",
+    bot: "Bienvenue dans l'univers Scory ! 👋 Comment vous appelez-vous ?",
+    freeText: true,
+    placeholder: "Votre prénom...",
+    next: "rate",
+  },
+  {
+    id: "rate",
+    bot: "",
+    botTemplate: "Enchanté {name} ! Avant de commencer, que pensez-vous de ce portfolio ? Notez-le !",
+    options: [
+      { label: "⭐ 1 — Bof", next: "q1" },
+      { label: "⭐⭐ 2 — Correct", next: "q1" },
+      { label: "⭐⭐⭐ 3 — Bien", next: "q1" },
+      { label: "⭐⭐⭐⭐ 4 — Très bien", next: "q1" },
+      { label: "⭐⭐⭐⭐⭐ 5 — Incroyable !", next: "q1" },
+    ],
+  },
+  {
     id: "q1",
-    bot: "Bienvenue ! 👋 Pour commencer, quel type de projet avez-vous en tête ?",
+    bot: "",
+    botTemplate: "Merci {name} ! Passons à votre projet. Quel type de site avez-vous en tête ?",
     options: [
       { label: "Site vitrine", next: "q2", cost: 800 },
       { label: "Landing page", next: "q2", cost: 500 },
@@ -153,7 +173,7 @@ const CHAT_FLOW = [
   },
   {
     id: "q3",
-    bot: "Très bien ! Combien de pages souhaitez-vous pour votre site ?",
+    bot: "Très bien ! Combien de pages souhaitez-vous ?",
     options: [
       { label: "One page", next: "q4", cost: 0 },
       { label: "2–3 pages", next: "q4", cost: 200 },
@@ -170,7 +190,7 @@ const CHAT_FLOW = [
     options: [
       { label: "Template adapté", next: "q5", cost: 0 },
       { label: "Semi-personnalisé", next: "q5", cost: 500 },
-      { label: "Design 100% sur-mesure", next: "q5", cost: 1500 },
+      { label: "Design 100 % sur-mesure", next: "q5", cost: 1500 },
       { label: "Direction artistique complète", next: "q5", cost: 2200 },
       { label: "Motion design intégré", next: "q5", cost: 1800 },
       { label: "3D / Expérience immersive", next: "q5", cost: 2800 },
@@ -262,8 +282,10 @@ const CHAT_FLOW = [
   },
   {
     id: "contact",
-    bot: "Parfait ! Laissez-moi votre email pour recevoir votre devis personnalisé :",
+    bot: "",
+    botTemplate: "Parfait {name} ! Laissez-moi votre email pour recevoir votre devis personnalisé :",
     freeText: true,
+    placeholder: "votre@email.com",
     next: "done",
   },
   {
@@ -315,7 +337,7 @@ function main() {
           .from(".museum-label", { opacity: 0, x: 30, duration: 0.7 }, 0.4)
           .from(".scroll-hint", { opacity: 0, y: 15, duration: 0.5 }, 0.7);
       }
-    }, 900);
+    }, 2200);
   });
 
   let water = null;
@@ -592,23 +614,29 @@ function main() {
     }
     detailPanel.classList.add("is-visible");
     detailPanel.setAttribute("aria-hidden", "false");
-    // Fermer au clic en dehors du panneau (après un court délai pour éviter le pointerup immédiat)
+    // Fermer au clic en dehors du panneau — utilise click (pas pointerup)
+    // pour ne pas fermer immédiatement au relâchement du long press
+    _closeOnOutsideRef = (e) => {
+      if (!detailPanel.contains(e.target)) {
+        closeDetail();
+      }
+    };
+    // Attendre que le long press soit fini (le prochain clic fermera)
     setTimeout(() => {
-      const closeOnOutside = (e) => {
-        if (!detailPanel.contains(e.target)) {
-          window.removeEventListener("pointerup", closeOnOutside);
-          closeDetail();
-        }
-      };
-      window.addEventListener("pointerup", closeOnOutside);
-    }, 300);
+      document.addEventListener("click", _closeOnOutsideRef, true);
+    }, 600);
   }
 
+  let _closeOnOutsideRef = null;
   function closeDetail() {
     if (!detailVisible) return;
     detailVisible = false;
     detailPanel.classList.remove("is-visible");
     detailPanel.setAttribute("aria-hidden", "true");
+    if (_closeOnOutsideRef) {
+      document.removeEventListener("click", _closeOnOutsideRef, true);
+      _closeOnOutsideRef = null;
+    }
   }
 
   let longPressArmed = true;
@@ -769,7 +797,7 @@ function main() {
   const chatPills = document.getElementById("chatbot-pills");
   const chatTyping = document.getElementById("chatbot-typing");
   const chatProgress = document.getElementById("chatbot-progress");
-  const chatData = { baseCost: 0, multiplier: 1, answers: {} };
+  const chatData = { baseCost: 0, multiplier: 1, answers: {}, userName: "" };
 
   function getStep(id) { return CHAT_FLOW.find((s) => s.id === id); }
 
@@ -796,6 +824,9 @@ function main() {
     return Math.round(n).toLocaleString("fr-FR");
   }
 
+  // Total d'étapes pour la progression (name + rate + q1-q10 + contact = 13)
+  const STEP_ORDER = ["name","rate","q1","q2","q3","q4","q5","q6","q7","q8","q9","q10","contact","done"];
+
   function renderStep(stepId) {
     const step = getStep(stepId);
     if (!step) return;
@@ -805,28 +836,30 @@ function main() {
 
     // Indicateur de progression
     const chatStatus = document.querySelector(".chatbot-status");
-    const qNum = stepId.startsWith("q") ? parseInt(stepId.slice(1)) : null;
-    if (qNum) {
-      chatStatus.textContent = `${qNum} / 10`;
-      chatProgress.style.setProperty("--chat-progress", (qNum / 10 * 100) + "%");
-    } else if (stepId === "contact") {
-      chatStatus.textContent = "Presque fini !";
-      chatProgress.style.setProperty("--chat-progress", "95%");
-    } else if (stepId === "done") {
+    const stepIdx = STEP_ORDER.indexOf(stepId);
+    if (stepId === "done") {
       chatStatus.textContent = "Devis prêt ✓";
       chatProgress.style.setProperty("--chat-progress", "100%");
+    } else if (stepIdx >= 0) {
+      const pct = Math.round((stepIdx / (STEP_ORDER.length - 1)) * 100);
+      chatStatus.textContent = stepIdx === 0 ? "En ligne" : `${stepIdx} / ${STEP_ORDER.length - 2}`;
+      chatProgress.style.setProperty("--chat-progress", pct + "%");
     }
 
     setTimeout(() => {
       hideTyping();
 
-      // Message dynamique pour le résultat final
-      let botText = step.bot;
+      // Résoudre le texte du bot (templates avec {name})
+      let botText = step.botTemplate
+        ? step.botTemplate.replace(/\{name\}/g, chatData.userName || "")
+        : step.bot;
+
       if (stepId === "done") {
+        const name = chatData.userName || "";
         const total = Math.round(chatData.baseCost * chatData.multiplier);
         const low = Math.round(total * 0.85);
         const high = Math.round(total * 1.15);
-        botText = `Merci ! 🎯 D'après vos réponses, votre projet est estimé entre ${formatPrice(low)}€ et ${formatPrice(high)}€ TTC. Scory vous recontacte sous 24h avec un devis détaillé. À bientôt !`;
+        botText = `Merci ${name} ! 🎯 D'après vos réponses, votre projet est estimé entre ${formatPrice(low)}€ et ${formatPrice(high)}€ TTC. Scory vous recontacte sous 24h avec un devis détaillé. À bientôt !`;
       }
 
       addBotMessage(botText);
@@ -837,7 +870,6 @@ function main() {
           btn.className = "chat-pill";
           btn.textContent = opt.label;
           btn.setAttribute("role", "option");
-          // Navigation clavier entre pills
           btn.addEventListener("keydown", (e) => {
             const pills = [...chatPills.querySelectorAll(".chat-pill")];
             let target;
@@ -860,13 +892,12 @@ function main() {
           });
           chatPills.appendChild(btn);
         });
-        // Focus la premiere pill pour la navigation clavier
         const firstPill = chatPills.querySelector(".chat-pill");
         if (firstPill) requestAnimationFrame(() => firstPill.focus({ preventScroll: true }));
       } else if (step.freeText) {
         const input = document.createElement("input");
         input.type = stepId === "contact" ? "email" : "text";
-        input.placeholder = stepId === "contact" ? "votre@email.com" : "Tapez ici…";
+        input.placeholder = step.placeholder || "Tapez ici…";
         input.className = "chat-input";
         const send = document.createElement("button");
         send.className = "chat-pill";
@@ -874,6 +905,8 @@ function main() {
         const submit = () => {
           const val = input.value.trim();
           if (!val) return;
+          // Stocker le prénom si c'est l'étape "name"
+          if (stepId === "name") chatData.userName = val;
           chatData.answers[stepId] = val;
           addUserMessage(val);
           chatPills.innerHTML = "";
@@ -883,7 +916,7 @@ function main() {
         input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
         chatPills.appendChild(input);
         chatPills.appendChild(send);
-        input.focus();
+        requestAnimationFrame(() => input.focus());
       }
 
       // Bouton recommencer après le devis
@@ -896,10 +929,11 @@ function main() {
           chatData.baseCost = 0;
           chatData.multiplier = 1;
           chatData.answers = {};
+          chatData.userName = "";
           chatPills.innerHTML = "";
           document.querySelector(".chatbot-status").textContent = "En ligne";
           chatProgress.style.setProperty("--chat-progress", "0%");
-          renderStep("q1");
+          renderStep("name");
         });
         chatPills.appendChild(restart);
       }
@@ -910,7 +944,7 @@ function main() {
   const chatObserver = new IntersectionObserver((entries) => {
     if (entries[0].isIntersecting) {
       chatObserver.disconnect();
-      renderStep("q1");
+      renderStep("name");
     }
   }, { threshold: 0.3 });
   chatObserver.observe(document.getElementById("chatbot-section"));
