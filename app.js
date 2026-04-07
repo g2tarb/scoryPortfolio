@@ -862,7 +862,10 @@ async function main() {
 
     function initAudio() {
       if (audio) return;
-      audio = new Audio("./audio/La Bohème - Charles Aznavour.mp3");
+      audio = new Audio();
+      // M4A (AAC 64kbps, 935KB) avec fallback MP3
+      const canM4a = audio.canPlayType("audio/mp4; codecs=mp4a.40.2");
+      audio.src = canM4a ? "./audio/boheme-light.m4a" : "./audio/La Bohème - Charles Aznavour.mp3";
       audio.loop = true;
       audio.volume = volSlider.value / 100;
       audio.setAttribute("playsinline", "");
