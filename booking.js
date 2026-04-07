@@ -120,7 +120,7 @@ export function initBooking({ trapFocus, isValidEmail, contactEmail, getChatComp
   function showChatbotRedirect() {
     const toast = document.createElement("div");
     toast.className = "toast-ephemere";
-    toast.innerHTML = `<span>&#8595;</span> Repondez d'abord au chatbot ci-dessous pour estimer votre projet`;
+    toast.innerHTML = `<span>&#8593;</span> Repondez d'abord au chatbot juste au-dessus pour estimer votre projet`;
     document.body.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add("is-visible"));
     setTimeout(() => {
