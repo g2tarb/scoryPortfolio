@@ -70,42 +70,44 @@
         tabindex="0"
       >
         <div class="project-track" id="project-track">
-          <article class="project-disc card-glass" data-index="0" data-image="./image/fond4Day.jpg" tabindex="-1">
-            <div class="disc-groove" aria-hidden="true"></div>
-            <div class="disc-label">
-              <span class="disc-title">4dayvelopment</span>
-              <span class="disc-meta">Projet web</span>
-            </div>
-          </article>
-          <article class="project-disc card-glass" data-index="1" data-image="./image/fondClara.jpg" tabindex="-1">
-            <div class="disc-groove" aria-hidden="true"></div>
-            <div class="disc-label">
-              <span class="disc-title">Clara Martinez</span>
-              <span class="disc-meta">Design & identite</span>
-            </div>
-          </article>
-          <article class="project-disc card-glass" data-index="2" data-image="./image/fondFlaynn.jpg" tabindex="-1">
-            <div class="disc-groove" aria-hidden="true"></div>
-            <div class="disc-label">
-              <span class="disc-title">Flaynn</span>
-              <span class="disc-meta">SaaS Startup</span>
-            </div>
-          </article>
-          <article class="project-disc card-glass disc--meta" data-index="3" data-image="./image/fond4Day.jpg" tabindex="-1">
+          <article class="project-disc card-glass disc--meta" data-index="0" data-image="./image/fond4Day.jpg" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">Portfolio Scory</span>
-              <span class="disc-meta">Ce musee digital</span>
+              <span class="disc-meta">Musee digital</span>
+            </div>
+          </article>
+          <article class="project-disc card-glass" data-index="1" data-image="./image/fond4Day.jpg" tabindex="-1">
+            <div class="disc-groove" aria-hidden="true"></div>
+            <div class="disc-label">
+              <span class="disc-title">4dayvelopment</span>
+              <span class="disc-meta">Agence web</span>
+            </div>
+          </article>
+          <article class="project-disc card-glass" data-index="2" data-image="./image/fondClara.jpg" tabindex="-1">
+            <div class="disc-groove" aria-hidden="true"></div>
+            <div class="disc-label">
+              <span class="disc-title">Clara Martinez</span>
+              <span class="disc-meta">Coaching premium</span>
+            </div>
+          </article>
+          <article class="project-disc card-glass" data-index="3" data-image="./image/fondFlaynn.jpg" tabindex="-1">
+            <div class="disc-groove" aria-hidden="true"></div>
+            <div class="disc-label">
+              <span class="disc-title">Flaynn</span>
+              <span class="disc-meta">SaaS B2B</span>
             </div>
           </article>
         </div>
 
         <!-- Fleches -->
         <button class="nav-arrow nav-arrow--left" id="arrow-left" aria-label="Projet precedent">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <span class="nav-arrow__glow" aria-hidden="true"></span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <button class="nav-arrow nav-arrow--right" id="arrow-right" aria-label="Projet suivant">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          <span class="nav-arrow__glow" aria-hidden="true"></span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
         </button>
         <div class="nav-dots" id="nav-dots" role="tablist" aria-label="Navigation projets"></div>
       </div>
@@ -114,8 +116,8 @@
       <aside class="museum-label glass-panel" id="museum-label" aria-live="polite">
         <p class="label-kicker">Cartel</p>
         <p class="label-num" id="label-num">01</p>
-        <h2 class="label-title" id="label-title">4dayvelopment</h2>
-        <p class="label-desc" id="label-desc">Projet web — developpement et mise en scene de l'experience.</p>
+        <h2 class="label-title" id="label-title">Portfolio Scory</h2>
+        <p class="label-desc" id="label-desc">Ce musee digital — le portfolio que vous explorez en ce moment.</p>
         <div class="label-stack" id="label-stack"></div>
       </aside>
 
@@ -125,7 +127,8 @@
         <h3 class="detail-panel__title" id="detail-title"></h3>
         <p class="detail-panel__text" id="detail-text"></p>
         <div class="detail-panel__stack" id="detail-stack"></div>
-        <p class="detail-panel__hint">Relachez pour fermer</p>
+        <div class="detail-panel__cta-wrap" id="detail-cta-wrap"></div>
+        <p class="detail-panel__hint">Cliquez en dehors pour fermer</p>
       </div>
 
     </main>

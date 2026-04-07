@@ -18,31 +18,35 @@ function preloadImages(urls) {
   });
 }
 
-/** Projets : titre, desc courte, détails (long press) */
+/** Projets : titre, desc courte, détails (long press), URL de visite */
 const PROJECTS = [
-  {
-    title: "4dayvelopment",
-    desc: "Projet web — développement et mise en scène de l'expérience.",
-    detail: "4Dayvelopment livre des écosystèmes digitaux complets (branding, site, automations, funnel de conversion) en 4 jours ouvrés. Stack : Astro, Node.js, n8n, GSAP. Livré ou c'est gratuit.",
-    stack: ["Node.js", "Express", "Three.js", "GSAP", "n8n", "Zod"],
-  },
-  {
-    title: "Clara Martinez",
-    desc: "Direction artistique et identité visuelle — univers soigné, narration claire.",
-    detail: "Identité visuelle complète pour Clara Martinez : logo, charte graphique, site vitrine responsive. Approche minimaliste avec des accents dorés sur fond sombre.",
-    stack: ["HTML5", "Canvas API", "Vanilla JS", "Lucide Icons", "Aurora BG"],
-  },
-  {
-    title: "Flaynn",
-    desc: "Expérience digitale immersive — interface, motion et ambiance Flaynn.",
-    detail: "Flaynn est une plateforme SaaS de scoring et matching pour startups et investisseurs. Scoring IA via Claude API, génération de fiches PDF, pipeline n8n automatisé.",
-    stack: ["Fastify 5", "PostgreSQL", "Three.js", "GSAP", "Stripe", "JWT"],
-  },
   {
     title: "Portfolio Scory",
     desc: "Ce musée digital — le portfolio que vous explorez en ce moment.",
-    detail: "Portfolio conçu comme un musée interactif : fond neural Three.js, reflets eau via shader GLSL, carrousel à disques vinyle, animations GSAP spring. 100% vanilla JS.",
+    detail: "Portfolio conçu comme un musée interactif : fond neural Three.js procédural, reflets eau via shader GLSL, carrousel à disques vinyle avec transitions particules, thèmes dynamiques par projet, chatbot devis intégré. 100 % vanilla JS, zéro framework.",
     stack: ["Three.js", "GLSL", "GSAP", "Vanilla JS"],
+    url: null,
+  },
+  {
+    title: "4dayvelopment",
+    desc: "Agence web — sites livrés en 4 jours, ou c'est gratuit.",
+    detail: "4Dayvelopment conçoit des écosystèmes digitaux complets en 4 jours ouvrés : branding, site sur-mesure, automations n8n, funnel de conversion. Design dark luxury avec curseur magnétique, animations Three.js, mode sombre/clair, formulaire intelligent avec devis instantané. 17+ projets livrés, 100 % satisfaction.",
+    stack: ["Node.js", "Express", "Three.js", "GSAP", "n8n", "Zod"],
+    url: "https://4dayvelopment.fr/",
+  },
+  {
+    title: "Clara Martinez",
+    desc: "Coaching premium — transformer les freelances en entrepreneurs structurés.",
+    detail: "Site vitrine haut de gamme pour Clara Martinez, coach business à Paris. Méthodologie « Clarity » en 12 semaines. Design dark luxe avec aurora borealis interactive en Canvas, glassmorphism, bento grid, curseur magnétique. Formulaire de contact, FAQ accordion, témoignages, timeline du programme.",
+    stack: ["HTML5", "Canvas API", "Vanilla JS", "Lucide Icons", "Aurora BG"],
+    url: "https://clara-martinez-project.vercel.app/",
+  },
+  {
+    title: "Flaynn",
+    desc: "SaaS B2B — scoring objectif et matching startups-investisseurs.",
+    detail: "Flaynn audite les startups sur 5 piliers (Marché, Produit, Traction, Équipe, Exécution) et génère un score investor-grade en 24h. Design « Dark Clarity » inspiré de Linear et Vercel. Dashboard SPA avec graphes réseau, formulaire multi-étapes, authentification JWT, scoring IA via Claude API, pipeline n8n automatisé.",
+    stack: ["Fastify 5", "PostgreSQL", "Three.js", "GSAP", "JWT", "Claude API"],
+    url: "https://flaynn.tech/",
   },
 ];
 
@@ -59,7 +63,21 @@ function hexToRgba(hex, a) {
  * Extraits des vrais projets Clara Martinez, 4dayvelopment et Flaynn.
  */
 const THEMES = [
-  // 0 — 4dayvelopment
+  // 0 — Portfolio Scory (défaut, premier disque)
+  {
+    gold: "#c9a962",
+    amber: "#e8b86d",
+    ice: "#9ec8ff",
+    magenta: "#c084fc",
+    glow: "rgba(201,169,98,0.12)",
+    glowStrong: "rgba(201,169,98,0.25)",
+    glowDisc: "rgba(201,169,98,0.12)",
+    fontDisplay: "'Cormorant Garamond', 'Times New Roman', serif",
+    fontSans: "'DM Sans', system-ui, sans-serif",
+    neuralFilter: "none",
+    particleColors: [[201,169,98],[158,200,255],[192,132,252],[232,184,109],[245,242,255]],
+  },
+  // 1 — 4dayvelopment
   {
     gold: "#DA5426",
     amber: "#f2b13b",
@@ -73,7 +91,7 @@ const THEMES = [
     neuralFilter: "hue-rotate(-25deg) saturate(1.3) brightness(1.1)",
     particleColors: [[218,84,38],[242,177,59],[136,64,131],[240,240,240],[255,160,80]],
   },
-  // 1 — Clara Martinez
+  // 2 — Clara Martinez
   {
     gold: "#C9A84C",
     amber: "#E8D49A",
@@ -87,7 +105,7 @@ const THEMES = [
     neuralFilter: "hue-rotate(5deg) saturate(0.85) brightness(0.95)",
     particleColors: [[201,168,76],[232,212,154],[168,134,58],[245,240,232],[180,155,90]],
   },
-  // 2 — Flaynn
+  // 3 — Flaynn
   {
     gold: "#7B2D8E",
     amber: "#C13584",
@@ -100,20 +118,6 @@ const THEMES = [
     fontSans: "'IBM Plex Sans', system-ui, sans-serif",
     neuralFilter: "hue-rotate(75deg) saturate(1.4) brightness(1.05)",
     particleColors: [[123,45,142],[193,53,132],[16,185,129],[240,240,243],[59,130,246]],
-  },
-  // 3 — Portfolio Scory (défaut)
-  {
-    gold: "#c9a962",
-    amber: "#e8b86d",
-    ice: "#9ec8ff",
-    magenta: "#c084fc",
-    glow: "rgba(201,169,98,0.12)",
-    glowStrong: "rgba(201,169,98,0.25)",
-    glowDisc: "rgba(201,169,98,0.12)",
-    fontDisplay: "'Cormorant Garamond', 'Times New Roman', serif",
-    fontSans: "'DM Sans', system-ui, sans-serif",
-    neuralFilter: "none",
-    particleColors: [[201,169,98],[158,200,255],[192,132,252],[232,184,109],[245,242,255]],
   },
 ];
 
@@ -437,8 +441,8 @@ function main() {
   async function syncProjectWater() {
     if (!water || !waterHost) return;
 
-    // Disque Scory (index 3) → fond neural Three.js seul, pas d'image
-    if (activeIndex === 3) {
+    // Disque Scory (index 0) → fond neural Three.js seul, pas d'image
+    if (activeIndex === 0) {
       if (waterSplashTween) waterSplashTween.kill();
       gsap.to(neuralHost, { opacity: 1, duration: 0.8, ease: "power2.out" });
       gsap.to(waterHost, { opacity: 0, duration: 0.8, ease: "power2.out" });
@@ -554,6 +558,8 @@ function main() {
   /* ---------- Long press → panneau détails ---------- */
   const detailStack = document.getElementById("detail-stack");
 
+  const detailCtaWrap = document.getElementById("detail-cta-wrap");
+
   function openDetail() {
     if (detailVisible) return;
     detailVisible = true;
@@ -570,15 +576,32 @@ function main() {
         detailStack.appendChild(chip);
       });
     }
+    // Bouton CTA « Visiter le site »
+    detailCtaWrap.innerHTML = "";
+    if (p.url) {
+      const cta = document.createElement("a");
+      cta.href = p.url;
+      cta.target = "_blank";
+      cta.rel = "noopener noreferrer";
+      cta.className = "detail-panel__cta";
+      cta.innerHTML = `Visiter le site <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>`;
+      // Empêcher la fermeture du panneau au clic sur le lien
+      cta.addEventListener("pointerup", (e) => e.stopPropagation());
+      cta.addEventListener("click", (e) => e.stopPropagation());
+      detailCtaWrap.appendChild(cta);
+    }
     detailPanel.classList.add("is-visible");
     detailPanel.setAttribute("aria-hidden", "false");
-    const finish = () => {
-      window.removeEventListener("pointerup", finish);
-      window.removeEventListener("pointercancel", finish);
-      closeDetail();
-    };
-    window.addEventListener("pointerup", finish);
-    window.addEventListener("pointercancel", finish);
+    // Fermer au clic en dehors du panneau (après un court délai pour éviter le pointerup immédiat)
+    setTimeout(() => {
+      const closeOnOutside = (e) => {
+        if (!detailPanel.contains(e.target)) {
+          window.removeEventListener("pointerup", closeOnOutside);
+          closeDetail();
+        }
+      };
+      window.addEventListener("pointerup", closeOnOutside);
+    }, 300);
   }
 
   function closeDetail() {
