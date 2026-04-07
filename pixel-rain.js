@@ -53,8 +53,8 @@ export class PixelRain {
       const rect = el.getBoundingClientRect();
       this._targets.push({
         el,
-        cx: rect.left + rect.width / 2 + window.scrollX,
-        cy: rect.top + rect.height / 2 + window.scrollY,
+        cx: rect.left + rect.width / 2,
+        cy: rect.top + rect.height / 2,
         w: rect.width,
         h: rect.height,
         delay: i * 40, // frames de decalage entre sections
@@ -82,8 +82,6 @@ export class PixelRain {
   }
 
   _spawnParticles() {
-    const scrollY = window.scrollY;
-
     this._targets.forEach((target, tIdx) => {
       // Particules par section (proportionnel a la taille)
       const count = Math.min(Math.floor(target.w * target.h / 2000), 80);
@@ -95,7 +93,7 @@ export class PixelRain {
 
         // Destination : position random dans le rect de la section
         const destX = target.cx + (Math.random() - 0.5) * target.w * 0.8;
-        const destY = (target.cy - scrollY) + (Math.random() - 0.5) * target.h * 0.6;
+        const destY = target.cy + (Math.random() - 0.5) * target.h * 0.6;
 
         const color = this._colors[Math.floor(Math.random() * this._colors.length)];
         const speed = 0.015 + Math.random() * 0.015;

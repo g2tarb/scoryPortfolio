@@ -879,35 +879,19 @@ async function main() {
     statCards.forEach((c) => statsObserver.observe(c));
   }
 
-  /* ---------- Stagger reveal pour grilles ---------- */
-  const staggerGrids = document.querySelectorAll(".stats-grid, .process-grid, .contact-grid");
-  if (staggerGrids.length > 0) {
-    const staggerObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        gsap.fromTo(entry.target.children,
+  /* ---------- Stagger reveal (seulement contact — stats/process/about geres par pixel rain) ---------- */
+  const contactGrid = document.querySelector(".contact-grid");
+  if (contactGrid) {
+    const contactObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        gsap.fromTo(contactGrid.children,
           { opacity: 0, y: 30 },
           { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power2.out" }
         );
-        staggerObserver.unobserve(entry.target);
-      });
-    }, { threshold: 0.2 });
-    staggerGrids.forEach((el) => staggerObserver.observe(el));
-  }
-
-  /* ---------- About section reveal ---------- */
-  const aboutSection = document.querySelector(".about-section");
-  if (aboutSection) {
-    const aboutObserver = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        gsap.fromTo(aboutSection.querySelector(".about-container"),
-          { opacity: 0, y: 30, scale: 0.97 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power2.out" }
-        );
-        aboutObserver.disconnect();
+        contactObserver.disconnect();
       }
     }, { threshold: 0.2 });
-    aboutObserver.observe(aboutSection);
+    contactObserver.observe(contactGrid);
   }
 
   /* ---------- Son ambiant + visualiseur + volume ---------- */
