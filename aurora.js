@@ -1,7 +1,7 @@
 /**
  * SCORY — Aurora Borealis (Clara Martinez)
  * Canvas 2D : rubans ondulants + halo souris.
- * Copie du fond original clara-martinez-project.
+ * Proportionnel a l'ecran (pas de deformation portrait/paysage).
  */
 export class AuroraBorealis {
   constructor(container) {
@@ -30,7 +30,10 @@ export class AuroraBorealis {
   resize() {
     this.canvas.width = this.container.clientWidth || innerWidth;
     this.canvas.height = this.container.clientHeight || innerHeight;
-    this.W = this.canvas.width; this.H = this.canvas.height;
+    this.W = this.canvas.width;
+    this.H = this.canvas.height;
+    // Dimension de reference = min(W,H) pour garder les proportions
+    this.S = Math.min(this.W, this.H);
   }
   start() { if (this._running) return; this._running = true; this.resize(); this._loop(); }
   stop()  { this._running = false; cancelAnimationFrame(this._raf); }
@@ -43,7 +46,7 @@ export class AuroraBorealis {
     ctx.fillStyle = "#08080F";
     ctx.fillRect(0, 0, W, H);
     for (const b of this.bands) this._drawBand(b);
-    const gx = this.mx * W, gy = this.my * H * .7, gr = Math.min(W, H) * .5;
+    const gx = this.mx * W, gy = this.my * H * .7, gr = this.S * .5;
     const h = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
     h.addColorStop(0, "rgba(201,168,76,.10)");
     h.addColorStop(.4, "rgba(80,55,180,.07)");
@@ -52,9 +55,12 @@ export class AuroraBorealis {
     this._raf = requestAnimationFrame(() => this._loop());
   }
   _drawBand(b) {
-    const { ctx, W, H, t, mx, my } = this;
+    const { ctx, W, H, S, t, mx, my } = this;
     const N = 64, step = W / N;
-    const yBase = (b.y + (my - .5) * .06) * H, amp = b.amp * H, thk = b.thk * H;
+    // Position Y relative a la hauteur, mais amplitude et epaisseur relatives a S (= min dimension)
+    const yBase = (b.y + (my - .5) * .06) * H;
+    const amp = b.amp * S;
+    const thk = b.thk * S;
     const ph = (mx - .5) * .45;
     const top = [];
     for (let i = 0; i <= N; i++) {

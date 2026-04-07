@@ -352,8 +352,12 @@ async function main() {
 
   function setActiveClasses(i) {
     discs().forEach((d, idx) => {
-      d.classList.toggle("is-active", idx === i);
-      d.setAttribute("aria-current", idx === i ? "true" : "false");
+      const isActive = idx === i;
+      d.classList.toggle("is-active", isActive);
+      d.setAttribute("aria-current", isActive ? "true" : "false");
+      // display:none force = impossible d'avoir du texte fantome
+      d.removeAttribute("style");
+      if (!isActive) d.style.display = "none";
     });
   }
 
@@ -445,11 +449,18 @@ async function main() {
       return;
     }
 
+    // Stopper la rotation du disque AVANT la transition
+    stopSpin();
+
+    // Tuer toute animation GSAP residuelle sur les disques
+    d.forEach((disc) => gsap.killTweensOf(disc));
+
     // Position du disque pour les particules
     const rect = currentDisc.getBoundingClientRect();
 
     // Masquer le disque courant
-    gsap.set(currentDisc, { opacity: 0, pointerEvents: "none" });
+    currentDisc.removeAttribute("style");
+    currentDisc.style.display = "none";
 
     // Transition shader neural
     const tProxy = { p: 0 };
@@ -462,23 +473,32 @@ async function main() {
     // Transition particules
     await particles.transition(rect, direction);
 
-    // Nettoyer les styles inline du disque précédent
-    gsap.set(currentDisc, { clearProps: "opacity,pointerEvents,scale,transform" });
+    // Nettoyer TOUS les disques — display:none sauf le nouveau
+    d.forEach((disc) => {
+      gsap.killTweensOf(disc);
+      disc.removeAttribute("style");
+      disc.style.display = "none";
+    });
 
-    // Mettre à jour l'état
+    // Mettre a jour l'etat
     activeIndex = nextIndex;
     setActiveClasses(activeIndex);
     setLabel(activeIndex, true);
     updateDots();
     applyTheme(activeIndex);
 
-    // Faire apparaître le nouveau disque
+    // Faire apparaitre le nouveau disque
     const nextDisc = d[activeIndex];
+    nextDisc.style.display = "grid";
     gsap.fromTo(nextDisc,
       { opacity: 0, scale: 0.9 },
       {
-        opacity: 1, scale: 1, duration: 0.35, ease: EASE_SPRING_HEAVY,
-        onComplete: () => gsap.set(nextDisc, { clearProps: "opacity,scale,transform" }),
+        opacity: 1, scale: 1, duration: 0.35, ease: EASE_SPRING_HEAVY, overwrite: true,
+        onComplete: () => {
+          // Garder display:grid, nettoyer le reste
+          nextDisc.style.cssText = "";
+          startSpin();
+        },
       }
     );
 
@@ -802,6 +822,39 @@ async function main() {
     revealElements.forEach((el) => revealObserver.observe(el));
   }
 
+  /* ---------- Teleportation sections (vide → mi-vide → rempli + rebond) ---------- */
+  const teleportSections = document.querySelectorAll(".stats-section, .process-section, .about-section");
+  if (teleportSections.length > 0 && !reduced) {
+    teleportSections.forEach((section) => {
+      gsap.set(section, { opacity: 0, scale: 0.3, y: 60, filter: "blur(8px)" });
+      const obs = new IntersectionObserver((entries) => {
+        if (!entries[0].isIntersecting) return;
+        obs.disconnect();
+        // Phase 1 : teleportation — apparition flash semi-visible (0 → 0.4)
+        gsap.to(section, {
+          opacity: 0.4, scale: 0.7, y: 20, filter: "blur(4px)",
+          duration: 0.4, ease: "power4.out",
+        });
+        // Phase 2 : materialisation — devient plein avec rebond (0.4 → 1)
+        gsap.to(section, {
+          opacity: 1, scale: 1, y: 0, filter: "blur(0px)",
+          duration: 2.6, ease: "elastic.out(1, 0.35)",
+          delay: 0.4,
+          onComplete: () => gsap.set(section, { clearProps: "all" }),
+        });
+        // Stagger enfants (cartes) pour un effet cascade
+        const cards = section.querySelectorAll(".glass-panel, .section-title, .about-mission, .about-philosophy, .about-values");
+        if (cards.length > 0) {
+          gsap.fromTo(cards,
+            { opacity: 0, y: 30, scale: 0.8 },
+            { opacity: 1, y: 0, scale: 1, duration: 1.5, stagger: 0.15, ease: "elastic.out(1, 0.4)", delay: 0.6 }
+          );
+        }
+      }, { threshold: 0.08 });
+      obs.observe(section);
+    });
+  }
+
   /* ---------- Scroll hint click → chatbot ---------- */
   const scrollHint = document.querySelector(".scroll-hint");
   if (scrollHint) {
@@ -833,35 +886,19 @@ async function main() {
     statCards.forEach((c) => statsObserver.observe(c));
   }
 
-  /* ---------- Stagger reveal pour grilles ---------- */
-  const staggerGrids = document.querySelectorAll(".stats-grid, .process-grid, .contact-grid");
-  if (staggerGrids.length > 0) {
-    const staggerObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        gsap.fromTo(entry.target.children,
-          { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power2.out" }
-        );
-        staggerObserver.unobserve(entry.target);
-      });
-    }, { threshold: 0.2 });
-    staggerGrids.forEach((el) => staggerObserver.observe(el));
-  }
-
-  /* ---------- About section reveal ---------- */
-  const aboutSection = document.querySelector(".about-section");
-  if (aboutSection) {
-    const aboutObserver = new IntersectionObserver((entries) => {
+  /* ---------- Contact stagger ---------- */
+  const contactGrid = document.querySelector(".contact-grid");
+  if (contactGrid && !reduced) {
+    const contactObserver = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
-        gsap.fromTo(aboutSection.querySelector(".about-container"),
-          { opacity: 0, y: 30, scale: 0.97 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power2.out" }
+        gsap.fromTo(contactGrid.children,
+          { opacity: 0, y: 40, scale: 0.8 },
+          { opacity: 1, y: 0, scale: 1, duration: 1.5, stagger: 0.12, ease: "elastic.out(1, 0.4)" }
         );
-        aboutObserver.disconnect();
+        contactObserver.disconnect();
       }
-    }, { threshold: 0.2 });
-    aboutObserver.observe(aboutSection);
+    }, { threshold: 0.15 });
+    contactObserver.observe(contactGrid);
   }
 
   /* ---------- Son ambiant + visualiseur + volume ---------- */
