@@ -120,15 +120,23 @@ export function initBooking({ trapFocus, isValidEmail, contactEmail, getChatComp
   function showChatbotRedirect() {
     const toast = document.createElement("div");
     toast.className = "toast-ephemere";
-    toast.textContent = "Completez d'abord votre estimation pour prendre rendez-vous";
+    toast.innerHTML = `<span>&#8595;</span> Repondez d'abord au chatbot ci-dessous pour estimer votre projet`;
     document.body.appendChild(toast);
     requestAnimationFrame(() => toast.classList.add("is-visible"));
     setTimeout(() => {
       toast.classList.remove("is-visible");
       setTimeout(() => toast.remove(), 400);
-    }, 2500);
+    }, 3500);
     const chatSection = document.getElementById("chatbot-section");
-    if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (chatSection) {
+      chatSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Flash le chatbot pour attirer l'attention
+      const container = chatSection.querySelector(".chatbot-container");
+      if (container) {
+        container.classList.add("chatbot-highlight");
+        setTimeout(() => container.classList.remove("chatbot-highlight"), 2000);
+      }
+    }
   }
 
   // Evenements

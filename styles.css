@@ -989,6 +989,15 @@ body {
   .booking-title { font-size: 1.1rem; }
 }
 
+/* ===== CHATBOT HIGHLIGHT (redirection booking) ===== */
+@keyframes chatHighlight {
+  0%, 100% { box-shadow: var(--glass-shadow), 0 0 40px var(--theme-glow); }
+  50% { box-shadow: var(--glass-shadow), 0 0 60px var(--theme-glow-strong), 0 0 100px var(--theme-glow); }
+}
+.chatbot-highlight {
+  animation: chatHighlight 0.6s ease-in-out 3;
+}
+
 /* ===== TOAST EPHEMERE ===== */
 .toast-ephemere {
   position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%) translateY(20px);
