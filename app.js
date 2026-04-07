@@ -9,6 +9,15 @@ import { ParticleTransition } from "./particles.js";
 
 const EASE_SPRING_HEAVY = "back.out(1.32)";
 
+/** Preload des images pour des transitions plus fluides */
+function preloadImages(urls) {
+  urls.forEach((url) => {
+    if (!url) return;
+    const img = new Image();
+    img.src = url;
+  });
+}
+
 /** Projets : titre, desc courte, détails (long press) */
 const PROJECTS = [
   {
@@ -290,14 +299,17 @@ function main() {
   /* ---------- Three.js ---------- */
   const neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
 
-  // Masquer le loader + animation d'entrée
+  // Masquer le loader + animation d'entree sequentielle
   requestAnimationFrame(() => {
     setTimeout(() => {
       if (loader) loader.classList.add("is-hidden");
       if (!reduced) {
-        gsap.from(".floating-brand", { opacity: 0, y: -20, duration: 0.8, delay: 0.15, ease: "power2.out" });
-        gsap.from(".project-carousel", { opacity: 0, y: 50, duration: 1, delay: 0.35, ease: "power2.out" });
-        gsap.from(".museum-label", { opacity: 0, x: 30, duration: 0.8, delay: 0.55, ease: "power2.out" });
+        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+        tl.from(".floating-brand", { opacity: 0, y: -20, duration: 0.7 }, 0.1)
+          .from(".project-carousel", { opacity: 0, y: 40, scale: 0.97, duration: 0.9 }, 0.25)
+          .from(".nav-arrow", { opacity: 0, scale: 0.5, duration: 0.5, stagger: 0.1 }, 0.5)
+          .from(".museum-label", { opacity: 0, x: 30, duration: 0.7 }, 0.4)
+          .from(".scroll-hint", { opacity: 0, y: 15, duration: 0.5 }, 0.7);
       }
     }, 900);
   });
@@ -354,16 +366,19 @@ function main() {
     discs().forEach((_, i) => {
       const dot = document.createElement("button");
       dot.className = "nav-dot" + (i === activeIndex ? " is-active" : "");
-      dot.setAttribute("aria-label", `Projet ${i + 1}`);
+      dot.setAttribute("aria-label", `Projet ${i + 1} : ${PROJECTS[i]?.title || ""}`);
+      dot.setAttribute("role", "tab");
+      dot.setAttribute("aria-selected", i === activeIndex ? "true" : "false");
       dot.addEventListener("click", () => goTo(i));
       dotsContainer.appendChild(dot);
     });
   }
 
   function updateDots() {
-    dotsContainer.querySelectorAll(".nav-dot").forEach((d, i) =>
-      d.classList.toggle("is-active", i === activeIndex)
-    );
+    dotsContainer.querySelectorAll(".nav-dot").forEach((d, i) => {
+      d.classList.toggle("is-active", i === activeIndex);
+      d.setAttribute("aria-selected", i === activeIndex ? "true" : "false");
+    });
   }
 
   /* ---------- Label / cartel ---------- */
@@ -599,24 +614,34 @@ function main() {
     if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
   });
 
-  /* ---------- Swipe tactile ---------- */
+  /* ---------- Swipe tactile avec velocite ---------- */
   let swipeStartX = 0;
+  let swipeStartTime = 0;
   carousel.addEventListener("touchstart", (e) => {
     swipeStartX = e.touches[0].clientX;
+    swipeStartTime = Date.now();
   }, { passive: true });
   carousel.addEventListener("touchend", (e) => {
     const dx = e.changedTouches[0].clientX - swipeStartX;
-    if (Math.abs(dx) > 60 && !animating) {
+    const dt = Date.now() - swipeStartTime;
+    const velocity = Math.abs(dx) / Math.max(dt, 1);
+    // Swipe rapide (velocity > 0.3) ou long (> 60px)
+    const isSwipe = (Math.abs(dx) > 40 && velocity > 0.3) || Math.abs(dx) > 60;
+    if (isSwipe && !animating) {
       if (dx < 0) goTo(activeIndex + 1);
       else goTo(activeIndex - 1);
     }
   });
 
-  /* ---------- Resize ---------- */
+  /* ---------- Resize (debounced) ---------- */
+  let resizeTimer;
   window.addEventListener("resize", () => {
-    neural.resize();
-    if (water) water.resize();
-    particles.resize();
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      neural.resize();
+      if (water) water.resize();
+      particles.resize();
+    }, 100);
   }, { passive: true });
 
   /* ---------- Curseur custom + Tilt 3D + Neural feedback ---------- */
@@ -681,9 +706,37 @@ function main() {
   applyTheme(0);
   void syncProjectWater();
 
+  // Preload toutes les images de fond
+  const imageUrls = discs().map((d) => d.dataset.image).filter(Boolean);
+  preloadImages(imageUrls);
+
   if (reduced) {
     neural.setRotationInfluence(0);
     neural.setTransitionProgress(0);
+  }
+
+  /* ---------- Scroll Reveal ---------- */
+  const revealElements = document.querySelectorAll(".reveal");
+  if (revealElements.length > 0) {
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-revealed");
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+    revealElements.forEach((el) => revealObserver.observe(el));
+  }
+
+  /* ---------- Scroll hint click → chatbot ---------- */
+  const scrollHint = document.querySelector(".scroll-hint");
+  if (scrollHint) {
+    scrollHint.style.cursor = "pointer";
+    scrollHint.addEventListener("click", () => {
+      const chatSection = document.getElementById("chatbot-section");
+      if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   /* =================================================================
@@ -756,10 +809,24 @@ function main() {
       addBotMessage(botText);
 
       if (step.options && step.options.length > 0) {
-        step.options.forEach((opt) => {
+        step.options.forEach((opt, idx) => {
           const btn = document.createElement("button");
           btn.className = "chat-pill";
           btn.textContent = opt.label;
+          btn.setAttribute("role", "option");
+          // Navigation clavier entre pills
+          btn.addEventListener("keydown", (e) => {
+            const pills = [...chatPills.querySelectorAll(".chat-pill")];
+            let target;
+            if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+              e.preventDefault();
+              target = pills[(idx + 1) % pills.length];
+            } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+              e.preventDefault();
+              target = pills[(idx - 1 + pills.length) % pills.length];
+            }
+            if (target) target.focus();
+          });
           btn.addEventListener("click", () => {
             if (typeof opt.cost === "number") chatData.baseCost += opt.cost;
             if (typeof opt.multiplier === "number") chatData.multiplier = opt.multiplier;
@@ -770,6 +837,9 @@ function main() {
           });
           chatPills.appendChild(btn);
         });
+        // Focus la premiere pill pour la navigation clavier
+        const firstPill = chatPills.querySelector(".chat-pill");
+        if (firstPill) requestAnimationFrame(() => firstPill.focus({ preventScroll: true }));
       } else if (step.freeText) {
         const input = document.createElement("input");
         input.type = stepId === "contact" ? "email" : "text";

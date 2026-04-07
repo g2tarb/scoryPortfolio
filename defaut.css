@@ -64,6 +64,17 @@
   --theme-warm-b: rgba(232, 184, 109, 0.20);
   --theme-warm-c: rgba(232, 184, 109, 0.25);
 
-  /* Anneau de focus clavier (accessibilité) */
+  /* Anneau de focus clavier (accessibilite) */
   --focus-ring: 0 0 0 2px var(--surface-deep), 0 0 0 4px var(--accent-ice);
+
+  /* Durees de transition coherentes */
+  --duration-fast: 0.15s;
+  --duration-normal: 0.3s;
+  --duration-slow: 0.6s;
+
+  /* Safe area insets pour les ecrans avec encoche */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
 }
