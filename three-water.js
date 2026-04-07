@@ -38,6 +38,10 @@ export class WaterReflectionLayer {
     this._running = true;
     this._raf = 0;
     this._currentUrl = null;
+    /** Durée de l'animation avant gel (secondes) */
+    this._animDuration = 3;
+    this._animElapsed = 0;
+    this._frozen = false;
     this._loader = new THREE.TextureLoader();
     this._loader.setCrossOrigin("anonymous");
 
@@ -210,6 +214,7 @@ export class WaterReflectionLayer {
           this.uniforms.uTextureSize.value.set(iw, ih);
           this.uniforms.uTexture.value = tex;
           this._currentUrl = url;
+          this._restartAnim();
           resolve();
         },
         undefined,
@@ -218,11 +223,34 @@ export class WaterReflectionLayer {
     });
   }
 
+  /** Relance 3 s d'animation (appelé au changement de texture) */
+  _restartAnim() {
+    this._animElapsed = 0;
+    this._frozen = false;
+    this._clock.getDelta(); // purge le delta accumulé
+    if (this._running) {
+      cancelAnimationFrame(this._raf);
+      this._raf = requestAnimationFrame(this._tick);
+    }
+  }
+
   _tick = () => {
     if (!this._running) return;
     const dt = this._clock.getDelta();
-    this.uniforms.uTime.value += dt * this._timeScale;
+
+    if (!this._frozen) {
+      this._animElapsed += dt;
+      this.uniforms.uTime.value += dt * this._timeScale;
+
+      if (this._animElapsed >= this._animDuration) {
+        this._frozen = true;
+      }
+    }
+
     this.renderer.render(this.scene, this.camera);
+
+    /* Si gelé, un dernier rendu puis on arrête la boucle */
+    if (this._frozen) return;
     this._raf = requestAnimationFrame(this._tick);
   };
 
