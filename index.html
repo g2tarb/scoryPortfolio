@@ -9,9 +9,13 @@
     <meta property="og:title" content="SCORY — Musee Digital" />
     <meta property="og:description" content="Portfolio interactif concu comme un musee digital. Experience immersive Three.js, animations GSAP, glassmorphism." />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="./image/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="SCORY — Musee Digital" />
     <meta name="twitter:description" content="Portfolio interactif concu comme un musee digital." />
+    <meta name="twitter:image" content="./image/og-image.jpg" />
     <title>SCORY — Musee Digital</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%2307060a' width='32' height='32' rx='6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='%23c9a962' font-family='serif' font-size='20' font-weight='600'%3ES%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://unpkg.com" />
@@ -37,6 +41,12 @@
     <!-- Curseur custom -->
     <div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
     <div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
+
+    <!-- Son ambiant -->
+    <button id="sound-toggle" class="sound-toggle" aria-label="Activer le son ambiant" aria-pressed="false">
+      <svg class="sound-icon sound-icon--off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      <svg class="sound-icon sound-icon--on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    </button>
 
     <!-- Loader -->
     <div id="loader" class="loader" aria-hidden="true">
@@ -83,21 +93,21 @@
               <span class="disc-meta">Musee digital</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="1" data-image="./image/fond4Day.jpg" tabindex="-1">
+          <article class="project-disc card-glass" data-index="1" data-image="./image/fond4Day.jpg" data-image-mobile="./image/4dayMobile.png" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">4dayvelopment</span>
               <span class="disc-meta">Agence web</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="2" data-image="./image/fondClara.jpg" tabindex="-1">
+          <article class="project-disc card-glass" data-index="2" data-image="./image/fondClara.jpg" data-image-mobile="./image/claramartinezMobile.png" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">Clara Martinez</span>
               <span class="disc-meta">Coaching premium</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="3" data-image="./image/fondFlaynn.jpg" tabindex="-1">
+          <article class="project-disc card-glass" data-index="3" data-image="./image/fondFlaynn.jpg" data-image-mobile="./image/flaynnMobile.png" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title">Flaynn</span>
@@ -127,16 +137,16 @@
         <div class="label-stack" id="label-stack"></div>
       </aside>
 
-      <!-- Panneau details (long press) -->
+      <!-- Panneau details (clic disque) -->
       <div id="detail-panel" class="detail-panel glass-panel" aria-hidden="true">
         <div class="detail-panel__icon">🔍</div>
         <h3 class="detail-panel__title" id="detail-title"></h3>
         <p class="detail-panel__text" id="detail-text"></p>
+        <div class="detail-panel__screenshots" id="detail-screenshots"></div>
         <div class="detail-panel__stack" id="detail-stack"></div>
         <div class="detail-panel__cta-wrap" id="detail-cta-wrap"></div>
         <p class="detail-panel__hint">Cliquez en dehors pour fermer</p>
       </div>
-
     </main>
 
     <!-- Scroll hint -->
@@ -144,6 +154,74 @@
       <p class="scroll-hint__text">Estimez votre projet</p>
       <svg class="scroll-hint__arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
+
+    <!-- Stats -->
+    <section class="stats-section" aria-label="Chiffres cles">
+      <div class="stats-grid">
+        <div class="stat-card glass-panel" data-target="17" data-suffix="+">
+          <span class="stat-number">0</span>
+          <span class="stat-label">Projets livres</span>
+        </div>
+        <div class="stat-card glass-panel" data-target="4" data-suffix=" jours">
+          <span class="stat-number">0</span>
+          <span class="stat-label">Delai de livraison</span>
+        </div>
+        <div class="stat-card glass-panel" data-target="100" data-suffix="%">
+          <span class="stat-number">0</span>
+          <span class="stat-label">Satisfaction client</span>
+        </div>
+        <div class="stat-card glass-panel" data-target="24" data-suffix="h/24">
+          <span class="stat-number">0</span>
+          <span class="stat-label">Support disponible</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Processus -->
+    <section class="process-section" aria-label="Notre processus">
+      <h2 class="section-title gradient-text">Notre processus</h2>
+      <div class="process-grid">
+        <div class="process-card glass-panel">
+          <span class="process-step">01</span>
+          <span class="process-icon">📞</span>
+          <h3 class="process-name">Contact</h3>
+          <p class="process-desc">Echange sur votre vision, vos objectifs et votre budget. Devis gratuit sous 24h.</p>
+        </div>
+        <div class="process-card glass-panel">
+          <span class="process-step">02</span>
+          <span class="process-icon">🎨</span>
+          <h3 class="process-name">Maquette</h3>
+          <p class="process-desc">Direction artistique sur-mesure, wireframes et prototypes interactifs valides avec vous.</p>
+        </div>
+        <div class="process-card glass-panel">
+          <span class="process-step">03</span>
+          <span class="process-icon">⚡</span>
+          <h3 class="process-name">Developpement</h3>
+          <p class="process-desc">Code artisanal, animations GSAP, Three.js, responsive pixel-perfect. Zero template.</p>
+        </div>
+        <div class="process-card glass-panel">
+          <span class="process-step">04</span>
+          <span class="process-icon">🚀</span>
+          <h3 class="process-name">Livraison</h3>
+          <p class="process-desc">Deploiement, formation et support inclus. Livre en 4 jours ou c'est gratuit.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="about-section" aria-label="A propos de Scory">
+      <div class="about-container glass-panel">
+        <h2 class="section-title gradient-text">Qui est Scory ?</h2>
+        <p class="about-mission">Scory concoit des experiences web immersives qui transforment votre vision en realite digitale.</p>
+        <p class="about-philosophy">Chaque projet est une oeuvre sur-mesure. Design premium, code artisanal, livraison en 4 jours. Pas de templates. Pas de compromis. Juste votre univers, sublime.</p>
+        <div class="about-values">
+          <div class="about-value"><span class="about-value-icon">✦</span> Design sur-mesure</div>
+          <div class="about-value"><span class="about-value-icon">✦</span> Code artisanal</div>
+          <div class="about-value"><span class="about-value-icon">✦</span> Livraison 4 jours</div>
+          <div class="about-value"><span class="about-value-icon">✦</span> Support 24h/24</div>
+        </div>
+      </div>
+    </section>
 
     <!-- Chatbot -->
     <section id="chatbot-section" class="chatbot-section reveal">
@@ -164,12 +242,41 @@
       </div>
     </section>
 
+    <!-- Contact -->
+    <section class="contact-section reveal" aria-label="Contact">
+      <h2 class="section-title gradient-text">Contactez-nous</h2>
+      <div class="contact-grid">
+        <a href="mailto:contact@scory.fr" class="contact-card glass-panel">
+          <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          <span class="contact-label">contact@scory.fr</span>
+        </a>
+        <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" class="contact-card glass-panel">
+          <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          <span class="contact-label">LinkedIn</span>
+        </a>
+        <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="contact-card glass-panel">
+          <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          <span class="contact-label">GitHub</span>
+        </a>
+      </div>
+      <a href="https://cal.com/" target="_blank" rel="noopener noreferrer" class="cta-rdv detail-panel__cta">
+        Prendre rendez-vous
+        <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>
+      </a>
+    </section>
+
     <footer class="museum-footer reveal">
       <p class="gradient-text museum-signature">
         Avec Scory, seule votre imagination est la limite.
       </p>
       <p class="footer-copy">&copy; 2026 Scory — Musee Digital. Tous droits reserves.</p>
+      <a href="#" class="footer-legal">Mentions legales</a>
     </footer>
+
+    <!-- Easter egg overlay (hidden) -->
+    <div id="easter-egg" class="easter-egg-overlay" aria-hidden="true">
+      <p class="easter-egg-text">🎉 Bravo ! Vous avez trouve le secret de Scory.</p>
+    </div>
 
     <script type="application/ld+json">
     {

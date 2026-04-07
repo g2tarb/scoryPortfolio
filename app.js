@@ -29,6 +29,7 @@ const PROJECTS = [
     detail: "Portfolio conçu comme un musée interactif : fond neural Three.js procédural, reflets eau via shader GLSL, carrousel à disques vinyle avec transitions particules, thèmes dynamiques par projet, chatbot devis intégré. 100 % vanilla JS, zéro framework.",
     stack: ["Three.js", "GLSL", "GSAP", "Vanilla JS"],
     url: null,
+    screenshots: [],
   },
   {
     title: "4dayvelopment",
@@ -36,6 +37,7 @@ const PROJECTS = [
     detail: "4Dayvelopment conçoit des écosystèmes digitaux complets en 4 jours ouvrés : branding, site sur-mesure, automations n8n, funnel de conversion. Design dark luxury avec curseur magnétique, animations Three.js, mode sombre/clair, formulaire intelligent avec devis instantané. 17+ projets livrés, 100 % satisfaction.",
     stack: ["Node.js", "Express", "Three.js", "GSAP", "n8n", "Zod"],
     url: "https://4dayvelopment.fr/",
+    screenshots: ["./image/fond4Day.jpg", "./image/4dayMobile.png"],
   },
   {
     title: "Clara Martinez",
@@ -43,6 +45,7 @@ const PROJECTS = [
     detail: "Site vitrine haut de gamme pour Clara Martinez, coach business à Paris. Méthodologie « Clarity » en 12 semaines. Design dark luxe avec aurora borealis interactive en Canvas, glassmorphism, bento grid, curseur magnétique. Formulaire de contact, FAQ accordion, témoignages, timeline du programme.",
     stack: ["HTML5", "Canvas API", "Vanilla JS", "Lucide Icons", "Aurora BG"],
     url: "https://clara-martinez-project.vercel.app/",
+    screenshots: ["./image/fondClara.jpg", "./image/claramartinezMobile.png"],
   },
   {
     title: "Flaynn",
@@ -50,6 +53,7 @@ const PROJECTS = [
     detail: "Flaynn audite les startups sur 5 piliers (Marché, Produit, Traction, Équipe, Exécution) et génère un score investor-grade en 24h. Design « Dark Clarity » inspiré de Linear et Vercel. Dashboard SPA avec graphes réseau, formulaire multi-étapes, authentification JWT, scoring IA via Claude API, pipeline n8n automatisé.",
     stack: ["Fastify 5", "PostgreSQL", "Three.js", "GSAP", "JWT", "Claude API"],
     url: "https://flaynn.tech/",
+    screenshots: ["./image/fondFlaynn.jpg", "./image/flaynnMobile.png"],
   },
 ];
 
@@ -524,7 +528,8 @@ function main() {
     }
 
     const el = discs()[activeIndex];
-    const url = el?.dataset?.image;
+    const isMobile = window.innerWidth <= 600;
+    const url = (isMobile && el?.dataset?.imageMobile) || el?.dataset?.image;
     if (!url) return;
     try { await water.loadTexture(url); } catch { return; }
     runWaterSplash();
@@ -639,10 +644,10 @@ function main() {
     if (e.key === "Escape" && detailVisible) closeDetail();
   });
 
-  /* ---------- Long press → panneau détails ---------- */
+  /* ---------- Clic → panneau détails ---------- */
   const detailStack = document.getElementById("detail-stack");
-
   const detailCtaWrap = document.getElementById("detail-cta-wrap");
+  const detailScreenshots = document.getElementById("detail-screenshots");
 
   function openDetail() {
     if (detailVisible) return;
@@ -658,6 +663,18 @@ function main() {
         chip.className = "label-chip";
         chip.textContent = tag;
         detailStack.appendChild(chip);
+      });
+    }
+    // Screenshots
+    detailScreenshots.innerHTML = "";
+    if (p.screenshots && p.screenshots.length > 0) {
+      p.screenshots.forEach((src) => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = `Capture de ${p.title}`;
+        img.className = "detail-panel__screenshot";
+        img.loading = "lazy";
+        detailScreenshots.appendChild(img);
       });
     }
     // Bouton CTA « Visiter le site »
@@ -836,8 +853,12 @@ function main() {
   applyTheme(0);
   void syncProjectWater();
 
-  // Preload toutes les images de fond
-  const imageUrls = discs().map((d) => d.dataset.image).filter(Boolean);
+  // Preload toutes les images de fond (desktop + mobile)
+  const allDiscs = discs();
+  const imageUrls = [
+    ...allDiscs.map((d) => d.dataset.image),
+    ...allDiscs.map((d) => d.dataset.imageMobile),
+  ].filter(Boolean);
   preloadImages(imageUrls);
 
   if (reduced) {
@@ -868,6 +889,137 @@ function main() {
       if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }
+
+  /* ---------- Stats animation (compteurs) ---------- */
+  const statCards = document.querySelectorAll(".stat-card");
+  if (statCards.length > 0) {
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const card = entry.target;
+        const numEl = card.querySelector(".stat-number");
+        const target = parseInt(card.dataset.target, 10);
+        const suffix = card.dataset.suffix || "";
+        const counter = { val: 0 };
+        gsap.to(counter, {
+          val: target, duration: 2, ease: "power2.out",
+          onUpdate: () => { numEl.textContent = Math.round(counter.val) + suffix; },
+        });
+        statsObserver.unobserve(card);
+      });
+    }, { threshold: 0.5 });
+    statCards.forEach((c) => statsObserver.observe(c));
+  }
+
+  /* ---------- Stagger reveal pour grilles ---------- */
+  const staggerGrids = document.querySelectorAll(".stats-grid, .process-grid, .contact-grid");
+  if (staggerGrids.length > 0) {
+    const staggerObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        gsap.fromTo(entry.target.children,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power2.out" }
+        );
+        staggerObserver.unobserve(entry.target);
+      });
+    }, { threshold: 0.2 });
+    staggerGrids.forEach((el) => staggerObserver.observe(el));
+  }
+
+  /* ---------- About section reveal ---------- */
+  const aboutSection = document.querySelector(".about-section");
+  if (aboutSection) {
+    const aboutObserver = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        gsap.fromTo(aboutSection.querySelector(".about-container"),
+          { opacity: 0, y: 30, scale: 0.97 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power2.out" }
+        );
+        aboutObserver.disconnect();
+      }
+    }, { threshold: 0.2 });
+    aboutObserver.observe(aboutSection);
+  }
+
+  /* ---------- Son ambiant ---------- */
+  const soundToggle = document.getElementById("sound-toggle");
+  if (soundToggle) {
+    let audioCtx, gainNode, audioBuffer, audioSource, soundOn = false;
+    const iconOff = soundToggle.querySelector(".sound-icon--off");
+    const iconOn = soundToggle.querySelector(".sound-icon--on");
+
+    async function initAudio() {
+      if (audioCtx) return;
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = 0;
+        gainNode.connect(audioCtx.destination);
+        // Générer un drone ambiant synthétique (pas besoin de fichier mp3)
+        const sampleRate = audioCtx.sampleRate;
+        const duration = 4;
+        const length = sampleRate * duration;
+        audioBuffer = audioCtx.createBuffer(2, length, sampleRate);
+        for (let ch = 0; ch < 2; ch++) {
+          const data = audioBuffer.getChannelData(ch);
+          for (let i = 0; i < length; i++) {
+            const t = i / sampleRate;
+            // Drone doux : 3 harmoniques basses + bruit filtré
+            data[i] = (
+              Math.sin(t * 55 * Math.PI * 2) * 0.15 +
+              Math.sin(t * 82.5 * Math.PI * 2) * 0.08 +
+              Math.sin(t * 110 * Math.PI * 2) * 0.05 +
+              (Math.random() - 0.5) * 0.02
+            ) * (0.5 + 0.5 * Math.sin(t * 0.5 * Math.PI * 2));
+          }
+        }
+        startSource();
+      } catch { /* WebAudio non disponible */ }
+    }
+
+    function startSource() {
+      if (!audioCtx || !audioBuffer) return;
+      audioSource = audioCtx.createBufferSource();
+      audioSource.buffer = audioBuffer;
+      audioSource.loop = true;
+      audioSource.connect(gainNode);
+      audioSource.start();
+    }
+
+    soundToggle.addEventListener("click", async () => {
+      await initAudio();
+      if (!audioCtx) return;
+      soundOn = !soundOn;
+      gainNode.gain.linearRampToValueAtTime(soundOn ? 0.12 : 0, audioCtx.currentTime + 0.5);
+      soundToggle.setAttribute("aria-pressed", String(soundOn));
+      iconOff.style.display = soundOn ? "none" : "block";
+      iconOn.style.display = soundOn ? "block" : "none";
+    });
+  }
+
+  /* ---------- Easter Egg (Konami Code) ---------- */
+  const KONAMI = [38,38,40,40,37,39,37,39,66,65];
+  let konamiIdx = 0;
+  const easterEgg = document.getElementById("easter-egg");
+  document.addEventListener("keydown", (e) => {
+    if (e.keyCode === KONAMI[konamiIdx]) {
+      konamiIdx++;
+      if (konamiIdx === KONAMI.length) {
+        konamiIdx = 0;
+        if (easterEgg) {
+          easterEgg.classList.add("is-visible");
+          // Explosion de particules dorées
+          const rect = { left: innerWidth / 2 - 100, top: innerHeight / 2 - 100, width: 200, height: 200 };
+          particles.transition(rect, 0);
+          gsap.fromTo(easterEgg, { opacity: 0 }, { opacity: 1, duration: 0.5 });
+          setTimeout(() => {
+            gsap.to(easterEgg, { opacity: 0, duration: 1, onComplete: () => easterEgg.classList.remove("is-visible") });
+          }, 3500);
+        }
+      }
+    } else { konamiIdx = 0; }
+  });
 
   /* =================================================================
      CHATBOT — 10 questions, calcul de prix théorique
