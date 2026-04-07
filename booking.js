@@ -1,7 +1,7 @@
 /**
  * SCORY — booking.js
  * Systeme de prise de RDV in-app : calendrier, creneaux, formulaire, mailto.
- * @param {Object} deps - { trapFocus, isValidEmail, contactEmail }
+ * Necessite que le chatbot soit complete avant de pouvoir prendre RDV.
  */
 
 const SLOTS = ["09:00","10:00","11:00","14:00","15:00","16:00","17:00"];
@@ -9,9 +9,9 @@ const MONTHS_FR = ["Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Ao
 const JOURS_FR = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
 
 /**
- * @param {{ trapFocus: (el:HTMLElement)=>(()=>void), isValidEmail: (e:string)=>boolean, contactEmail: string }} deps
+ * @param {{ trapFocus: Function, isValidEmail: Function, contactEmail: string, getChatCompleted: ()=>boolean }} deps
  */
-export function initBooking({ trapFocus, isValidEmail, contactEmail }) {
+export function initBooking({ trapFocus, isValidEmail, contactEmail, getChatCompleted }) {
   const overlay = document.getElementById("booking-overlay");
   const modal = document.getElementById("booking-modal");
   const openBtn = document.getElementById("open-booking");
@@ -116,8 +116,27 @@ export function initBooking({ trapFocus, isValidEmail, contactEmail }) {
     document.getElementById("booking-name").focus();
   }
 
+  /** Affiche un toast ephemere puis scroll vers le chatbot */
+  function showChatbotRedirect() {
+    const toast = document.createElement("div");
+    toast.className = "toast-ephemere";
+    toast.textContent = "Completez d'abord votre estimation pour prendre rendez-vous";
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add("is-visible"));
+    setTimeout(() => {
+      toast.classList.remove("is-visible");
+      setTimeout(() => toast.remove(), 400);
+    }, 2500);
+    const chatSection = document.getElementById("chatbot-section");
+    if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   // Evenements
-  openBtn.addEventListener("click", (e) => { e.preventDefault(); open(); });
+  openBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (!getChatCompleted()) { showChatbotRedirect(); return; }
+    open();
+  });
   closeBtn.addEventListener("click", close);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && overlay.classList.contains("is-open")) close(); });

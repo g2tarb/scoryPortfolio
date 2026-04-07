@@ -989,6 +989,31 @@ body {
   .booking-title { font-size: 1.1rem; }
 }
 
+/* ===== TOAST EPHEMERE ===== */
+.toast-ephemere {
+  position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%) translateY(20px);
+  z-index: 300;
+  padding: 0.85rem 1.5rem; border-radius: 14px;
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-amber));
+  color: var(--surface-void); font-family: var(--font-sans);
+  font-size: 0.82rem; font-weight: 600; letter-spacing: 0.02em;
+  text-align: center; white-space: nowrap;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s var(--ease-spring-soft);
+  pointer-events: none;
+}
+.toast-ephemere.is-visible {
+  opacity: 1; transform: translateX(-50%) translateY(0);
+}
+@media (max-width: 600px) {
+  .toast-ephemere {
+    white-space: normal; max-width: 90vw;
+    font-size: 0.75rem; padding: 0.7rem 1.2rem;
+    bottom: 4rem;
+  }
+}
+
 /* ===== FOOTER LEGAL ===== */
 .footer-legal {
   display: inline-block; margin-top: 0.5rem;

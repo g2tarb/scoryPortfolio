@@ -908,8 +908,15 @@ async function main() {
   });
 
   /* ---------- Chatbot + Booking (modules externes, lazy) ---------- */
-  import("./chatbot.js").then(({ initChatbot }) => initChatbot({ isValidEmail }));
-  import("./booking.js").then(({ initBooking }) => initBooking({ trapFocus, isValidEmail, contactEmail: CONTACT_EMAIL }));
+  let chatStateRef = { completed: false };
+  import("./chatbot.js").then(({ initChatbot, chatState }) => {
+    chatStateRef = chatState;
+    initChatbot({ isValidEmail });
+  });
+  import("./booking.js").then(({ initBooking }) => initBooking({
+    trapFocus, isValidEmail, contactEmail: CONTACT_EMAIL,
+    getChatCompleted: () => chatStateRef.completed,
+  }));
 }
 
 /* ---------- Boot ---------- */

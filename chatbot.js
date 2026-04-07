@@ -1,15 +1,15 @@
 /**
  * SCORY — chatbot.js
  * Chatbot devis interactif : prenom, note, 10 questions, estimation prix.
- * @param {Object} deps - Dependances injectees depuis app.js
  */
 import { CHAT_FLOW } from "./data.js";
 
 const STEP_ORDER = ["name","rate","q1","q2","q3","q4","q5","q6","q7","q8","q9","q10","contact","done"];
 
-/**
- * @param {{ isValidEmail: (e:string)=>boolean }} deps
- */
+/** Etat global du chatbot — accessible depuis l'exterieur */
+export const chatState = { completed: false };
+
+/** @param {{ isValidEmail: (e:string)=>boolean }} deps */
 export function initChatbot({ isValidEmail }) {
   const chatMessages = document.getElementById("chatbot-messages");
   const chatPills = document.getElementById("chatbot-pills");
@@ -124,6 +124,7 @@ export function initChatbot({ isValidEmail }) {
       }
 
       if (stepId === "done") {
+        chatState.completed = true;
         const restart = document.createElement("button");
         restart.className = "chat-pill";
         restart.textContent = "Recommencer";
@@ -134,6 +135,7 @@ export function initChatbot({ isValidEmail }) {
           chatData.answers = {};
           chatData.userName = "";
           chatPills.innerHTML = "";
+          chatState.completed = false;
           document.querySelector(".chatbot-status").textContent = "En ligne";
           chatProgress.style.setProperty("--chat-progress", "0%");
           renderStep("name");
