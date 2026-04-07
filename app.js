@@ -733,8 +733,27 @@ function main() {
     });
   }
 
-  // Tilt 3D du disque au survol
+  // Rotation lente continue du disque actif
+  let discSpinAngle = 0;
+  let discSpinActive = true;
+  let discSpinRaf;
+  function spinDisc() {
+    if (!discSpinActive) return;
+    discSpinAngle += 0.06; // ~6°/s → tour complet en ~60s
+    const disc = discs().find((d) => d.classList.contains("is-active"));
+    if (disc && !animating) {
+      disc.style.transform = `rotate(${discSpinAngle}deg)`;
+    }
+    discSpinRaf = requestAnimationFrame(spinDisc);
+  }
+  if (!reduced) spinDisc();
+
+  // Tilt 3D au survol (pause la rotation, ajoute le tilt)
   if (!isTouchDevice && !reduced) {
+    carousel.addEventListener("mouseenter", () => {
+      discSpinActive = false;
+      cancelAnimationFrame(discSpinRaf);
+    });
     carousel.addEventListener("mousemove", (e) => {
       if (animating) return;
       const disc = discs().find((d) => d.classList.contains("is-active"));
@@ -742,11 +761,26 @@ function main() {
       const rect = disc.getBoundingClientRect();
       const x = (e.clientX - rect.left) / rect.width - 0.5;
       const y = (e.clientY - rect.top) / rect.height - 0.5;
-      gsap.to(disc, { rotateY: x * 14, rotateX: -y * 14, duration: 0.4, ease: "power2.out" });
+      gsap.to(disc, {
+        rotateY: x * 14, rotateX: -y * 14,
+        rotation: discSpinAngle,
+        duration: 0.4, ease: "power2.out",
+      });
     });
     carousel.addEventListener("mouseleave", () => {
       const disc = discs().find((d) => d.classList.contains("is-active"));
-      if (disc) gsap.to(disc, { rotateY: 0, rotateX: 0, duration: 0.6, ease: "power2.out" });
+      if (disc) {
+        gsap.to(disc, {
+          rotateY: 0, rotateX: 0, duration: 0.6, ease: "power2.out",
+          onComplete: () => {
+            discSpinActive = true;
+            spinDisc();
+          },
+        });
+      } else {
+        discSpinActive = true;
+        spinDisc();
+      }
     });
   }
 
