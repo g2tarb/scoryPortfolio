@@ -822,6 +822,27 @@ async function main() {
     revealElements.forEach((el) => revealObserver.observe(el));
   }
 
+  /* ---------- Pixel Rain (pluie diagonale entre hero et chatbot) ---------- */
+  const pixelRainCanvas = document.getElementById("pixel-rain");
+  if (pixelRainCanvas && !reduced) {
+    let pixelRain = null;
+    const rainTrigger = document.querySelector(".stats-section");
+    if (rainTrigger) {
+      const rainObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          rainObserver.disconnect();
+          import("./pixel-rain.js").then(({ PixelRain }) => {
+            pixelRain = new PixelRain(pixelRainCanvas);
+            const t = THEMES[activeIndex];
+            if (t) pixelRain.setColors(t.particleColors);
+            pixelRain.start();
+          });
+        }
+      }, { threshold: 0.1 });
+      rainObserver.observe(rainTrigger);
+    }
+  }
+
   /* ---------- Scroll hint click → chatbot ---------- */
   const scrollHint = document.querySelector(".scroll-hint");
   if (scrollHint) {
