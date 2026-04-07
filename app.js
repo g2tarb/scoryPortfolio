@@ -718,6 +718,8 @@ async function main() {
   function stopSpin() {
     discSpinActive = false;
     cancelAnimationFrame(discSpinRaf);
+    // Nettoyer le style transform residuel sur tous les disques
+    _discsCache.forEach((d) => { if (!d.classList.contains("is-active") || animating) d.style.transform = ""; });
   }
   if (!reduced) startSpin();
 
