@@ -250,12 +250,21 @@
 
     <!-- Chatbot -->
     <section id="chatbot-section" class="chatbot-section reveal">
+      <div class="chatbot-glow" aria-hidden="true"></div>
       <div class="chatbot-container glass-panel">
-        <div class="chatbot-progress" id="chatbot-progress"></div>
+        <div class="chatbot-progress" id="chatbot-progress">
+          <div class="chatbot-progress__shimmer"></div>
+        </div>
         <div class="chatbot-header">
-          <span class="chatbot-avatar">🤖</span>
-          <span class="chatbot-name">Scory Assistant</span>
-          <span class="chatbot-status">En ligne</span>
+          <div class="chatbot-avatar">
+            <div class="chatbot-avatar__orb"></div>
+            <div class="chatbot-avatar__ring"></div>
+          </div>
+          <div class="chatbot-header__text">
+            <span class="chatbot-name">Scory Assistant</span>
+            <span class="chatbot-status"><span class="chatbot-status__dot"></span> <span id="chatbot-status-text">En ligne</span></span>
+          </div>
+          <div class="chatbot-header__badge">IA</div>
         </div>
         <div class="chatbot-messages" id="chatbot-messages"></div>
         <div class="chatbot-input-area" id="chatbot-input-area">

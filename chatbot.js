@@ -45,7 +45,7 @@ export function initChatbot({ isValidEmail }) {
     chatPills.innerHTML = "";
     showTyping();
 
-    const chatStatus = document.querySelector(".chatbot-status");
+    const chatStatus = document.getElementById("chatbot-status-text");
     const stepIdx = STEP_ORDER.indexOf(stepId);
     if (stepId === "done") {
       chatStatus.textContent = "Devis pret";
@@ -136,7 +136,7 @@ export function initChatbot({ isValidEmail }) {
           chatData.userName = "";
           chatPills.innerHTML = "";
           chatState.completed = false;
-          document.querySelector(".chatbot-status").textContent = "En ligne";
+          document.getElementById("chatbot-status-text").textContent = "En ligne";
           chatProgress.style.setProperty("--chat-progress", "0%");
           renderStep("name");
         });
