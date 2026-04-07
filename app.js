@@ -355,10 +355,9 @@ async function main() {
       const isActive = idx === i;
       d.classList.toggle("is-active", isActive);
       d.setAttribute("aria-current", isActive ? "true" : "false");
-      if (!isActive) {
-        // Nettoyer TOUS les styles inline pour que le CSS visibility:hidden s'applique
-        d.removeAttribute("style");
-      }
+      // display:none force = impossible d'avoir du texte fantome
+      d.removeAttribute("style");
+      if (!isActive) d.style.display = "none";
     });
   }
 
@@ -461,7 +460,7 @@ async function main() {
 
     // Masquer le disque courant
     currentDisc.removeAttribute("style");
-    gsap.set(currentDisc, { opacity: 0, visibility: "hidden", pointerEvents: "none", overwrite: true });
+    currentDisc.style.display = "none";
 
     // Transition shader neural
     const tProxy = { p: 0 };
@@ -474,8 +473,12 @@ async function main() {
     // Transition particules
     await particles.transition(rect, direction);
 
-    // Nettoyer TOUS les disques (supprimer tout style inline residuel)
-    d.forEach((disc) => { gsap.killTweensOf(disc); disc.removeAttribute("style"); });
+    // Nettoyer TOUS les disques — display:none sauf le nouveau
+    d.forEach((disc) => {
+      gsap.killTweensOf(disc);
+      disc.removeAttribute("style");
+      disc.style.display = "none";
+    });
 
     // Mettre a jour l'etat
     activeIndex = nextIndex;
@@ -486,12 +489,14 @@ async function main() {
 
     // Faire apparaitre le nouveau disque
     const nextDisc = d[activeIndex];
+    nextDisc.style.display = "grid";
     gsap.fromTo(nextDisc,
       { opacity: 0, scale: 0.9 },
       {
         opacity: 1, scale: 1, duration: 0.35, ease: EASE_SPRING_HEAVY, overwrite: true,
         onComplete: () => {
-          nextDisc.removeAttribute("style");
+          // Garder display:grid, nettoyer le reste
+          nextDisc.style.cssText = "";
           startSpin();
         },
       }
@@ -718,8 +723,6 @@ async function main() {
   function stopSpin() {
     discSpinActive = false;
     cancelAnimationFrame(discSpinRaf);
-    // Nettoyer le style transform residuel sur tous les disques
-    _discsCache.forEach((d) => { if (!d.classList.contains("is-active") || animating) d.style.transform = ""; });
   }
   if (!reduced) startSpin();
 

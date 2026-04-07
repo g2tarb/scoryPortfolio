@@ -269,7 +269,6 @@ body {
 
 .project-track {
   display: flex; align-items: center; justify-content: center;
-  will-change: transform; transform-style: preserve-3d;
   position: relative;
 }
 
@@ -299,9 +298,9 @@ body {
   cursor: pointer;
 }
 
-/* Seul le disque actif est visible */
-.project-disc { opacity: 0; pointer-events: none; position: absolute; visibility: hidden; overflow: hidden; }
-.project-disc.is-active { opacity: 1; pointer-events: auto; position: relative; visibility: visible; }
+/* Seul le disque actif est visible — display:none = zero ghost text */
+.project-disc { display: none; }
+.project-disc.is-active { display: grid; place-items: center; opacity: 1; pointer-events: auto; position: relative; }
 
 .project-disc.is-active {
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.12) inset, 0 0 60px var(--theme-glow-disc);
