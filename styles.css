@@ -402,26 +402,32 @@ body {
 .project-disc:hover::before { opacity: 1; }
 
 .disc-label {
-  display: flex; flex-direction: column; align-items: center; gap: 0.25rem;
-  text-align: center; padding: 0.5rem; position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; gap: 0.15rem;
+  text-align: center; padding: 0.3rem; position: relative; z-index: 2;
+  overflow: hidden;
+  max-width: 90%;
 }
 .disc-title {
-  font-family: var(--font-display); font-size: clamp(1rem, 3.5vmin, 1.35rem);
-  font-weight: 600; letter-spacing: 0.06em;
+  font-family: var(--font-display); font-size: clamp(0.75rem, 3.5vmin, 1.35rem);
+  font-weight: 600; letter-spacing: 0.04em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 100%;
 }
 .disc-meta {
-  font-size: clamp(0.6rem, 1.8vmin, 0.72rem);
-  letter-spacing: 0.14em; text-transform: uppercase;
+  font-size: clamp(0.55rem, 1.8vmin, 0.72rem);
+  letter-spacing: 0.1em; text-transform: uppercase;
   color: rgba(245,242,255,0.5);
+  white-space: nowrap;
 }
 
 /* Hint "maintenez" clignotant */
 .project-disc.is-active .disc-label::after {
   content: "\261D cliquez pour decouvrir";
-  display: block; margin-top: 0.7rem;
-  font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase;
+  display: block; margin-top: 0.4rem;
+  font-size: clamp(0.48rem, 1.5vmin, 0.58rem); letter-spacing: 0.08em; text-transform: uppercase;
   font-family: var(--font-sans);
   color: var(--accent-gold);
+  white-space: nowrap;
   animation: hintBlink 2.4s ease-in-out infinite;
 }
 @keyframes hintBlink {
