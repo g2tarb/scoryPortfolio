@@ -348,9 +348,9 @@ function main() {
   function showProjectBg(index) {
     // Stopper tous les fonds actifs
     Object.values(projectBgs).forEach((bg) => bg.stop());
-    // Cacher tous les canvas
+    // Cacher tous les canvas et overlays
     if (projectBgHost) {
-      projectBgHost.querySelectorAll(".project-bg-canvas").forEach((c) => { c.style.display = "none"; });
+      projectBgHost.querySelectorAll(".project-bg-canvas, .flaynn-orbit").forEach((c) => { c.style.display = "none"; });
     }
     if (index === 0 || !projectBgHost) {
       gsap.to(projectBgHost, { opacity: 0, duration: 1 });
@@ -360,6 +360,7 @@ function main() {
     const bg = getProjectBg(index);
     if (!bg) return;
     bg.canvas.style.display = "block";
+    if (bg.orb) bg.orb.style.display = "block";
     bg.start();
     activeProjectBg = bg;
     gsap.to(projectBgHost, { opacity: 1, duration: 2, ease: "power2.inOut" });

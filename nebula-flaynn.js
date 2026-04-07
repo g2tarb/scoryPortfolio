@@ -11,6 +11,12 @@ export class FlaynnNebula {
     this.canvas = document.createElement("canvas");
     this.canvas.classList.add("project-bg-canvas");
     this.container.appendChild(this.canvas);
+
+    // Orbe hero (copie du hero-orbit de flaynn.tech)
+    this.orb = document.createElement("div");
+    this.orb.className = "flaynn-orbit";
+    this.orb.innerHTML = `<span class="flaynn-orbit__ring flaynn-orbit__ring--outer"></span><span class="flaynn-orbit__ring flaynn-orbit__ring--inner"></span><span class="flaynn-orbit__core"></span>`;
+    this.container.appendChild(this.orb);
     this._running = false;
     this._raf = 0;
     this._mouse = { x:0, y:0, tx:0, ty:0 };
@@ -133,5 +139,6 @@ export class FlaynnNebula {
     document.removeEventListener("mousemove", this._onMouse);
     this.mesh.geometry.dispose(); this.material.dispose(); this.renderer.dispose();
     if (this.canvas.parentNode) this.canvas.remove();
+    if (this.orb.parentNode) this.orb.remove();
   }
 }
