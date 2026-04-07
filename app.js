@@ -22,7 +22,7 @@ const SWIPE_DISTANCE_SLOW = 60;
 const SCORY_INDEX = 0;
 const CONTACT_EMAIL = "gdbyana@gmail.com";
 
-/** Preload des images pour des transitions plus fluides */
+/** @param {string[]} urls - URLs des images a precharger */
 function preloadImages(urls) {
   urls.forEach((url) => {
     if (!url) return;
@@ -31,12 +31,12 @@ function preloadImages(urls) {
   });
 }
 
-/** Validation email basique */
+/** @param {string} email @returns {boolean} */
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-/** Convertit hex → rgba */
+/** @param {string} hex - couleur "#RRGGBB" @param {number} a - alpha 0-1 @returns {string} rgba() */
 function hexToRgba(hex, a) {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -49,7 +49,7 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Piège le focus dans un conteneur (accessibilité modale) */
+/** @param {HTMLElement} container @returns {(()=>void)|null} cleanup function */
 function trapFocus(container) {
   const focusable = container.querySelectorAll('button, a, input, textarea, [tabindex]:not([tabindex="-1"])');
   if (focusable.length === 0) return null;
@@ -489,7 +489,22 @@ function main() {
       cta.innerHTML = `Visiter le site <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>`;
       // Empêcher la fermeture du panneau au clic sur le lien
       cta.addEventListener("pointerup", (e) => e.stopPropagation());
-      cta.addEventListener("click", (e) => e.stopPropagation());
+      cta.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Warp transition avant de naviguer
+        if (!reduced) {
+          const warp = { p: 0 };
+          gsap.to(warp, {
+            p: 1, duration: 0.8, ease: "power3.in",
+            onUpdate: () => neural.setTransitionProgress(warp.p),
+            onComplete: () => { window.open(p.url, "_blank"); neural.setTransitionProgress(0); },
+          });
+          gsap.to(document.body, { opacity: 0, duration: 0.6, delay: 0.4, onComplete: () => { gsap.set(document.body, { opacity: 1 }); } });
+        } else {
+          window.open(p.url, "_blank");
+        }
+      });
       detailCtaWrap.appendChild(cta);
     }
     detailPanel.classList.add("is-visible");
@@ -874,9 +889,16 @@ function main() {
   import("./booking.js").then(({ initBooking }) => initBooking({ trapFocus, isValidEmail, contactEmail: CONTACT_EMAIL }));
 }
 
-/* ---------- Service Worker ---------- */
+/* ---------- Boot ---------- */
+try {
+  main();
+} catch (err) {
+  console.error("SCORY init error:", err);
+  document.body.classList.add("no-webgl");
+  const loader = document.getElementById("loader");
+  if (loader) loader.classList.add("is-hidden");
+}
+
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
-
-main();
