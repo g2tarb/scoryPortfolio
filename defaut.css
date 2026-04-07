@@ -1,0 +1,80 @@
+/**
+ * SCORY — Design tokens (Musée Digital)
+ * Fichier de référence unique : couleurs, verre, typo, easings.
+ * styles.css ne redéfinit pas ces variables, il les consomme.
+ */
+
+:root {
+  /* Couleurs de fond et de surface (hiérarchie du « musée » sombre) */
+  --surface-void: #07060a;
+  --surface-deep: #0e0c12;
+  --surface-elevated: #16131c;
+  --surface-highlight: #1f1b28;
+  --surface-mist: rgba(245, 242, 255, 0.06);
+
+  /* Accents dorés / froids pour titres et détails type galerie */
+  --accent-gold: #c9a962;
+  --accent-amber: #e8b86d;
+  --accent-ice: #9ec8ff;
+  --accent-magenta: #c084fc;
+
+  /* Glassmorphism 2.0 : flou, saturation, bordures et reflets */
+  --glass-blur: 22px;
+  --glass-blur-strong: 36px;
+  --glass-saturation: 1.35;
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-border-inner: rgba(255, 255, 255, 0.06);
+  --glass-shadow: 0 24px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  --glass-highlight: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  /* Opacité du calque de bruit SVG sur les cartes verre */
+  --glass-noise-opacity: 0.045;
+
+  /* Familles utilisées dans toute l’interface */
+  --font-display: "Cormorant Garamond", "Times New Roman", serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+
+  /* Courbes ressort : transitions CSS ; app.js reprend l’esprit pour GSAP */
+  --ease-spring-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring-heavy: cubic-bezier(0.175, 0.885, 0.32, 1.15);
+  --ease-spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Rayons de bordure : disques circulaires vs panneaux */
+  --radius-disc: 50%;
+  --radius-panel: 20px;
+  --radius-label: 14px;
+
+  /* Thème dynamique (changé par JS selon le disque actif) */
+  --theme-glow: rgba(201, 169, 98, 0.12);
+  --theme-glow-strong: rgba(201, 169, 98, 0.25);
+  --theme-glow-disc: rgba(201, 169, 98, 0.12);
+
+  /* Chatbot tints (accent / warm) */
+  --theme-tint-a: rgba(192, 132, 252, 0.08);
+  --theme-tint-b: rgba(192, 132, 252, 0.18);
+  --theme-tint-c: rgba(192, 132, 252, 0.30);
+  --theme-tint-d: rgba(192, 132, 252, 0.55);
+  --theme-warm-a: rgba(232, 184, 109, 0.10);
+  --theme-warm-b: rgba(232, 184, 109, 0.20);
+  --theme-warm-c: rgba(232, 184, 109, 0.25);
+
+  /* Anneau de focus clavier (accessibilite) */
+  --focus-ring: 0 0 0 2px var(--surface-deep), 0 0 0 4px var(--accent-ice);
+
+  /* Durees de transition coherentes */
+  --duration-fast: 0.15s;
+  --duration-normal: 0.3s;
+  --duration-slow: 0.6s;
+
+  /* Safe area insets pour les ecrans avec encoche */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
