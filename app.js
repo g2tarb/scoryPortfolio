@@ -6,9 +6,7 @@ import gsap from "gsap";
 import { FlaynnNeuralBackground } from "./three-neural.js";
 import { WaterReflectionLayer } from "./three-water.js";
 import { ParticleTransition } from "./particles.js";
-import { UniverseBackground } from "./universe.js";
-import { AuroraBorealis } from "./aurora.js";
-import { FlaynnNebula } from "./nebula-flaynn.js";
+// universe.js, aurora.js, nebula-flaynn.js : chargés à la demande (dynamic import)
 
 const EASE_SPRING_HEAVY = "back.out(1.32)";
 
@@ -37,7 +35,7 @@ const PROJECTS = [
     detail: "4Dayvelopment conçoit des écosystèmes digitaux complets : branding, site sur-mesure, automations n8n, funnel de conversion. Design dark luxury avec curseur magnétique, animations Three.js, mode sombre/clair, formulaire intelligent avec devis instantané. 17+ projets livrés, 100 % satisfaction.",
     stack: ["Node.js", "Express", "Three.js", "GSAP", "n8n", "Zod"],
     url: "https://4dayvelopment.fr/",
-    screenshots: ["./image/fond4Day.jpg", "./image/4dayMobile.png"],
+    screenshots: ["./image/fond4Day.jpg", "./image/4dayMobile.jpg"],
   },
   {
     title: "Clara Martinez",
@@ -45,7 +43,7 @@ const PROJECTS = [
     detail: "Site vitrine haut de gamme pour Clara Martinez, coach business à Paris. Méthodologie « Clarity » en 12 semaines. Design dark luxe avec aurora borealis interactive en Canvas, glassmorphism, bento grid, curseur magnétique. Formulaire de contact, FAQ accordion, témoignages, timeline du programme.",
     stack: ["HTML5", "Canvas API", "Vanilla JS", "Lucide Icons", "Aurora BG"],
     url: "https://clara-martinez-project.vercel.app/",
-    screenshots: ["./image/fondClara.jpg", "./image/claramartinezMobile.png"],
+    screenshots: ["./image/fondClara.jpg", "./image/claramartinezMobile.jpg"],
   },
   {
     title: "Flaynn",
@@ -53,7 +51,7 @@ const PROJECTS = [
     detail: "Flaynn audite les startups sur 5 piliers (Marché, Produit, Traction, Équipe, Exécution) et génère un score investor-grade en 24h. Design « Dark Clarity » inspiré de Linear et Vercel. Dashboard SPA avec graphes réseau, formulaire multi-étapes, authentification JWT, scoring IA via Claude API, pipeline n8n automatisé.",
     stack: ["Fastify 5", "PostgreSQL", "Three.js", "GSAP", "JWT", "Claude API"],
     url: "https://flaynn.tech/",
-    screenshots: ["./image/fondFlaynn.jpg", "./image/flaynnMobile.png"],
+    screenshots: ["./image/fondFlaynn.jpg", "./image/flaynnMobile.jpg"],
   },
 ];
 
@@ -337,22 +335,22 @@ function main() {
   const projectBgs = {};
   let activeProjectBg = null;
 
-  function getProjectBg(index) {
+  async function getProjectBg(index) {
     if (projectBgs[index]) return projectBgs[index];
     if (!projectBgHost) return null;
-    switch (index) {
-      case 1: projectBgs[1] = new UniverseBackground(projectBgHost); break;
-      case 2: projectBgs[2] = new AuroraBorealis(projectBgHost); break;
-      case 3: projectBgs[3] = new FlaynnNebula(projectBgHost); break;
-      default: return null;
-    }
+    try {
+      switch (index) {
+        case 1: { const { UniverseBackground } = await import("./universe.js"); projectBgs[1] = new UniverseBackground(projectBgHost); break; }
+        case 2: { const { AuroraBorealis } = await import("./aurora.js"); projectBgs[2] = new AuroraBorealis(projectBgHost); break; }
+        case 3: { const { FlaynnNebula } = await import("./nebula-flaynn.js"); projectBgs[3] = new FlaynnNebula(projectBgHost); break; }
+        default: return null;
+      }
+    } catch { return null; }
     return projectBgs[index];
   }
 
-  function showProjectBg(index) {
-    // Stopper tous les fonds actifs
+  async function showProjectBg(index) {
     Object.values(projectBgs).forEach((bg) => bg.stop());
-    // Cacher tous les canvas et overlays
     if (projectBgHost) {
       projectBgHost.querySelectorAll(".project-bg-canvas, .flaynn-orbit").forEach((c) => { c.style.display = "none"; });
     }
@@ -361,7 +359,7 @@ function main() {
       activeProjectBg = null;
       return;
     }
-    const bg = getProjectBg(index);
+    const bg = await getProjectBg(index);
     if (!bg) return;
     bg.canvas.style.display = "block";
     if (bg.orb) bg.orb.style.display = "block";
@@ -395,10 +393,13 @@ function main() {
   let water = null;
   let waterSplashTween = null;
   let waterFadeTimer = null;
-  if (waterHost) {
-    water = new WaterReflectionLayer(waterHost, { timeScale: reduced ? 0.22 : 1 });
-    gsap.set(waterHost, { opacity: 0 });
+  // Water renderer créé au premier besoin (pas au chargement)
+  function ensureWater() {
+    if (!water && waterHost) {
+      water = new WaterReflectionLayer(waterHost, { timeScale: reduced ? 0.22 : 1 });
+    }
   }
+  if (waterHost) gsap.set(waterHost, { opacity: 0 });
   gsap.set(neuralHost, { opacity: 1 });
 
   /* ---------- Particules ---------- */
@@ -513,7 +514,9 @@ function main() {
 
   /* ---------- Fond eau / neural / projet ---------- */
   async function syncProjectWater() {
-    if (!water || !waterHost) return;
+    if (!waterHost) return;
+    ensureWater();
+    if (!water) return;
 
     // Annuler tout timer de crossfade précédent
     if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
@@ -628,6 +631,7 @@ function main() {
     );
 
     animating = false;
+    preloadNearby(activeIndex);
     void syncProjectWater();
   }
 
@@ -763,15 +767,20 @@ function main() {
   const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
   if (!isTouchDevice && cursorDot && cursorRing) {
+    let lastCursorFrame = 0;
     document.addEventListener("mousemove", (e) => {
+      // Dot instantané (pas de throttle)
       gsap.set(cursorDot, { x: e.clientX, y: e.clientY });
+      // Ring + neural throttlé à ~60fps
+      const now = performance.now();
+      if (now - lastCursorFrame < 16) return;
+      lastCursorFrame = now;
       gsap.to(cursorRing, { x: e.clientX, y: e.clientY, duration: 0.28, ease: "power2.out" });
-      // Shader neural réagit au mouvement souris
       if (!reduced) {
-        const influence = Math.hypot(e.clientX / window.innerWidth - 0.5, e.clientY / window.innerHeight - 0.5) * 0.35;
+        const influence = Math.hypot(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5) * 0.35;
         neural.setRotationInfluence(influence);
       }
-    });
+    }, { passive: true });
     // Hover ring sur éléments interactifs
     document.addEventListener("mouseover", (e) => {
       const hit = e.target.closest("a, button, .project-disc, .chat-pill, .nav-dot, .nav-arrow, input");
@@ -853,18 +862,36 @@ function main() {
   applyTheme(0);
   void syncProjectWater();
 
-  // Preload toutes les images de fond (desktop + mobile)
-  const allDiscs = discs();
-  const imageUrls = [
-    ...allDiscs.map((d) => d.dataset.image),
-    ...allDiscs.map((d) => d.dataset.imageMobile),
-  ].filter(Boolean);
-  preloadImages(imageUrls);
+  // Preload seulement les 2 prochaines images (pas tout d'un coup)
+  function preloadNearby(index) {
+    const d = discs();
+    const isMobile = innerWidth <= 600;
+    for (let offset = 0; offset <= 1; offset++) {
+      const el = d[(index + offset) % d.length];
+      const url = (isMobile && el?.dataset?.imageMobile) || el?.dataset?.image;
+      if (url) preloadImages([url]);
+    }
+  }
+  preloadNearby(0);
 
   if (reduced) {
     neural.setRotationInfluence(0);
     neural.setTransitionProgress(0);
   }
+
+  /* ---------- Pause Three.js hors ecran ---------- */
+  const stageVisibility = new IntersectionObserver((entries) => {
+    const visible = entries[0].isIntersecting;
+    if (!visible) {
+      // Pause les renderers quand le hero n'est plus visible
+      if (discSpinActive) { discSpinActive = false; cancelAnimationFrame(discSpinRaf); }
+      if (activeProjectBg) activeProjectBg.stop();
+    } else {
+      if (!reduced && !animating) { discSpinActive = true; spinDisc(); }
+      if (activeProjectBg) activeProjectBg.start();
+    }
+  }, { threshold: 0.05 });
+  stageVisibility.observe(stage);
 
   /* ---------- Scroll Reveal ---------- */
   const revealElements = document.querySelectorAll(".reveal");

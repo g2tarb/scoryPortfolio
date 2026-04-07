@@ -345,14 +345,10 @@ body {
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(123,45,142,0.28) inset, 0 0 80px rgba(123,45,142,0.2);
 }
 
-/* Pulse glow disque actif */
-@keyframes discPulse {
-  0%, 100% { box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.12) inset, 0 0 60px var(--theme-glow-disc); }
-  50% { box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.18) inset, 0 0 90px var(--theme-glow-strong); }
-}
+/* Disque actif — glow statique (pas d'animation box-shadow continue = meilleur FPS) */
 .project-disc.is-active {
   transition: opacity 0.3s ease;
-  animation: discPulse 4s ease-in-out infinite;
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.15) inset, 0 0 70px var(--theme-glow-disc);
 }
 
 /* Rotation lente vinyle */
@@ -365,6 +361,8 @@ body {
   background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(255,255,255,0.04) 5px, rgba(255,255,255,0.04) 6px);
   opacity: 0.85; pointer-events: none;
   animation: vinylSpin 40s linear infinite;
+  will-change: transform;
+  contain: strict;
 }
 /* Trou central vinyle */
 .disc-groove::after {
@@ -455,11 +453,7 @@ body {
 }
 .nav-arrow--left { left: clamp(0.75rem, 4vw, 2.5rem); }
 .nav-arrow--right { right: clamp(0.75rem, 4vw, 2.5rem); }
-@keyframes arrowPulse {
-  0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 15px var(--theme-glow); }
-  50% { box-shadow: 0 4px 20px rgba(0,0,0,0.6), 0 0 30px var(--theme-glow-strong); }
-}
-.nav-arrow { animation: arrowPulse 3s ease-in-out infinite; }
+/* Glow statique (pas d'animation continue = meilleur FPS) */
 
 /* Dots indicateurs */
 .nav-dots {
