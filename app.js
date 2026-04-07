@@ -352,8 +352,13 @@ async function main() {
 
   function setActiveClasses(i) {
     discs().forEach((d, idx) => {
-      d.classList.toggle("is-active", idx === i);
-      d.setAttribute("aria-current", idx === i ? "true" : "false");
+      const isActive = idx === i;
+      d.classList.toggle("is-active", isActive);
+      d.setAttribute("aria-current", isActive ? "true" : "false");
+      if (!isActive) {
+        // Nettoyer TOUS les styles inline pour que le CSS visibility:hidden s'applique
+        d.removeAttribute("style");
+      }
     });
   }
 
@@ -445,11 +450,18 @@ async function main() {
       return;
     }
 
+    // Stopper la rotation du disque AVANT la transition
+    stopSpin();
+
+    // Tuer toute animation GSAP residuelle sur les disques
+    d.forEach((disc) => gsap.killTweensOf(disc));
+
     // Position du disque pour les particules
     const rect = currentDisc.getBoundingClientRect();
 
     // Masquer le disque courant
-    gsap.set(currentDisc, { opacity: 0, pointerEvents: "none" });
+    currentDisc.removeAttribute("style");
+    gsap.set(currentDisc, { opacity: 0, visibility: "hidden", pointerEvents: "none", overwrite: true });
 
     // Transition shader neural
     const tProxy = { p: 0 };
@@ -462,23 +474,26 @@ async function main() {
     // Transition particules
     await particles.transition(rect, direction);
 
-    // Nettoyer les styles inline du disque précédent
-    gsap.set(currentDisc, { clearProps: "opacity,pointerEvents,scale,transform" });
+    // Nettoyer TOUS les disques (supprimer tout style inline residuel)
+    d.forEach((disc) => { gsap.killTweensOf(disc); disc.removeAttribute("style"); });
 
-    // Mettre à jour l'état
+    // Mettre a jour l'etat
     activeIndex = nextIndex;
     setActiveClasses(activeIndex);
     setLabel(activeIndex, true);
     updateDots();
     applyTheme(activeIndex);
 
-    // Faire apparaître le nouveau disque
+    // Faire apparaitre le nouveau disque
     const nextDisc = d[activeIndex];
     gsap.fromTo(nextDisc,
       { opacity: 0, scale: 0.9 },
       {
-        opacity: 1, scale: 1, duration: 0.35, ease: EASE_SPRING_HEAVY,
-        onComplete: () => gsap.set(nextDisc, { clearProps: "opacity,scale,transform" }),
+        opacity: 1, scale: 1, duration: 0.35, ease: EASE_SPRING_HEAVY, overwrite: true,
+        onComplete: () => {
+          nextDisc.removeAttribute("style");
+          startSpin();
+        },
       }
     );
 
