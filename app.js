@@ -891,13 +891,16 @@ async function main() {
       if (konamiIdx === KONAMI.length) {
         konamiIdx = 0;
         if (easterEgg) {
+          easterEgg.style.opacity = "0";
           easterEgg.classList.add("is-visible");
-          // Explosion de particules dorées
           const rect = { left: innerWidth / 2 - 100, top: innerHeight / 2 - 100, width: 200, height: 200 };
           particles.transition(rect, 0);
-          gsap.fromTo(easterEgg, { opacity: 0 }, { opacity: 1, duration: 0.5 });
+          gsap.to(easterEgg, { opacity: 1, duration: 0.5 });
           setTimeout(() => {
-            gsap.to(easterEgg, { opacity: 0, duration: 1, onComplete: () => easterEgg.classList.remove("is-visible") });
+            gsap.to(easterEgg, { opacity: 0, duration: 1, onComplete: () => {
+              easterEgg.classList.remove("is-visible");
+              easterEgg.style.opacity = "";
+            }});
           }, 3500);
         }
       }

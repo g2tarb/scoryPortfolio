@@ -46,8 +46,8 @@
       @keyframes li{0%{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
       .loader__tagline{margin:0;opacity:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(.8rem,2.2vw,1.1rem);color:rgba(245,242,255,.45);animation:ti .8s ease .6s forwards}
       @keyframes ti{0%{opacity:0;transform:translateY(8px);letter-spacing:.2em}to{opacity:1;transform:translateY(0);letter-spacing:.08em}}
-      .loader~*{opacity:0}
-      .loader.is-hidden~*{opacity:1;transition:opacity .4s ease}
+      .loader~main,.loader~.scroll-hint,.loader~.stats-section,.loader~.process-section,.loader~.about-section,.loader~section,.loader~footer{opacity:0}
+      .loader.is-hidden~main,.loader.is-hidden~.scroll-hint,.loader.is-hidden~.stats-section,.loader.is-hidden~.process-section,.loader.is-hidden~.about-section,.loader.is-hidden~section,.loader.is-hidden~footer{opacity:1;transition:opacity .4s ease}
     </style>
     <link rel="stylesheet" href="./styles.css" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css" /></noscript>
