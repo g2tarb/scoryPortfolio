@@ -989,6 +989,59 @@ body {
   .booking-title { font-size: 1.1rem; }
 }
 
+/* ===== SOUND VISUALIZER ===== */
+.sound-viz {
+  position: absolute; inset: -10px; border-radius: 50%;
+  pointer-events: none;
+}
+.sound-viz__bar {
+  position: absolute; width: 3px; height: 8px;
+  background: var(--accent-gold);
+  border-radius: 2px;
+  left: calc(50% - 1.5px); top: 0;
+  transform-origin: 1.5px calc(50% + 10px);
+  rotate: calc(var(--i) * 30deg);
+  scale: 1 0.3;
+  opacity: 0.3;
+}
+
+/* Volume slider */
+.sound-volume {
+  position: fixed; bottom: clamp(3.5rem, 5vw, 4.5rem); right: clamp(0.5rem, 2vw, 1.5rem);
+  z-index: 50;
+  width: 44px; height: 4px;
+  -webkit-appearance: none; appearance: none;
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px; outline: none;
+  cursor: pointer;
+  transform: rotate(-90deg);
+  transform-origin: right center;
+}
+.sound-volume::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent-gold);
+  border: none; cursor: pointer;
+  box-shadow: 0 0 8px var(--theme-glow);
+}
+.sound-volume::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--accent-gold);
+  border: none; cursor: pointer;
+}
+.sound-volume::-moz-range-track {
+  background: rgba(255,255,255,0.12);
+  height: 4px; border-radius: 2px;
+}
+
+@media (max-width: 600px) {
+  .sound-volume {
+    width: 36px;
+    bottom: clamp(3rem, 4vw, 3.5rem);
+    right: 0.3rem;
+  }
+}
+
 /* ===== CHATBOT HIGHLIGHT (redirection booking) ===== */
 @keyframes chatHighlight {
   0%, 100% { box-shadow: var(--glass-shadow), 0 0 40px var(--theme-glow); }

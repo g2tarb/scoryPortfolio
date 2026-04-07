@@ -825,59 +825,93 @@ async function main() {
     aboutObserver.observe(aboutSection);
   }
 
-  /* ---------- Son ambiant ---------- */
+  /* ---------- Son ambiant + visualiseur + volume ---------- */
   const soundToggle = document.getElementById("sound-toggle");
   if (soundToggle) {
-    let audioCtx, gainNode, audioBuffer, audioSource, soundOn = false;
+    let audio = null;
+    let audioCtx = null;
+    let analyser = null;
+    let soundOn = false;
+    let vizRaf = 0;
     const iconOff = soundToggle.querySelector(".sound-icon--off");
     const iconOn = soundToggle.querySelector(".sound-icon--on");
 
-    async function initAudio() {
-      if (audioCtx) return;
-      try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        gainNode = audioCtx.createGain();
-        gainNode.gain.value = 0;
-        gainNode.connect(audioCtx.destination);
-        // Générer un drone ambiant synthétique (pas besoin de fichier mp3)
-        const sampleRate = audioCtx.sampleRate;
-        const duration = 4;
-        const length = sampleRate * duration;
-        audioBuffer = audioCtx.createBuffer(2, length, sampleRate);
-        for (let ch = 0; ch < 2; ch++) {
-          const data = audioBuffer.getChannelData(ch);
-          for (let i = 0; i < length; i++) {
-            const t = i / sampleRate;
-            // Drone doux : 3 harmoniques basses + bruit filtré
-            data[i] = (
-              Math.sin(t * 55 * Math.PI * 2) * 0.15 +
-              Math.sin(t * 82.5 * Math.PI * 2) * 0.08 +
-              Math.sin(t * 110 * Math.PI * 2) * 0.05 +
-              (Math.random() - 0.5) * 0.02
-            ) * (0.5 + 0.5 * Math.sin(t * 0.5 * Math.PI * 2));
-          }
-        }
-        startSource();
-      } catch { /* WebAudio non disponible */ }
+    // Creer les barres de visualisation autour du bouton
+    const vizContainer = document.createElement("div");
+    vizContainer.className = "sound-viz";
+    const BARS = 12;
+    for (let i = 0; i < BARS; i++) {
+      const bar = document.createElement("span");
+      bar.className = "sound-viz__bar";
+      bar.style.setProperty("--i", i);
+      vizContainer.appendChild(bar);
+    }
+    soundToggle.appendChild(vizContainer);
+
+    // Slider de volume
+    const volSlider = document.createElement("input");
+    volSlider.type = "range";
+    volSlider.min = "0";
+    volSlider.max = "100";
+    volSlider.value = "30";
+    volSlider.className = "sound-volume";
+    volSlider.setAttribute("aria-label", "Volume");
+    soundToggle.parentElement.appendChild(volSlider);
+    volSlider.style.display = "none";
+
+    function initAudio() {
+      if (audio) return;
+      audio = new Audio("./audio/La Bohème - Charles Aznavour.mp3");
+      audio.loop = true;
+      audio.volume = volSlider.value / 100;
+      // Analyser pour la visualisation
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaElementSource(audio);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
     }
 
-    function startSource() {
-      if (!audioCtx || !audioBuffer) return;
-      audioSource = audioCtx.createBufferSource();
-      audioSource.buffer = audioBuffer;
-      audioSource.loop = true;
-      audioSource.connect(gainNode);
-      audioSource.start();
+    function vizLoop() {
+      if (!soundOn || !analyser) return;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      const bars = vizContainer.querySelectorAll(".sound-viz__bar");
+      for (let i = 0; i < BARS; i++) {
+        const val = data[Math.floor(i * data.length / BARS)] / 255;
+        bars[i].style.scale = `1 ${0.3 + val * 0.7}`;
+        bars[i].style.opacity = 0.4 + val * 0.6;
+      }
+      vizRaf = requestAnimationFrame(vizLoop);
     }
 
-    soundToggle.addEventListener("click", async () => {
-      await initAudio();
-      if (!audioCtx) return;
+    soundToggle.addEventListener("click", () => {
+      initAudio();
+      if (!audio) return;
       soundOn = !soundOn;
-      gainNode.gain.linearRampToValueAtTime(soundOn ? 0.12 : 0, audioCtx.currentTime + 0.5);
+      if (soundOn) {
+        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+        audio.play().catch(() => {});
+        volSlider.style.display = "block";
+        vizLoop();
+      } else {
+        audio.pause();
+        cancelAnimationFrame(vizRaf);
+        volSlider.style.display = "none";
+        // Reset les barres
+        vizContainer.querySelectorAll(".sound-viz__bar").forEach((b) => {
+          b.style.scale = "1 0.3";
+          b.style.opacity = "0.3";
+        });
+      }
       soundToggle.setAttribute("aria-pressed", String(soundOn));
       iconOff.style.display = soundOn ? "none" : "block";
       iconOn.style.display = soundOn ? "block" : "none";
+    });
+
+    volSlider.addEventListener("input", () => {
+      if (audio) audio.volume = volSlider.value / 100;
     });
   }
 
