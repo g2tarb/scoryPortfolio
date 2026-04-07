@@ -801,6 +801,26 @@ body {
 }
 .detail-panel__screenshot:hover { transform: scale(1.03); }
 
+/* ===== TOGGLE LANGUE ===== */
+.lang-toggle {
+  position: fixed; top: clamp(1rem, 3vw, 2rem); right: clamp(1rem, 3vw, 2rem);
+  z-index: 50; width: auto; height: 36px; padding: 0 0.75rem;
+  border-radius: 999px; border: 1px solid var(--glass-border);
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  color: rgba(245,242,255,0.7); cursor: pointer;
+  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.1em;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+.lang-toggle:hover {
+  background: rgba(255,255,255,0.12); color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+@media (max-width: 600px) {
+  .lang-toggle { top: 0.5rem; right: 0.5rem; height: 32px; font-size: 0.65rem; padding: 0 0.6rem; }
+}
+
 /* ===== SON AMBIANT ===== */
 .sound-toggle {
   position: fixed; bottom: clamp(1rem, 3vw, 2rem); right: clamp(1rem, 3vw, 2rem);

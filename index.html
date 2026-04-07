@@ -66,6 +66,9 @@
     <div class="cursor-dot" id="cursor-dot" aria-hidden="true"></div>
     <div class="cursor-ring" id="cursor-ring" aria-hidden="true"></div>
 
+    <!-- Toggle langue -->
+    <button id="lang-toggle" class="lang-toggle" aria-label="Switch language">FR</button>
+
     <!-- Son ambiant -->
     <button id="sound-toggle" class="sound-toggle" aria-label="Activer le son ambiant" aria-pressed="false">
       <svg class="sound-icon sound-icon--off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
@@ -82,7 +85,7 @@
           <span class="loader__letter">R</span>
           <span class="loader__letter">Y</span>
         </div>
-        <p class="loader__tagline" id="loader-tagline">La seule limite est votre imagination</p>
+        <p class="loader__tagline" id="loader-tagline" data-i18n="loader.tagline">La seule limite est votre imagination</p>
       </div>
     </div>
 
@@ -102,7 +105,7 @@
 
       <div class="floating-brand">
         <h1 class="floating-title">SCORY</h1>
-        <p class="floating-sub">Musee digital</p>
+        <p class="floating-sub" data-i18n="brand.sub">Musee digital</p>
       </div>
 
       <!-- Carrousel -->
@@ -159,7 +162,7 @@
 
       <!-- Cartel -->
       <aside class="museum-label glass-panel" id="museum-label" aria-live="polite">
-        <p class="label-kicker">Cartel</p>
+        <p class="label-kicker" data-i18n="cartel.kicker">Cartel</p>
         <p class="label-num" id="label-num">01</p>
         <h2 class="label-title" id="label-title">Portfolio Scory</h2>
         <p class="label-desc" id="label-desc">Ce musee digital — le portfolio que vous explorez en ce moment.</p>
@@ -175,13 +178,13 @@
         <div class="detail-panel__screenshots" id="detail-screenshots"></div>
         <div class="detail-panel__stack" id="detail-stack"></div>
         <div class="detail-panel__cta-wrap" id="detail-cta-wrap"></div>
-        <p class="detail-panel__hint">Cliquez en dehors pour fermer</p>
+        <p class="detail-panel__hint" data-i18n="detail.hint">Cliquez en dehors pour fermer</p>
       </div>
     </main>
 
     <!-- Scroll hint -->
     <div class="scroll-hint" aria-hidden="true">
-      <p class="scroll-hint__text">Estimez votre projet</p>
+      <p class="scroll-hint__text" data-i18n="scroll.text">Estimez votre projet</p>
       <svg class="scroll-hint__arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
 
@@ -190,46 +193,46 @@
       <div class="stats-grid">
         <div class="stat-card glass-panel" data-target="17" data-suffix="+">
           <span class="stat-number">0</span>
-          <span class="stat-label">Projets livres</span>
+          <span class="stat-label" data-i18n="stat.projects">Projets livres</span>
         </div>
         <div class="stat-card glass-panel" data-target="100" data-suffix="%">
           <span class="stat-number">0</span>
-          <span class="stat-label">Satisfaction client</span>
+          <span class="stat-label" data-i18n="stat.satisfaction">Satisfaction client</span>
         </div>
         <div class="stat-card glass-panel" data-target="24" data-suffix="h/24">
           <span class="stat-number">0</span>
-          <span class="stat-label">Support disponible</span>
+          <span class="stat-label" data-i18n="stat.support">Support disponible</span>
         </div>
       </div>
     </section>
 
     <!-- Processus -->
     <section class="process-section" aria-label="Notre processus">
-      <h2 class="section-title gradient-text">Notre processus</h2>
+      <h2 class="section-title gradient-text" data-i18n="process.title">Notre processus</h2>
       <div class="process-grid">
         <div class="process-card glass-panel">
           <span class="process-step">01</span>
           <span class="process-icon">📞</span>
-          <h3 class="process-name">Contact</h3>
-          <p class="process-desc">Echange sur votre vision, vos objectifs et votre budget. Devis gratuit sous 24h.</p>
+          <h3 class="process-name" data-i18n="process.1.name">Contact</h3>
+          <p class="process-desc" data-i18n="process.1.desc">Echange sur votre vision, vos objectifs et votre budget. Devis gratuit sous 24h.</p>
         </div>
         <div class="process-card glass-panel">
           <span class="process-step">02</span>
           <span class="process-icon">🎨</span>
-          <h3 class="process-name">Maquette</h3>
-          <p class="process-desc">Direction artistique sur-mesure, wireframes et prototypes interactifs valides avec vous.</p>
+          <h3 class="process-name" data-i18n="process.2.name">Maquette</h3>
+          <p class="process-desc" data-i18n="process.2.desc">Direction artistique sur-mesure, wireframes et prototypes interactifs valides avec vous.</p>
         </div>
         <div class="process-card glass-panel">
           <span class="process-step">03</span>
           <span class="process-icon">⚡</span>
-          <h3 class="process-name">Developpement</h3>
-          <p class="process-desc">Code artisanal, animations GSAP, Three.js, responsive pixel-perfect. Zero template.</p>
+          <h3 class="process-name" data-i18n="process.3.name">Developpement</h3>
+          <p class="process-desc" data-i18n="process.3.desc">Code artisanal, animations GSAP, Three.js, responsive pixel-perfect. Zero template.</p>
         </div>
         <div class="process-card glass-panel">
           <span class="process-step">04</span>
           <span class="process-icon">🚀</span>
-          <h3 class="process-name">Livraison</h3>
-          <p class="process-desc">Deploiement, formation et support inclus. Votre site en ligne, pret a performer.</p>
+          <h3 class="process-name" data-i18n="process.4.name">Livraison</h3>
+          <p class="process-desc" data-i18n="process.4.desc">Deploiement, formation et support inclus. Votre site en ligne, pret a performer.</p>
         </div>
       </div>
     </section>
@@ -237,14 +240,14 @@
     <!-- About -->
     <section class="about-section" aria-label="A propos de Scory">
       <div class="about-container glass-panel">
-        <h2 class="section-title gradient-text">Qui est Scory ?</h2>
-        <p class="about-mission">Scory concoit des experiences web immersives qui transforment votre vision en realite digitale.</p>
-        <p class="about-philosophy">Chaque projet est une oeuvre sur-mesure. Design premium, code artisanal. Pas de templates. Pas de compromis. Juste votre univers, sublime.</p>
+        <h2 class="section-title gradient-text" data-i18n="about.title">Qui est Scory ?</h2>
+        <p class="about-mission" data-i18n="about.mission">Scory concoit des experiences web immersives qui transforment votre vision en realite digitale.</p>
+        <p class="about-philosophy" data-i18n="about.philosophy">Chaque projet est une oeuvre sur-mesure. Design premium, code artisanal. Pas de templates. Pas de compromis. Juste votre univers, sublime.</p>
         <div class="about-values">
-          <div class="about-value"><span class="about-value-icon">✦</span> Design sur-mesure</div>
-          <div class="about-value"><span class="about-value-icon">✦</span> Code artisanal</div>
-          <div class="about-value"><span class="about-value-icon">✦</span> Immersif & interactif</div>
-          <div class="about-value"><span class="about-value-icon">✦</span> Support 24h/24</div>
+          <div class="about-value"><span class="about-value-icon">✦</span> <span data-i18n="about.v1">Design sur-mesure</span></div>
+          <div class="about-value"><span class="about-value-icon">✦</span> <span data-i18n="about.v2">Code artisanal</span></div>
+          <div class="about-value"><span class="about-value-icon">✦</span> <span data-i18n="about.v3">Immersif & interactif</span></div>
+          <div class="about-value"><span class="about-value-icon">✦</span> <span data-i18n="about.v4">Support 24h/24</span></div>
         </div>
       </div>
     </section>
@@ -279,7 +282,7 @@
 
     <!-- Contact -->
     <section class="contact-section reveal" aria-label="Contact">
-      <h2 class="section-title gradient-text">Contactez-nous</h2>
+      <h2 class="section-title gradient-text" data-i18n="contact.title">Contactez-nous</h2>
       <div class="contact-grid">
         <a href="mailto:contact@scory.fr" class="contact-card glass-panel">
           <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
@@ -295,7 +298,7 @@
         </a>
       </div>
       <button type="button" id="open-booking" class="cta-rdv detail-panel__cta">
-        Prendre rendez-vous
+        <span data-i18n="contact.rdv">Prendre rendez-vous</span>
         <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>
       </button>
     </section>
@@ -348,11 +351,11 @@
     </div>
 
     <footer class="museum-footer reveal">
-      <p class="gradient-text museum-signature">
+      <p class="gradient-text museum-signature" data-i18n="footer.signature">
         Avec Scory, seule votre imagination est la limite.
       </p>
-      <p class="footer-copy">&copy; 2026 Scory — Musee Digital. Tous droits reserves.</p>
-      <a href="./mentions-legales.html" class="footer-legal">Mentions legales</a>
+      <p class="footer-copy">&copy; 2026 <span data-i18n="footer.copy">Scory — Musee Digital. Tous droits reserves.</span></p>
+      <a href="./mentions-legales.html" class="footer-legal" data-i18n="footer.legal">Mentions legales</a>
     </footer>
 
     <!-- Easter egg overlay (hidden) -->

@@ -10,6 +10,7 @@ const STATIC_ASSETS = [
   "./styles.css",
   "./app.js",
   "./data.js",
+  "./i18n.js",
   "./chatbot.js",
   "./booking.js",
   "./particles.js",

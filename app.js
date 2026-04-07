@@ -4,8 +4,12 @@
  * Three.js charge en differe pour ne pas bloquer le main thread.
  */
 import gsap from "gsap";
-import { PROJECTS, THEMES, CHAT_FLOW } from "./data.js";
-// Three.js modules charges apres le loader (dynamic import)
+import { PROJECTS as PROJECTS_ALL, THEMES, CHAT_FLOW as CHAT_FLOW_ALL } from "./data.js";
+import { getLang, setLang, t } from "./i18n.js";
+
+/** Getters bilingues */
+function PROJECTS() { return PROJECTS_ALL[getLang()] || PROJECTS_ALL.fr; }
+function CHAT_FLOW() { return CHAT_FLOW_ALL[getLang()] || CHAT_FLOW_ALL.fr; }
 
 /* ---------- Constantes ---------- */
 const EASE_SPRING_HEAVY = "back.out(1.32)";
@@ -165,8 +169,29 @@ async function main() {
         .from(".scroll-hint", { opacity: 0, y: 15, duration: 0.5 }, 0.7);
     }
   }, LOADER_DELAY_MS);
-  // Three.js lance le fond quand il est pret (independamment du loader)
+  // Three.js lance le fond quand il est pret
   threeReady.then(() => void syncProjectWater());
+
+  // Appliquer la langue sauvegardee au demarrage
+  setLang(getLang());
+
+  /* ---------- Toggle langue FR/EN ---------- */
+  const langToggle = document.getElementById("lang-toggle");
+  if (langToggle) {
+    langToggle.textContent = getLang().toUpperCase();
+    langToggle.addEventListener("click", () => {
+      const newLang = getLang() === "fr" ? "en" : "fr";
+      setLang(newLang);
+      langToggle.textContent = newLang.toUpperCase();
+      // Rafraichir le cartel avec les nouvelles traductions
+      setLabel(activeIndex);
+      // Rafraichir le titre de page
+      const project = PROJECTS()[activeIndex];
+      document.title = activeIndex === SCORY_INDEX
+        ? (newLang === "fr" ? "SCORY — Musee Digital" : "SCORY — Digital Museum")
+        : `${project?.title || ""} — SCORY`;
+    });
+  }
 
   let water = null;
   let waterSplashTween = null;
@@ -217,7 +242,7 @@ async function main() {
     s.setProperty("--theme-warm-c", hexToRgba(t.amber, 0.25));
     particles.setColors(t.particleColors);
     // Titre de page dynamique
-    const project = PROJECTS[index];
+    const project = PROJECTS()[index];
     document.title = index === SCORY_INDEX
       ? "SCORY — Musee Digital"
       : `${project?.title || ""} — SCORY`;
@@ -239,7 +264,7 @@ async function main() {
     allDiscs.forEach((_, i) => {
       const dot = document.createElement("button");
       dot.className = "nav-dot" + (i === activeIndex ? " is-active" : "");
-      dot.setAttribute("aria-label", `Projet ${i + 1} : ${PROJECTS[i]?.title || ""}`);
+      dot.setAttribute("aria-label", `Projet ${i + 1} : ${PROJECTS()[i]?.title || ""}`);
       dot.setAttribute("role", "tab");
       dot.setAttribute("aria-selected", i === activeIndex ? "true" : "false");
       dot.addEventListener("click", () => goTo(i));
@@ -279,7 +304,7 @@ async function main() {
   }
 
   function setLabel(i, animate) {
-    const p = PROJECTS[i];
+    const p = PROJECTS()[i];
     if (!p) return;
     const num = String(i + 1).padStart(2, "0");
     if (!animate || reduced) {
@@ -469,7 +494,7 @@ async function main() {
   function openDetail() {
     if (detailVisible) return;
     detailVisible = true;
-    const p = PROJECTS[activeIndex];
+    const p = PROJECTS()[activeIndex];
     if (!p) return;
     detailTitle.textContent = p.title;
     detailText.textContent = p.detail;

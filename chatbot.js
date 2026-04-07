@@ -2,7 +2,9 @@
  * SCORY — chatbot.js
  * Chatbot devis interactif : prenom, note, 10 questions, estimation prix.
  */
-import { CHAT_FLOW } from "./data.js";
+import { CHAT_FLOW as CHAT_FLOW_ALL } from "./data.js";
+import { getLang } from "./i18n.js";
+function CHAT_FLOW() { return CHAT_FLOW_ALL[getLang()] || CHAT_FLOW_ALL.fr; }
 
 const STEP_ORDER = ["name","rate","q1","q2","q3","q4","q5","q6","q7","q8","q9","q10","contact","done"];
 
@@ -20,7 +22,7 @@ export function initChatbot({ isValidEmail, onComplete }) {
 
   const chatData = { baseCost: 0, multiplier: 1, answers: {}, userName: "" };
 
-  function getStep(id) { return CHAT_FLOW.find((s) => s.id === id); }
+  function getStep(id) { return CHAT_FLOW().find((s) => s.id === id); }
 
   function scrollBottom() {
     chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: "smooth" });
@@ -68,7 +70,9 @@ export function initChatbot({ isValidEmail, onComplete }) {
         const total = Math.round(chatData.baseCost * chatData.multiplier);
         const low = Math.round(total * 0.85);
         const high = Math.round(total * 1.15);
-        botText = `Merci ${name} ! D'apres vos reponses, votre projet est estime entre ${formatPrice(low)} et ${formatPrice(high)} TTC (estimation non contractuelle). Scory vous recontacte sous 24h avec un devis detaille.`;
+        botText = getLang() === "fr"
+          ? `Merci ${name} ! D'apres vos reponses, votre projet est estime entre ${formatPrice(low)} et ${formatPrice(high)} TTC (estimation non contractuelle). Scory vous recontacte sous 24h avec un devis detaille.`
+          : `Thanks ${name}! Based on your answers, your project is estimated between ${formatPrice(low)} and ${formatPrice(high)} (non-binding estimate). Scory will get back to you within 24h with a detailed quote.`;
       }
 
       addMsg(botText, "chat-msg--bot");
@@ -132,14 +136,14 @@ export function initChatbot({ isValidEmail, onComplete }) {
         rdvBtn.style.background = "linear-gradient(135deg, var(--accent-gold), var(--accent-amber))";
         rdvBtn.style.color = "var(--surface-void)";
         rdvBtn.style.fontWeight = "600";
-        rdvBtn.textContent = "Prendre rendez-vous";
+        rdvBtn.textContent = getLang() === "fr" ? "Prendre rendez-vous" : "Book a meeting";
         rdvBtn.addEventListener("click", () => {
           if (typeof onComplete === "function") onComplete();
         });
         chatPills.appendChild(rdvBtn);
         const restart = document.createElement("button");
         restart.className = "chat-pill";
-        restart.textContent = "Recommencer";
+        restart.textContent = getLang() === "fr" ? "Recommencer" : "Start over";
         restart.addEventListener("click", () => {
           chatMessages.innerHTML = "";
           chatData.baseCost = 0;
