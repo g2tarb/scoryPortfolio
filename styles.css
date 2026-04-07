@@ -117,6 +117,23 @@ body {
 }
 .skip-link:focus { left: 0.75rem; outline: none; box-shadow: var(--focus-ring); }
 
+/* ===== FALLBACK WEBGL ===== */
+.no-webgl .neural-host,
+.no-webgl .water-host,
+.no-webgl .project-bg-host { display: none; }
+.no-webgl #museum-stage::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(201,169,98,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 70%, rgba(192,132,252,0.08) 0%, transparent 50%),
+    var(--surface-void);
+  animation: fallbackDrift 12s ease-in-out infinite alternate;
+}
+@keyframes fallbackDrift {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
 /* ===== SCENE PRINCIPALE ===== */
 #museum-stage {
   position: relative; min-height: 100vh; min-height: 100dvh; overflow: hidden;
@@ -490,6 +507,15 @@ body {
   opacity: 1; pointer-events: auto;
   transform: translate(-50%, -50%) scale(1);
 }
+.detail-panel__close {
+  position: absolute; top: 0.6rem; right: 0.6rem;
+  width: 32px; height: 32px; border: none; background: none;
+  color: rgba(245,242,255,0.4); font-size: 1.3rem; cursor: pointer;
+  border-radius: 50%; display: grid; place-items: center;
+  transition: color 0.2s ease, background 0.2s ease;
+  z-index: 2;
+}
+.detail-panel__close:hover { color: var(--accent-gold); background: rgba(255,255,255,0.06); }
 .detail-panel__icon { font-size: 2rem; margin-bottom: 0.75rem; }
 .detail-panel__title {
   margin: 0 0 0.75rem; font-family: var(--font-display);
@@ -1398,6 +1424,32 @@ body {
 .chatbot-pills::-webkit-scrollbar-track { background: transparent; }
 .chatbot-pills::-webkit-scrollbar-thumb { background: var(--theme-tint-c); border-radius: 3px; }
 .chatbot-pills { scrollbar-width: thin; scrollbar-color: var(--theme-tint-c) transparent; }
+
+/* ===== PRINT ===== */
+@media print {
+  body { background: #fff; color: #111; }
+  body::after,
+  .cursor-dot, .cursor-ring,
+  .loader, .sound-toggle,
+  .neural-host, .water-host, .project-bg-host,
+  .particle-canvas, .stage-vignette,
+  .nav-arrow, .nav-dots,
+  .scroll-hint, .easter-egg-overlay,
+  .booking-overlay, .detail-panel { display: none !important; }
+  .glass-panel {
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+    background: rgba(0,0,0,0.03); border: 1px solid #ddd;
+    box-shadow: none;
+  }
+  .glass-panel::before { display: none; }
+  .gradient-text { background: none; -webkit-background-clip: unset; color: #333; }
+  .floating-title, .label-title, .section-title, .process-name { color: #111; }
+  .label-desc, .process-desc, .about-philosophy { color: #444; }
+  .museum-footer::before { background: #ddd; }
+  #museum-stage { min-height: auto; overflow: visible; display: block; padding: 2rem; }
+  .project-carousel { display: none; }
+  .museum-label { max-width: 100%; }
+}
 
 /* ===== FOCUS VISIBLE ===== */
 *:focus-visible {

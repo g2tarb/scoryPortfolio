@@ -31,6 +31,7 @@
       rel="stylesheet"
       media="print" onload="this.media='all'"
     />
+    <link rel="manifest" href="./manifest.json" />
     <link rel="stylesheet" href="./defaut.css" />
     <link rel="stylesheet" href="./styles.css" />
     <script async src="https://unpkg.com/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
@@ -68,6 +69,11 @@
       </div>
     </div>
 
+    <noscript>
+      <div style="padding:3rem;text-align:center;color:#c9a962;font-family:serif;font-size:1.3rem;">
+        SCORY necessite JavaScript pour fonctionner.<br>Activez JavaScript dans votre navigateur.
+      </div>
+    </noscript>
     <a class="skip-link" href="#museum-stage">Aller au musee</a>
 
     <main id="museum-stage" aria-label="Scene principale SCORY">
@@ -145,6 +151,7 @@
 
       <!-- Panneau details (clic disque) -->
       <div id="detail-panel" class="detail-panel glass-panel" aria-hidden="true">
+        <button class="detail-panel__close" id="detail-close" aria-label="Fermer">&times;</button>
         <div class="detail-panel__icon">🔍</div>
         <h3 class="detail-panel__title" id="detail-title"></h3>
         <p class="detail-panel__text" id="detail-text"></p>
@@ -308,7 +315,7 @@
         <!-- Etape 4 : confirmation -->
         <div class="booking-step booking-step--hidden" id="booking-step-done">
           <div class="booking-done-icon">✓</div>
-          <p class="booking-done-text">Rendez-vous confirme ! Vous recevrez un email de confirmation sous 24h.</p>
+          <p class="booking-done-text">Demande envoyee ! Un email pre-rempli s'est ouvert dans votre messagerie. Scory vous recontacte sous 24h.</p>
           <p class="booking-done-detail" id="booking-done-detail"></p>
         </div>
       </div>
@@ -319,7 +326,7 @@
         Avec Scory, seule votre imagination est la limite.
       </p>
       <p class="footer-copy">&copy; 2026 Scory — Musee Digital. Tous droits reserves.</p>
-      <a href="#" class="footer-legal">Mentions legales</a>
+      <a href="./mentions-legales.html" class="footer-legal">Mentions legales</a>
     </footer>
 
     <!-- Easter egg overlay (hidden) -->

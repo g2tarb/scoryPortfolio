@@ -1,14 +1,26 @@
 /**
  * SCORY — app.js
- * Navigation flèches + transitions particules, long press détails, chatbot devis.
+ * Carrousel disques, transitions particules, chatbot devis, booking.
  */
 import gsap from "gsap";
 import { FlaynnNeuralBackground } from "./three-neural.js";
 import { WaterReflectionLayer } from "./three-water.js";
 import { ParticleTransition } from "./particles.js";
-// universe.js, aurora.js, nebula-flaynn.js : chargés à la demande (dynamic import)
+import { PROJECTS, THEMES, CHAT_FLOW } from "./data.js";
 
+/* ---------- Constantes ---------- */
 const EASE_SPRING_HEAVY = "back.out(1.32)";
+const LOADER_DELAY_MS = 2200;
+const CLOSE_OUTSIDE_DELAY_MS = 600;
+const WATER_FADE_DELAY_MS = 5000;
+const DISC_SPIN_SPEED = 0.06;
+const CURSOR_THROTTLE_MS = 16;
+const RESIZE_DEBOUNCE_MS = 100;
+const SWIPE_VELOCITY_MIN = 0.3;
+const SWIPE_DISTANCE_FAST = 40;
+const SWIPE_DISTANCE_SLOW = 60;
+const SCORY_INDEX = 0;
+const CONTACT_EMAIL = "gdbyana@gmail.com";
 
 /** Preload des images pour des transitions plus fluides */
 function preloadImages(urls) {
@@ -19,41 +31,10 @@ function preloadImages(urls) {
   });
 }
 
-/** Projets : titre, desc courte, détails (long press), URL de visite */
-const PROJECTS = [
-  {
-    title: "Portfolio Scory",
-    desc: "Ce musée digital — le portfolio que vous explorez en ce moment.",
-    detail: "Portfolio conçu comme un musée interactif : fond neural Three.js procédural, reflets eau via shader GLSL, carrousel à disques vinyle avec transitions particules, thèmes dynamiques par projet, chatbot devis intégré. 100 % vanilla JS, zéro framework.",
-    stack: ["Three.js", "GLSL", "GSAP", "Vanilla JS"],
-    url: null,
-    screenshots: [],
-  },
-  {
-    title: "4dayvelopment",
-    desc: "Agence web — ecosystemes digitaux complets sur-mesure.",
-    detail: "4Dayvelopment conçoit des écosystèmes digitaux complets : branding, site sur-mesure, automations n8n, funnel de conversion. Design dark luxury avec curseur magnétique, animations Three.js, mode sombre/clair, formulaire intelligent avec devis instantané. 17+ projets livrés, 100 % satisfaction.",
-    stack: ["Node.js", "Express", "Three.js", "GSAP", "n8n", "Zod"],
-    url: "https://4dayvelopment.fr/",
-    screenshots: ["./image/fond4Day.jpg", "./image/4dayMobile.jpg"],
-  },
-  {
-    title: "Clara Martinez",
-    desc: "Coaching premium — transformer les freelances en entrepreneurs structurés.",
-    detail: "Site vitrine haut de gamme pour Clara Martinez, coach business à Paris. Méthodologie « Clarity » en 12 semaines. Design dark luxe avec aurora borealis interactive en Canvas, glassmorphism, bento grid, curseur magnétique. Formulaire de contact, FAQ accordion, témoignages, timeline du programme.",
-    stack: ["HTML5", "Canvas API", "Vanilla JS", "Lucide Icons", "Aurora BG"],
-    url: "https://clara-martinez-project.vercel.app/",
-    screenshots: ["./image/fondClara.jpg", "./image/claramartinezMobile.jpg"],
-  },
-  {
-    title: "Flaynn",
-    desc: "SaaS B2B — scoring objectif et matching startups-investisseurs.",
-    detail: "Flaynn audite les startups sur 5 piliers (Marché, Produit, Traction, Équipe, Exécution) et génère un score investor-grade en 24h. Design « Dark Clarity » inspiré de Linear et Vercel. Dashboard SPA avec graphes réseau, formulaire multi-étapes, authentification JWT, scoring IA via Claude API, pipeline n8n automatisé.",
-    stack: ["Fastify 5", "PostgreSQL", "Three.js", "GSAP", "JWT", "Claude API"],
-    url: "https://flaynn.tech/",
-    screenshots: ["./image/fondFlaynn.jpg", "./image/flaynnMobile.jpg"],
-  },
-];
+/** Validation email basique */
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
 /** Convertit hex → rgba */
 function hexToRgba(hex, a) {
@@ -63,245 +44,28 @@ function hexToRgba(hex, a) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
-/**
- * Thèmes visuels par projet — couleurs, polices, filtre neural.
- * Extraits des vrais projets Clara Martinez, 4dayvelopment et Flaynn.
- */
-const THEMES = [
-  // 0 — Portfolio Scory (défaut, premier disque)
-  {
-    gold: "#c9a962",
-    amber: "#e8b86d",
-    ice: "#9ec8ff",
-    magenta: "#c084fc",
-    glow: "rgba(201,169,98,0.12)",
-    glowStrong: "rgba(201,169,98,0.25)",
-    glowDisc: "rgba(201,169,98,0.12)",
-    fontDisplay: "'Cormorant Garamond', 'Times New Roman', serif",
-    fontSans: "'DM Sans', system-ui, sans-serif",
-    neuralFilter: "none",
-    particleColors: [[201,169,98],[158,200,255],[192,132,252],[232,184,109],[245,242,255]],
-  },
-  // 1 — 4dayvelopment (Three.js réseau orange/chaud)
-  {
-    gold: "#DA5426",
-    amber: "#f2b13b",
-    ice: "#884083",
-    magenta: "#DA5426",
-    glow: "rgba(218,84,38,0.12)",
-    glowStrong: "rgba(218,84,38,0.25)",
-    glowDisc: "rgba(218,84,38,0.15)",
-    fontDisplay: "'Syne', system-ui, sans-serif",
-    fontSans: "'Inter', system-ui, sans-serif",
-    neuralFilter: "hue-rotate(-30deg) saturate(1.8) brightness(1.15) contrast(1.1)",
-    particleColors: [[218,84,38],[242,177,59],[136,64,131],[240,240,240],[255,160,80]],
-  },
-  // 2 — Clara Martinez (aurore boréale dorée/verte)
-  {
-    gold: "#C9A84C",
-    amber: "#E8D49A",
-    ice: "#C9A84C",
-    magenta: "#A8863A",
-    glow: "rgba(201,168,76,0.12)",
-    glowStrong: "rgba(201,168,76,0.25)",
-    glowDisc: "rgba(201,168,76,0.18)",
-    fontDisplay: "'Playfair Display', 'Times New Roman', serif",
-    fontSans: "'Inter', system-ui, sans-serif",
-    neuralFilter: "hue-rotate(85deg) saturate(1.6) brightness(1.2) contrast(1.05)",
-    particleColors: [[201,168,76],[232,212,154],[168,134,58],[245,240,232],[180,155,90]],
-  },
-  // 3 — Flaynn (réseau violet/néon)
-  {
-    gold: "#7B2D8E",
-    amber: "#C13584",
-    ice: "#10b981",
-    magenta: "#C13584",
-    glow: "rgba(123,45,142,0.12)",
-    glowStrong: "rgba(123,45,142,0.25)",
-    glowDisc: "rgba(123,45,142,0.18)",
-    fontDisplay: "'IBM Plex Sans', system-ui, sans-serif",
-    fontSans: "'IBM Plex Sans', system-ui, sans-serif",
-    neuralFilter: "hue-rotate(60deg) saturate(2) brightness(1.1) contrast(1.15)",
-    particleColors: [[123,45,142],[193,53,132],[16,185,129],[240,240,243],[59,130,246]],
-  },
-];
-
-/** Chatbot : prénom + note + 10 questions + contact + devis */
-const CHAT_FLOW = [
-  {
-    id: "name",
-    bot: "Bienvenue dans l'univers Scory ! 👋 Comment vous appelez-vous ?",
-    freeText: true,
-    placeholder: "Votre prénom...",
-    next: "rate",
-  },
-  {
-    id: "rate",
-    bot: "",
-    botTemplate: "Enchanté {name} ! Avant de commencer, que pensez-vous de ce portfolio ? Notez-le !",
-    options: [
-      { label: "⭐ 1 — Bof", next: "q1" },
-      { label: "⭐⭐ 2 — Correct", next: "q1" },
-      { label: "⭐⭐⭐ 3 — Bien", next: "q1" },
-      { label: "⭐⭐⭐⭐ 4 — Très bien", next: "q1" },
-      { label: "⭐⭐⭐⭐⭐ 5 — Incroyable !", next: "q1" },
-    ],
-  },
-  {
-    id: "q1",
-    bot: "",
-    botTemplate: "Merci {name} ! Passons à votre projet. Quel type de site avez-vous en tête ?",
-    options: [
-      { label: "Site vitrine", next: "q2", cost: 800 },
-      { label: "Landing page", next: "q2", cost: 500 },
-      { label: "E-commerce", next: "q2", cost: 3000 },
-      { label: "SaaS / App web", next: "q2", cost: 5000 },
-      { label: "Portfolio créatif", next: "q2", cost: 1200 },
-      { label: "Blog / Média", next: "q2", cost: 1000 },
-      { label: "Application mobile", next: "q2", cost: 6000 },
-      { label: "Projet sur-mesure", next: "q2", cost: 4000 },
-    ],
-  },
-  {
-    id: "q2",
-    bot: "Excellent choix ! Que voulez-vous qu'on ressente en regardant votre site ?",
-    options: [
-      { label: "Luxe & Premium", next: "q3", cost: 800 },
-      { label: "Moderne & High-Tech", next: "q3", cost: 500 },
-      { label: "Chaleureux & Authentique", next: "q3", cost: 300 },
-      { label: "Minimaliste & Épuré", next: "q3", cost: 200 },
-      { label: "Créatif & Artistique", next: "q3", cost: 700 },
-      { label: "Corporate & Sérieux", next: "q3", cost: 300 },
-      { label: "Fun & Dynamique", next: "q3", cost: 500 },
-      { label: "Nature & Éco-responsable", next: "q3", cost: 350 },
-    ],
-  },
-  {
-    id: "q3",
-    bot: "Très bien ! Combien de pages souhaitez-vous ?",
-    options: [
-      { label: "One page", next: "q4", cost: 0 },
-      { label: "2–3 pages", next: "q4", cost: 200 },
-      { label: "4–6 pages", next: "q4", cost: 500 },
-      { label: "7–10 pages", next: "q4", cost: 900 },
-      { label: "11–20 pages", next: "q4", cost: 1500 },
-      { label: "20+ pages", next: "q4", cost: 2500 },
-      { label: "Je ne sais pas encore", next: "q4", cost: 500 },
-    ],
-  },
-  {
-    id: "q4",
-    bot: "Et côté design, quel niveau attendez-vous ?",
-    options: [
-      { label: "Template adapté", next: "q5", cost: 0 },
-      { label: "Semi-personnalisé", next: "q5", cost: 500 },
-      { label: "Design 100 % sur-mesure", next: "q5", cost: 1500 },
-      { label: "Direction artistique complète", next: "q5", cost: 2200 },
-      { label: "Motion design intégré", next: "q5", cost: 1800 },
-      { label: "3D / Expérience immersive", next: "q5", cost: 2800 },
-      { label: "J'ai déjà une maquette", next: "q5", cost: 100 },
-      { label: "Je ne sais pas", next: "q5", cost: 600 },
-    ],
-  },
-  {
-    id: "q5",
-    bot: "Quelle fonctionnalité est la plus importante pour vous ?",
-    options: [
-      { label: "Formulaire de contact", next: "q6", cost: 100 },
-      { label: "Blog intégré", next: "q6", cost: 400 },
-      { label: "Paiement en ligne", next: "q6", cost: 800 },
-      { label: "Espace membre / Login", next: "q6", cost: 1000 },
-      { label: "Réservation / Calendrier", next: "q6", cost: 700 },
-      { label: "Chat en direct", next: "q6", cost: 500 },
-      { label: "Dashboard / Back-office", next: "q6", cost: 1200 },
-      { label: "Multi-langue", next: "q6", cost: 600 },
-    ],
-  },
-  {
-    id: "q6",
-    bot: "Pour le contenu du site, qui s'en charge ?",
-    options: [
-      { label: "Je fournis tout", next: "q7", cost: 0 },
-      { label: "Rédaction des textes incluse", next: "q7", cost: 500 },
-      { label: "Shooting photo pro", next: "q7", cost: 600 },
-      { label: "Vidéo / Motion incluse", next: "q7", cost: 900 },
-      { label: "Illustrations sur-mesure", next: "q7", cost: 700 },
-      { label: "Optimisation SEO incluse", next: "q7", cost: 400 },
-      { label: "Je ne sais pas encore", next: "q7", cost: 300 },
-    ],
-  },
-  {
-    id: "q7",
-    bot: "Parlons animations ! Quel niveau souhaitez-vous ?",
-    options: [
-      { label: "Aucune, sobre et efficace", next: "q8", cost: 0 },
-      { label: "Subtiles (hover, fades)", next: "q8", cost: 200 },
-      { label: "Modérées (scroll, parallax)", next: "q8", cost: 500 },
-      { label: "Avancées (GSAP, timelines)", next: "q8", cost: 1000 },
-      { label: "Immersives (Three.js, WebGL)", next: "q8", cost: 2200 },
-      { label: "Micro-interactions poussées", next: "q8", cost: 700 },
-      { label: "Curseur personnalisé", next: "q8", cost: 300 },
-      { label: "Maximum de wow-effect !", next: "q8", cost: 1500 },
-    ],
-  },
-  {
-    id: "q8",
-    bot: "Sur quels appareils votre site doit-il être parfait ?",
-    options: [
-      { label: "Desktop uniquement", next: "q9", cost: 0 },
-      { label: "Mobile first", next: "q9", cost: 200 },
-      { label: "Responsive classique", next: "q9", cost: 300 },
-      { label: "Tablette aussi", next: "q9", cost: 400 },
-      { label: "PWA (installable)", next: "q9", cost: 800 },
-      { label: "App native en plus", next: "q9", cost: 3000 },
-      { label: "Tous les écrans", next: "q9", cost: 500 },
-    ],
-  },
-  {
-    id: "q9",
-    bot: "Quel suivi souhaitez-vous après la livraison ?",
-    options: [
-      { label: "Aucun, je gère seul", next: "q10", cost: 0 },
-      { label: "Corrections ponctuelles", next: "q10", cost: 150 },
-      { label: "Mises à jour mensuelles", next: "q10", cost: 350 },
-      { label: "Support prioritaire 7j/7", next: "q10", cost: 600 },
-      { label: "Formation à l'outil", next: "q10", cost: 400 },
-      { label: "Hébergement & domaine inclus", next: "q10", cost: 250 },
-      { label: "Analytics & rapports", next: "q10", cost: 400 },
-      { label: "Pack tout inclus", next: "q10", cost: 900 },
-    ],
-  },
-  {
-    id: "q10",
-    bot: "Dernière question ! Quel est votre délai idéal ?",
-    options: [
-      { label: "Hier (urgence absolue) 🔥", next: "contact", multiplier: 1.5 },
-      { label: "Moins d'une semaine", next: "contact", multiplier: 1.4 },
-      { label: "2 semaines", next: "contact", multiplier: 1.2 },
-      { label: "1 mois", next: "contact", multiplier: 1.0 },
-      { label: "2–3 mois", next: "contact", multiplier: 0.95 },
-      { label: "Pas pressé du tout", next: "contact", multiplier: 0.9 },
-      { label: "À définir ensemble", next: "contact", multiplier: 1.0 },
-      { label: "Flexible", next: "contact", multiplier: 0.95 },
-    ],
-  },
-  {
-    id: "contact",
-    bot: "",
-    botTemplate: "Parfait {name} ! Laissez-moi votre email pour recevoir votre devis personnalisé :",
-    freeText: true,
-    placeholder: "votre@email.com",
-    next: "done",
-  },
-  {
-    id: "done",
-    bot: "",
-    options: [],
-  },
-];
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+/** Piège le focus dans un conteneur (accessibilité modale) */
+function trapFocus(container) {
+  const focusable = container.querySelectorAll('button, a, input, textarea, [tabindex]:not([tabindex="-1"])');
+  if (focusable.length === 0) return null;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const handler = (e) => {
+    if (e.key !== "Tab") return;
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  };
+  container.addEventListener("keydown", handler);
+  first.focus();
+  return () => container.removeEventListener("keydown", handler);
 }
 
 function main() {
@@ -328,8 +92,14 @@ function main() {
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
-  /* ---------- Three.js ---------- */
-  const neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
+  /* ---------- Three.js (avec fallback CSS) ---------- */
+  let neural;
+  try {
+    neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
+  } catch {
+    document.body.classList.add("no-webgl");
+    neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
+  }
 
   /* ---------- Fonds projet (initialisés au premier usage) ---------- */
   const projectBgs = {};
@@ -387,7 +157,7 @@ function main() {
           .from(".museum-label", { opacity: 0, x: 30, duration: 0.7 }, 0.4)
           .from(".scroll-hint", { opacity: 0, y: 15, duration: 0.5 }, 0.7);
       }
-    }, 2200);
+    }, LOADER_DELAY_MS);
   });
 
   let water = null;
@@ -428,8 +198,12 @@ function main() {
     s.setProperty("--theme-warm-a", hexToRgba(t.amber, 0.1));
     s.setProperty("--theme-warm-b", hexToRgba(t.amber, 0.2));
     s.setProperty("--theme-warm-c", hexToRgba(t.amber, 0.25));
-    // Mettre à jour les couleurs des particules
     particles.setColors(t.particleColors);
+    // Titre de page dynamique
+    const project = PROJECTS[index];
+    document.title = index === SCORY_INDEX
+      ? "SCORY — Musee Digital"
+      : `${project?.title || ""} — SCORY`;
   }
 
   /* ---------- État ---------- */
@@ -437,18 +211,33 @@ function main() {
   let animating = false;
   let detailVisible = false;
 
-  const discs = () => [...track.querySelectorAll(".project-disc")];
+  // Cache des disques (le DOM ne change jamais)
+  const _discsCache = [...track.querySelectorAll(".project-disc")];
+  const discs = () => _discsCache;
 
   /* ---------- Dots ---------- */
   function buildDots() {
     dotsContainer.innerHTML = "";
-    discs().forEach((_, i) => {
+    const allDiscs = discs();
+    allDiscs.forEach((_, i) => {
       const dot = document.createElement("button");
       dot.className = "nav-dot" + (i === activeIndex ? " is-active" : "");
       dot.setAttribute("aria-label", `Projet ${i + 1} : ${PROJECTS[i]?.title || ""}`);
       dot.setAttribute("role", "tab");
       dot.setAttribute("aria-selected", i === activeIndex ? "true" : "false");
       dot.addEventListener("click", () => goTo(i));
+      dot.addEventListener("keydown", (e) => {
+        const dots = [...dotsContainer.querySelectorAll(".nav-dot")];
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+          e.preventDefault();
+          const next = dots[(i + 1) % dots.length];
+          next.focus(); goTo((i + 1) % dots.length);
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+          e.preventDefault();
+          const prev = dots[(i - 1 + dots.length) % dots.length];
+          prev.focus(); goTo((i - 1 + dots.length) % dots.length);
+        }
+      });
       dotsContainer.appendChild(dot);
     });
   }
@@ -523,7 +312,7 @@ function main() {
     hideProjectBg();
 
     // Disque Scory (index 0) → fond neural Three.js seul, pas d'image
-    if (activeIndex === 0) {
+    if (activeIndex === SCORY_INDEX) {
       if (waterSplashTween) waterSplashTween.kill();
       gsap.to(neuralHost, { opacity: 1, duration: 0.8, ease: "power2.out" });
       gsap.to(waterHost, { opacity: 0, duration: 0.8, ease: "power2.out" });
@@ -534,7 +323,14 @@ function main() {
     const isMobile = window.innerWidth <= 600;
     const url = (isMobile && el?.dataset?.imageMobile) || el?.dataset?.image;
     if (!url) return;
-    try { await water.loadTexture(url); } catch { return; }
+    try {
+      await water.loadTexture(url);
+    } catch {
+      // Image indisponible : passer directement au fond projet
+      gsap.to(neuralHost, { opacity: 0, duration: 1 });
+      showProjectBg(activeIndex);
+      return;
+    }
     runWaterSplash();
   }
 
@@ -561,11 +357,11 @@ function main() {
       }, 0);
 
     // Après gel image (3s) + 2s pause → crossfade vers le vrai fond du projet
-    waterFadeTimer = setTimeout(() => {
+    waterFadeTimer = setTimeout(() => { // image gelee + pause
       gsap.to(waterHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
       gsap.to(neuralHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
       showProjectBg(activeIndex);
-    }, 5000);
+    }, WATER_FADE_DELAY_MS);
   }
 
   /* ---------- Navigation avec transition particules ---------- */
@@ -678,6 +474,7 @@ function main() {
         img.alt = `Capture de ${p.title}`;
         img.className = "detail-panel__screenshot";
         img.loading = "lazy";
+        img.onerror = () => img.remove();
         detailScreenshots.appendChild(img);
       });
     }
@@ -697,8 +494,9 @@ function main() {
     }
     detailPanel.classList.add("is-visible");
     detailPanel.setAttribute("aria-hidden", "false");
-    // Fermer au clic en dehors du panneau — utilise click (pas pointerup)
-    // pour ne pas fermer immédiatement au relâchement du long press
+    _detailPrevFocus = document.activeElement;
+    requestAnimationFrame(() => { _detailFocusTrap = trapFocus(detailPanel); });
+    // Fermer au clic en dehors du panneau
     _closeOnOutsideRef = (e) => {
       if (!detailPanel.contains(e.target)) {
         closeDetail();
@@ -707,10 +505,13 @@ function main() {
     // Attendre que le long press soit fini (le prochain clic fermera)
     setTimeout(() => {
       document.addEventListener("click", _closeOnOutsideRef, true);
-    }, 600);
+    }, CLOSE_OUTSIDE_DELAY_MS);
   }
 
   let _closeOnOutsideRef = null;
+  let _detailFocusTrap = null;
+  let _detailPrevFocus = null;
+
   function closeDetail() {
     if (!detailVisible) return;
     detailVisible = false;
@@ -720,7 +521,13 @@ function main() {
       document.removeEventListener("click", _closeOnOutsideRef, true);
       _closeOnOutsideRef = null;
     }
+    if (_detailFocusTrap) { _detailFocusTrap(); _detailFocusTrap = null; }
+    if (_detailPrevFocus) { _detailPrevFocus.focus(); _detailPrevFocus = null; }
   }
+
+  /* Bouton X ferme le detail */
+  const detailCloseBtn = document.getElementById("detail-close");
+  if (detailCloseBtn) detailCloseBtn.addEventListener("click", (e) => { e.stopPropagation(); closeDetail(); });
 
   /* Clic sur le disque actif → ouvre les détails */
   carousel.addEventListener("click", (e) => {
@@ -743,7 +550,7 @@ function main() {
     const dt = Date.now() - swipeStartTime;
     const velocity = Math.abs(dx) / Math.max(dt, 1);
     // Swipe rapide (velocity > 0.3) ou long (> 60px)
-    const isSwipe = (Math.abs(dx) > 40 && velocity > 0.3) || Math.abs(dx) > 60;
+    const isSwipe = (Math.abs(dx) > SWIPE_DISTANCE_FAST && velocity > SWIPE_VELOCITY_MIN) || Math.abs(dx) > SWIPE_DISTANCE_SLOW;
     if (isSwipe && !animating) {
       if (dx < 0) goTo(activeIndex + 1);
       else goTo(activeIndex - 1);
@@ -758,7 +565,7 @@ function main() {
       neural.resize();
       if (water) water.resize();
       particles.resize();
-    }, 100);
+    }, RESIZE_DEBOUNCE_MS);
   }, { passive: true });
 
   /* ---------- Curseur custom + Tilt 3D + Neural feedback ---------- */
@@ -773,7 +580,7 @@ function main() {
       gsap.set(cursorDot, { x: e.clientX, y: e.clientY });
       // Ring + neural throttlé à ~60fps
       const now = performance.now();
-      if (now - lastCursorFrame < 16) return;
+      if (now - lastCursorFrame < CURSOR_THROTTLE_MS) return;
       lastCursorFrame = now;
       gsap.to(cursorRing, { x: e.clientX, y: e.clientY, duration: 0.28, ease: "power2.out" });
       if (!reduced) {
@@ -804,26 +611,34 @@ function main() {
     });
   }
 
-  // Rotation lente continue du disque actif
+  // Rotation lente continue du disque actif (guard contre double boucle)
   let discSpinAngle = 0;
-  let discSpinActive = true;
-  let discSpinRaf;
+  let discSpinActive = false;
+  let discSpinRaf = 0;
   function spinDisc() {
     if (!discSpinActive) return;
-    discSpinAngle += 0.06; // ~6°/s → tour complet en ~60s
-    const disc = discs().find((d) => d.classList.contains("is-active"));
+    discSpinAngle += DISC_SPIN_SPEED;
+    const disc = _discsCache.find((d) => d.classList.contains("is-active"));
     if (disc && !animating) {
       disc.style.transform = `rotate(${discSpinAngle}deg)`;
     }
     discSpinRaf = requestAnimationFrame(spinDisc);
   }
-  if (!reduced) spinDisc();
+  function startSpin() {
+    if (discSpinActive) return; // guard : pas de double boucle
+    discSpinActive = true;
+    spinDisc();
+  }
+  function stopSpin() {
+    discSpinActive = false;
+    cancelAnimationFrame(discSpinRaf);
+  }
+  if (!reduced) startSpin();
 
   // Tilt 3D au survol (pause la rotation, ajoute le tilt)
   if (!isTouchDevice && !reduced) {
     carousel.addEventListener("mouseenter", () => {
-      discSpinActive = false;
-      cancelAnimationFrame(discSpinRaf);
+      stopSpin();
     });
     carousel.addEventListener("mousemove", (e) => {
       if (animating) return;
@@ -843,14 +658,10 @@ function main() {
       if (disc) {
         gsap.to(disc, {
           rotateY: 0, rotateX: 0, duration: 0.6, ease: "power2.out",
-          onComplete: () => {
-            discSpinActive = true;
-            spinDisc();
-          },
+          onComplete: () => startSpin(),
         });
       } else {
-        discSpinActive = true;
-        spinDisc();
+        startSpin();
       }
     });
   }
@@ -879,15 +690,25 @@ function main() {
     neural.setTransitionProgress(0);
   }
 
+  /* ---------- Pause quand onglet cache ---------- */
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      stopSpin();
+      if (activeProjectBg) activeProjectBg.stop();
+    } else {
+      if (!reduced && !animating) startSpin();
+      if (activeProjectBg) activeProjectBg.start();
+    }
+  });
+
   /* ---------- Pause Three.js hors ecran ---------- */
   const stageVisibility = new IntersectionObserver((entries) => {
     const visible = entries[0].isIntersecting;
     if (!visible) {
-      // Pause les renderers quand le hero n'est plus visible
-      if (discSpinActive) { discSpinActive = false; cancelAnimationFrame(discSpinRaf); }
+      stopSpin();
       if (activeProjectBg) activeProjectBg.stop();
     } else {
-      if (!reduced && !animating) { discSpinActive = true; spinDisc(); }
+      if (!reduced && !animating) startSpin();
       if (activeProjectBg) activeProjectBg.start();
     }
   }, { threshold: 0.05 });
@@ -1048,311 +869,14 @@ function main() {
     } else { konamiIdx = 0; }
   });
 
-  /* =================================================================
-     CHATBOT — 10 questions, calcul de prix théorique
-     ================================================================= */
-  const chatMessages = document.getElementById("chatbot-messages");
-  const chatPills = document.getElementById("chatbot-pills");
-  const chatTyping = document.getElementById("chatbot-typing");
-  const chatProgress = document.getElementById("chatbot-progress");
-  const chatData = { baseCost: 0, multiplier: 1, answers: {}, userName: "" };
+  /* ---------- Chatbot + Booking (modules externes, lazy) ---------- */
+  import("./chatbot.js").then(({ initChatbot }) => initChatbot({ isValidEmail }));
+  import("./booking.js").then(({ initBooking }) => initBooking({ trapFocus, isValidEmail, contactEmail: CONTACT_EMAIL }));
+}
 
-  function getStep(id) { return CHAT_FLOW.find((s) => s.id === id); }
-
-  function addBotMessage(text) {
-    const div = document.createElement("div");
-    div.className = "chat-msg chat-msg--bot";
-    div.textContent = text;
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-
-  function addUserMessage(text) {
-    const div = document.createElement("div");
-    div.className = "chat-msg chat-msg--user";
-    div.textContent = text;
-    chatMessages.appendChild(div);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-
-  function showTyping() { chatTyping.style.display = "flex"; }
-  function hideTyping() { chatTyping.style.display = "none"; }
-
-  function formatPrice(n) {
-    return Math.round(n).toLocaleString("fr-FR");
-  }
-
-  // Total d'étapes pour la progression (name + rate + q1-q10 + contact = 13)
-  const STEP_ORDER = ["name","rate","q1","q2","q3","q4","q5","q6","q7","q8","q9","q10","contact","done"];
-
-  function renderStep(stepId) {
-    const step = getStep(stepId);
-    if (!step) return;
-
-    chatPills.innerHTML = "";
-    showTyping();
-
-    // Indicateur de progression
-    const chatStatus = document.querySelector(".chatbot-status");
-    const stepIdx = STEP_ORDER.indexOf(stepId);
-    if (stepId === "done") {
-      chatStatus.textContent = "Devis prêt ✓";
-      chatProgress.style.setProperty("--chat-progress", "100%");
-    } else if (stepIdx >= 0) {
-      const pct = Math.round((stepIdx / (STEP_ORDER.length - 1)) * 100);
-      chatStatus.textContent = stepIdx === 0 ? "En ligne" : `${stepIdx} / ${STEP_ORDER.length - 2}`;
-      chatProgress.style.setProperty("--chat-progress", pct + "%");
-    }
-
-    setTimeout(() => {
-      hideTyping();
-
-      // Résoudre le texte du bot (templates avec {name})
-      let botText = step.botTemplate
-        ? step.botTemplate.replace(/\{name\}/g, chatData.userName || "")
-        : step.bot;
-
-      if (stepId === "done") {
-        const name = chatData.userName || "";
-        const total = Math.round(chatData.baseCost * chatData.multiplier);
-        const low = Math.round(total * 0.85);
-        const high = Math.round(total * 1.15);
-        botText = `Merci ${name} ! 🎯 D'après vos réponses, votre projet est estimé entre ${formatPrice(low)}€ et ${formatPrice(high)}€ TTC. Scory vous recontacte sous 24h avec un devis détaillé. À bientôt !`;
-      }
-
-      addBotMessage(botText);
-
-      if (step.options && step.options.length > 0) {
-        step.options.forEach((opt, idx) => {
-          const btn = document.createElement("button");
-          btn.className = "chat-pill";
-          btn.textContent = opt.label;
-          btn.setAttribute("role", "option");
-          btn.addEventListener("keydown", (e) => {
-            const pills = [...chatPills.querySelectorAll(".chat-pill")];
-            let target;
-            if (e.key === "ArrowRight" || e.key === "ArrowDown") {
-              e.preventDefault();
-              target = pills[(idx + 1) % pills.length];
-            } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
-              e.preventDefault();
-              target = pills[(idx - 1 + pills.length) % pills.length];
-            }
-            if (target) target.focus();
-          });
-          btn.addEventListener("click", () => {
-            if (typeof opt.cost === "number") chatData.baseCost += opt.cost;
-            if (typeof opt.multiplier === "number") chatData.multiplier = opt.multiplier;
-            chatData.answers[stepId] = opt.label;
-            addUserMessage(opt.label);
-            chatPills.innerHTML = "";
-            renderStep(opt.next);
-          });
-          chatPills.appendChild(btn);
-        });
-        const firstPill = chatPills.querySelector(".chat-pill");
-        if (firstPill) requestAnimationFrame(() => firstPill.focus({ preventScroll: true }));
-      } else if (step.freeText) {
-        const input = document.createElement("input");
-        input.type = stepId === "contact" ? "email" : "text";
-        input.placeholder = step.placeholder || "Tapez ici…";
-        input.className = "chat-input";
-        const send = document.createElement("button");
-        send.className = "chat-pill";
-        send.textContent = "Envoyer";
-        const submit = () => {
-          const val = input.value.trim();
-          if (!val) return;
-          // Stocker le prénom si c'est l'étape "name"
-          if (stepId === "name") chatData.userName = val;
-          chatData.answers[stepId] = val;
-          addUserMessage(val);
-          chatPills.innerHTML = "";
-          renderStep(step.next);
-        };
-        send.addEventListener("click", submit);
-        input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
-        chatPills.appendChild(input);
-        chatPills.appendChild(send);
-        requestAnimationFrame(() => input.focus());
-      }
-
-      // Bouton recommencer après le devis
-      if (stepId === "done") {
-        const restart = document.createElement("button");
-        restart.className = "chat-pill";
-        restart.textContent = "↻ Recommencer";
-        restart.addEventListener("click", () => {
-          chatMessages.innerHTML = "";
-          chatData.baseCost = 0;
-          chatData.multiplier = 1;
-          chatData.answers = {};
-          chatData.userName = "";
-          chatPills.innerHTML = "";
-          document.querySelector(".chatbot-status").textContent = "En ligne";
-          chatProgress.style.setProperty("--chat-progress", "0%");
-          renderStep("name");
-        });
-        chatPills.appendChild(restart);
-      }
-    }, 700 + Math.random() * 500);
-  }
-
-  // Lancer le chatbot quand il est visible
-  const chatObserver = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-      chatObserver.disconnect();
-      renderStep("name");
-    }
-  }, { threshold: 0.3 });
-  chatObserver.observe(document.getElementById("chatbot-section"));
-
-  /* =================================================================
-     BOOKING — Planning in-app
-     ================================================================= */
-  const bookingOverlay = document.getElementById("booking-overlay");
-  const bookingModal = document.getElementById("booking-modal");
-  const openBookingBtn = document.getElementById("open-booking");
-  const closeBookingBtn = document.getElementById("booking-close");
-
-  if (bookingOverlay && openBookingBtn) {
-    const SLOTS = ["09:00","10:00","11:00","14:00","15:00","16:00","17:00"];
-    const MONTHS_FR = ["Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Aout","Septembre","Octobre","Novembre","Decembre"];
-    let calYear, calMonth, selectedDate = null, selectedSlot = null;
-
-    const stepCal = document.getElementById("booking-step-cal");
-    const stepTime = document.getElementById("booking-step-time");
-    const stepForm = document.getElementById("booking-step-form");
-    const stepDone = document.getElementById("booking-step-done");
-    const calGrid = document.getElementById("cal-grid");
-    const calMonthLabel = document.getElementById("cal-month");
-    const slotsContainer = document.getElementById("booking-slots");
-
-    function showStep(step) {
-      [stepCal, stepTime, stepForm, stepDone].forEach((s) => s.classList.add("booking-step--hidden"));
-      step.classList.remove("booking-step--hidden");
-    }
-
-    function openBooking() {
-      const now = new Date();
-      calYear = now.getFullYear();
-      calMonth = now.getMonth();
-      selectedDate = null;
-      selectedSlot = null;
-      showStep(stepCal);
-      renderCalendar();
-      bookingOverlay.classList.add("is-open");
-      bookingOverlay.setAttribute("aria-hidden", "false");
-    }
-
-    function closeBooking() {
-      bookingOverlay.classList.remove("is-open");
-      bookingOverlay.setAttribute("aria-hidden", "true");
-    }
-
-    function renderCalendar() {
-      calMonthLabel.textContent = `${MONTHS_FR[calMonth]} ${calYear}`;
-      calGrid.innerHTML = "";
-      const firstDay = new Date(calYear, calMonth, 1);
-      let startDay = firstDay.getDay(); // 0=dim
-      if (startDay === 0) startDay = 7; // lun=1
-      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-      const today = new Date();
-      today.setHours(0,0,0,0);
-
-      // Cases vides avant le 1er
-      for (let i = 1; i < startDay; i++) {
-        const empty = document.createElement("div");
-        calGrid.appendChild(empty);
-      }
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const date = new Date(calYear, calMonth, d);
-        const btn = document.createElement("button");
-        btn.className = "cal-day";
-        btn.textContent = d;
-        const dayOfWeek = date.getDay();
-        const isPast = date < today;
-        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-
-        if (isPast || isWeekend) {
-          btn.disabled = true;
-        } else {
-          if (date.getTime() === today.getTime()) btn.classList.add("is-today");
-          btn.addEventListener("click", () => {
-            selectedDate = date;
-            calGrid.querySelectorAll(".cal-day").forEach((b) => b.classList.remove("is-selected"));
-            btn.classList.add("is-selected");
-            // Passer aux créneaux après un court délai visuel
-            setTimeout(() => goToSlots(), 200);
-          });
-        }
-        calGrid.appendChild(btn);
-      }
-    }
-
-    function formatDateFr(date) {
-      const jours = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
-      return `${jours[date.getDay()]} ${date.getDate()} ${MONTHS_FR[date.getMonth()]} ${date.getFullYear()}`;
-    }
-
-    function goToSlots() {
-      if (!selectedDate) return;
-      document.getElementById("booking-date-chosen").textContent = formatDateFr(selectedDate);
-      slotsContainer.innerHTML = "";
-      SLOTS.forEach((slot) => {
-        const btn = document.createElement("button");
-        btn.className = "booking-slot";
-        btn.textContent = slot;
-        btn.addEventListener("click", () => {
-          selectedSlot = slot;
-          slotsContainer.querySelectorAll(".booking-slot").forEach((b) => b.classList.remove("is-selected"));
-          btn.classList.add("is-selected");
-          setTimeout(() => goToForm(), 200);
-        });
-        slotsContainer.appendChild(btn);
-      });
-      showStep(stepTime);
-    }
-
-    function goToForm() {
-      if (!selectedDate || !selectedSlot) return;
-      document.getElementById("booking-summary").textContent = `${formatDateFr(selectedDate)} a ${selectedSlot}`;
-      showStep(stepForm);
-      document.getElementById("booking-name").focus();
-    }
-
-    // Navigation
-    openBookingBtn.addEventListener("click", (e) => { e.preventDefault(); openBooking(); });
-    closeBookingBtn.addEventListener("click", closeBooking);
-    bookingOverlay.addEventListener("click", (e) => { if (e.target === bookingOverlay) closeBooking(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && bookingOverlay.classList.contains("is-open")) closeBooking(); });
-
-    document.getElementById("cal-prev").addEventListener("click", () => {
-      calMonth--;
-      if (calMonth < 0) { calMonth = 11; calYear--; }
-      renderCalendar();
-    });
-    document.getElementById("cal-next").addEventListener("click", () => {
-      calMonth++;
-      if (calMonth > 11) { calMonth = 0; calYear++; }
-      renderCalendar();
-    });
-    document.getElementById("booking-back-cal").addEventListener("click", () => showStep(stepCal));
-    document.getElementById("booking-back-time").addEventListener("click", () => showStep(stepTime));
-
-    document.getElementById("booking-submit").addEventListener("click", () => {
-      const name = document.getElementById("booking-name").value.trim();
-      const email = document.getElementById("booking-email").value.trim();
-      if (!name || !email) return;
-      document.getElementById("booking-done-detail").textContent = `${formatDateFr(selectedDate)} a ${selectedSlot} — ${name} (${email})`;
-      showStep(stepDone);
-      // Reset form pour prochain usage
-      document.getElementById("booking-name").value = "";
-      document.getElementById("booking-email").value = "";
-      document.getElementById("booking-msg").value = "";
-    });
-  }
+/* ---------- Service Worker ---------- */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
 }
 
 main();
