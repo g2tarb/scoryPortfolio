@@ -33,8 +33,8 @@ const PROJECTS = [
   },
   {
     title: "4dayvelopment",
-    desc: "Agence web — sites livrés en 4 jours, ou c'est gratuit.",
-    detail: "4Dayvelopment conçoit des écosystèmes digitaux complets en 4 jours ouvrés : branding, site sur-mesure, automations n8n, funnel de conversion. Design dark luxury avec curseur magnétique, animations Three.js, mode sombre/clair, formulaire intelligent avec devis instantané. 17+ projets livrés, 100 % satisfaction.",
+    desc: "Agence web — ecosystemes digitaux complets sur-mesure.",
+    detail: "4Dayvelopment conçoit des écosystèmes digitaux complets : branding, site sur-mesure, automations n8n, funnel de conversion. Design dark luxury avec curseur magnétique, animations Three.js, mode sombre/clair, formulaire intelligent avec devis instantané. 17+ projets livrés, 100 % satisfaction.",
     stack: ["Node.js", "Express", "Three.js", "GSAP", "n8n", "Zod"],
     url: "https://4dayvelopment.fr/",
     screenshots: ["./image/fond4Day.jpg", "./image/4dayMobile.png"],

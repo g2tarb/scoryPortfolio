@@ -57,14 +57,18 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-html, body {
+html {
+  overflow-x: clip;
+}
+body {
   margin: 0;
   min-height: 100%;
   background: var(--surface-void);
   color: rgba(245, 242, 255, 0.92);
   font-family: var(--font-sans);
   font-optical-sizing: auto;
-  overflow-x: hidden;
+  overflow-x: clip;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ===== LOADER ===== */
@@ -478,9 +482,10 @@ html, body {
 
 /* ===== PANNEAU DETAILS (LONG PRESS) ===== */
 .detail-panel {
-  position: absolute; z-index: 10;
+  position: fixed; z-index: 100;
   top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-  width: min(90vw, 500px); padding: 2rem;
+  width: min(90vw, 500px); max-height: 85vh; overflow-y: auto;
+  padding: 2rem;
   text-align: center;
   opacity: 0; pointer-events: none;
   transition: opacity 0.25s ease, transform 0.25s var(--ease-spring-heavy);
@@ -640,7 +645,7 @@ html, body {
   max-width: 1000px; margin: 0 auto;
 }
 .stats-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
 }
 .stat-card {
   text-align: center; padding: 1.75rem 1rem;
@@ -979,32 +984,31 @@ html, body {
     padding: clamp(0.75rem, 2vw, 1.5rem);
     padding-bottom: 0;
   }
-
   .museum-label {
-    margin-bottom: 1rem;
-    max-width: 500px;
-    justify-self: center;
-    width: 100%;
+    margin-bottom: 1rem; max-width: 500px;
+    justify-self: center; width: 100%;
   }
-
   .project-carousel {
     min-height: min(32vh, 300px);
     padding-bottom: 2.4rem;
   }
+  .process-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* =============================================================================
-   RESPONSIVE — Tablette / petit desktop (768px)
+   RESPONSIVE — Tablette (768px)
    ============================================================================= */
 @media (max-width: 768px) {
   .project-disc { width: clamp(180px, 36vmin, 260px); }
   .nav-arrow { width: 54px; height: 54px; }
   .museum-label { padding: 1rem 1.15rem; }
   .chatbot-messages { max-height: 400px; padding: 1rem; }
-  .detail-panel { width: min(90vw, 400px); padding: 1.75rem; }
+  .detail-panel { width: min(92vw, 440px); padding: 1.75rem; max-height: 80vh; }
   .detail-panel__title { font-size: 1.35rem; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .process-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .process-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .contact-grid { gap: 0.75rem; }
+  .section-title { margin-bottom: 2rem; }
 }
 
 /* =============================================================================
@@ -1012,108 +1016,151 @@ html, body {
    ============================================================================= */
 @media (max-width: 600px) {
   #museum-stage {
-    padding: 0.5rem;
-    padding-bottom: 0;
-    gap: 0.5rem;
-    min-height: 100svh;
+    padding: 0.5rem; padding-bottom: 0;
+    gap: 0.5rem; min-height: 100svh;
   }
-
   .project-carousel {
     min-height: min(30vh, 260px);
     padding-bottom: 2rem;
   }
-
-  .project-disc {
-    width: clamp(160px, 42vw, 220px);
-  }
+  .project-disc { width: clamp(150px, 42vw, 210px); }
 
   .nav-arrow { width: 48px; height: 48px; }
   .nav-arrow svg { width: 18px; height: 18px; }
   .nav-arrow--left { left: 0.5rem; }
   .nav-arrow--right { right: 0.5rem; }
 
-  .floating-brand {
-    top: 0.5rem; left: 0.5rem;
-  }
+  .floating-brand { top: 0.5rem; left: 0.5rem; }
   .floating-title { font-size: 0.9rem; }
 
   .museum-label {
-    padding: 0.85rem 1rem;
-    margin-bottom: 0.75rem;
+    padding: 0.75rem 0.85rem; margin-bottom: 0.5rem;
     border-radius: 14px;
   }
-  .label-kicker { font-size: 0.6rem; margin-bottom: 0.2rem; }
-  .label-num { font-size: 1.4rem; }
-  .label-title { font-size: 1.15rem; margin-bottom: 0.5rem; }
-  .label-desc { font-size: 0.82rem; }
-  .label-chip { font-size: 0.58rem; padding: 0.15rem 0.4rem; }
+  .label-kicker { font-size: 0.6rem; margin-bottom: 0.15rem; }
+  .label-num { font-size: 1.3rem; }
+  .label-title { font-size: 1.1rem; margin-bottom: 0.4rem; }
+  .label-desc { font-size: 0.78rem; line-height: 1.4; }
+  .label-chip { font-size: 0.55rem; padding: 0.12rem 0.35rem; }
+  .label-stack { gap: 0.2rem; margin-top: 0.5rem; }
 
-  .detail-panel { width: min(94vw, 360px); padding: 1.25rem; }
-  .detail-panel__title { font-size: 1.2rem; }
-  .detail-panel__text { font-size: 0.85rem; }
-  .detail-panel__hint { font-size: 0.65rem; }
+  .detail-panel { width: min(96vw, 360px); padding: 1.15rem; max-height: 80vh; }
+  .detail-panel__title { font-size: 1.15rem; }
+  .detail-panel__text { font-size: 0.8rem; line-height: 1.5; }
+  .detail-panel__hint { font-size: 0.6rem; }
+  .detail-panel__screenshot { width: 180px; height: 110px; }
+  .detail-panel__cta { font-size: 0.75rem; padding: 0.6rem 1.4rem; }
 
-  .stats-grid, .process-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-  .stat-card, .process-card { padding: 1.25rem 0.75rem; }
-  .contact-card { padding: 1rem 1.25rem; min-width: auto; }
-  .about-container { padding: 1.5rem 1.25rem; }
-  .detail-panel__screenshot { width: 200px; height: 120px; }
+  .stats-section, .process-section, .about-section, .contact-section {
+    padding: clamp(1rem, 3vw, 2rem) 0.75rem;
+  }
+  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+  .stat-card { padding: 1rem 0.5rem; }
+  .stat-number { font-size: clamp(1.5rem, 6vw, 2rem); }
+  .stat-label { font-size: 0.6rem; letter-spacing: 0.08em; }
+
+  .process-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .process-card { padding: 1.1rem 0.75rem; }
+  .process-icon { font-size: 1.4rem; margin-bottom: 0.5rem; }
+  .process-step { font-size: 1.6rem; top: 0.5rem; right: 0.6rem; }
+  .process-name { font-size: 0.9rem; margin-bottom: 0.3rem; }
+  .process-desc { font-size: 0.72rem; line-height: 1.45; }
+
+  .about-container { padding: 1.25rem 1rem; }
+  .about-mission { font-size: 0.95rem; }
+  .about-philosophy { font-size: 0.82rem; }
+  .about-values { gap: 0.5rem 1rem; }
+  .about-value { font-size: 0.7rem; }
+  .section-title { margin-bottom: 1.5rem; font-size: clamp(1.1rem, 4vw, 1.4rem); }
+
+  .contact-card { padding: 0.85rem 1rem; min-width: auto; }
+  .contact-label { font-size: 0.7rem; }
+  .contact-icon svg { width: 20px; height: 20px; }
+  .cta-rdv { font-size: 0.75rem; padding: 0.6rem 1.4rem; }
 
   .chatbot-section { padding: 0.75rem; }
-  .chatbot-messages { max-height: 320px; padding: 0.85rem; min-height: 120px; }
-  .chatbot-header { padding: 0.75rem 1rem; }
-  .chatbot-input-area { padding: 0.75rem; }
-  .chatbot-pills { gap: 0.35rem; max-height: 200px; }
+  .chatbot-messages { max-height: 300px; padding: 0.75rem; min-height: 100px; }
+  .chatbot-header { padding: 0.65rem 0.85rem; gap: 0.5rem; }
+  .chatbot-avatar { font-size: 1.1rem; }
+  .chatbot-name { font-size: 0.9rem; }
+  .chatbot-input-area { padding: 0.6rem 0.75rem; }
+  .chatbot-pills { gap: 0.3rem; max-height: 180px; }
+  .chat-pill { font-size: 0.72rem; padding: 0.35rem 0.65rem; min-height: 38px; }
+  .chat-msg { font-size: 0.8rem; padding: 0.6rem 0.8rem; max-width: 90%; }
 
-  .nav-dots { gap: 0.35rem; }
+  .nav-dots { gap: 0.3rem; }
   .nav-dot { width: 8px; height: 8px; }
-  .nav-dot.is-active { width: 20px; }
+  .nav-dot.is-active { width: 18px; }
 
-  .scroll-hint { padding: 1.5rem 0 0.75rem; }
+  .scroll-hint { padding: 1rem 0 0.5rem; }
+  .scroll-hint__text { font-size: 0.85rem; }
+
+  .sound-toggle { width: 38px; height: 38px; bottom: 0.75rem; right: 0.75rem; }
+  .sound-toggle svg { width: 15px; height: 15px; }
+
+  .museum-footer { padding: 1rem 0.75rem 1.5rem; }
+  .museum-footer::before { width: 100px; margin-bottom: 1.25rem; }
+  .footer-copy { font-size: 0.58rem; }
+  .gradient-text { font-size: 0.85rem; }
 }
 
 /* =============================================================================
    RESPONSIVE — Petit mobile (480px)
    ============================================================================= */
 @media (max-width: 480px) {
-  .project-disc {
-    width: clamp(140px, 50vw, 200px);
-  }
+  .project-disc { width: clamp(130px, 48vw, 190px); }
+  .disc-title { font-size: clamp(0.8rem, 3.8vw, 1rem); }
+  .disc-meta { font-size: 0.55rem; }
+  .project-disc.is-active .disc-label::after { font-size: 0.48rem; margin-top: 0.3rem; }
 
-  .project-disc.is-active .disc-label::after {
-    font-size: 0.5rem;
-    margin-top: 0.4rem;
-  }
+  .nav-arrow { width: 42px; height: 42px; }
+  .nav-arrow--left { left: 0.3rem; }
+  .nav-arrow--right { right: 0.3rem; }
 
-  .disc-title { font-size: clamp(0.85rem, 4vw, 1.1rem); }
+  .stats-grid { grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; }
+  .stat-card { padding: 0.8rem 0.4rem; }
+  .stat-number { font-size: clamp(1.3rem, 5vw, 1.7rem); }
+  .stat-label { font-size: 0.52rem; }
 
-  .chatbot-messages { max-height: 260px; }
-  .chat-pill { padding: 0.4rem 0.75rem; font-size: 0.74rem; }
+  .process-grid { gap: 0.5rem; }
+  .process-card { padding: 0.9rem 0.5rem; }
+  .process-name { font-size: 0.82rem; }
+  .process-desc { font-size: 0.65rem; }
+  .process-step { font-size: 1.3rem; }
+  .process-icon { font-size: 1.2rem; }
 
-  .museum-footer::before { width: 120px; }
+  .contact-grid { flex-direction: column; align-items: center; }
+  .contact-card { width: 100%; max-width: 280px; flex-direction: row; justify-content: center; }
 
-  .stats-grid, .process-grid { grid-template-columns: 1fr 1fr; }
-  .process-name { font-size: 0.95rem; }
-  .process-desc { font-size: 0.75rem; }
+  .chatbot-messages { max-height: 250px; }
+  .chat-pill { min-height: 36px; }
 }
 
 /* =============================================================================
    RESPONSIVE — Tres petit mobile (360px)
    ============================================================================= */
 @media (max-width: 360px) {
-  .project-disc { width: 140px; }
+  .project-disc { width: 130px; }
 
-  .nav-arrow { width: 40px; height: 40px; }
-  .nav-arrow svg { width: 16px; height: 16px; }
-  .nav-arrow--left { left: 0.25rem; }
-  .nav-arrow--right { right: 0.25rem; }
+  .nav-arrow { width: 38px; height: 38px; }
+  .nav-arrow svg { width: 15px; height: 15px; }
+  .nav-arrow--left { left: 0.2rem; }
+  .nav-arrow--right { right: 0.2rem; }
 
-  .museum-label { padding: 0.75rem; }
-  .label-title { font-size: 1rem; }
-  .label-desc { font-size: 0.78rem; }
+  .museum-label { padding: 0.6rem 0.7rem; }
+  .label-title { font-size: 0.95rem; }
+  .label-desc { font-size: 0.72rem; }
+  .label-num { font-size: 1.1rem; }
 
-  .chatbot-messages { max-height: 220px; }
-  .chat-pill { font-size: 0.7rem; min-height: 40px; }
+  .detail-panel { padding: 1rem; }
+  .detail-panel__screenshot { width: 150px; height: 90px; }
+
+  .chatbot-messages { max-height: 200px; }
+  .chat-pill { font-size: 0.65rem; padding: 0.3rem 0.5rem; }
+  .chat-msg { font-size: 0.75rem; padding: 0.5rem 0.65rem; }
+
+  .process-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr 1fr; }
 }
 
 /* =============================================================================
@@ -1124,30 +1171,16 @@ html, body {
     grid-template-columns: 1fr 1fr;
     grid-template-areas: "carousel label";
     grid-template-rows: 1fr;
-    min-height: 100svh;
-    padding: 0.5rem;
+    min-height: 100svh; padding: 0.5rem;
   }
-
-  .project-carousel {
-    min-height: auto;
-    align-items: center;
-    padding-bottom: 2rem;
-  }
-
-  .project-disc { width: min(140px, 30vh); }
-
-  .museum-label {
-    align-self: center;
-    margin-bottom: 0;
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
+  .project-carousel { min-height: auto; align-items: center; padding-bottom: 2rem; }
+  .project-disc { width: min(130px, 28vh); }
+  .museum-label { align-self: center; margin-bottom: 0; max-height: 85vh; overflow-y: auto; }
   .floating-brand { top: 0.35rem; left: 0.5rem; }
   .floating-title { font-size: 0.8rem; }
   .floating-sub { font-size: 0.45rem; }
-
   .scroll-hint { display: none; }
+  .nav-arrow { width: 36px; height: 36px; }
 }
 
 /* =============================================================================
@@ -1158,9 +1191,10 @@ html, body {
     grid-template-columns: 1fr minmax(0, 640px) minmax(280px, 380px);
     padding: 2.5rem;
   }
-
   .project-disc { width: min(300px, 34vmin); }
   .chatbot-section { max-width: 680px; }
+  .stats-section, .process-section { max-width: 1100px; }
+  .about-section, .contact-section { max-width: 780px; }
 }
 
 /* =============================================================================
