@@ -822,23 +822,28 @@ async function main() {
     revealElements.forEach((el) => revealObserver.observe(el));
   }
 
-  /* ---------- Pixel Rain (pluie diagonale entre hero et chatbot) ---------- */
+  /* ---------- Pixel Rain (pixels deviennent les sections) ---------- */
   const pixelRainCanvas = document.getElementById("pixel-rain");
   if (pixelRainCanvas && !reduced) {
-    let pixelRain = null;
     const rainTrigger = document.querySelector(".stats-section");
     if (rainTrigger) {
       const rainObserver = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting) {
           rainObserver.disconnect();
           import("./pixel-rain.js").then(({ PixelRain }) => {
-            pixelRain = new PixelRain(pixelRainCanvas);
-            const t = THEMES[activeIndex];
-            if (t) pixelRain.setColors(t.particleColors);
-            pixelRain.start();
+            const pixelRain = new PixelRain(pixelRainCanvas);
+            const tm = THEMES[activeIndex];
+            if (tm) pixelRain.setColors(tm.particleColors);
+            // Les sections que les pixels vont former
+            const sections = [
+              document.querySelector(".stats-section"),
+              document.querySelector(".process-section"),
+              document.querySelector(".about-section"),
+            ].filter(Boolean);
+            pixelRain.start(sections);
           });
         }
-      }, { threshold: 0.1 });
+      }, { threshold: 0.05 });
       rainObserver.observe(rainTrigger);
     }
   }
