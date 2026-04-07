@@ -296,7 +296,7 @@ body {
   border-radius: var(--radius-disc); display: grid; place-items: center;
   touch-action: manipulation; user-select: none; -webkit-user-select: none;
   transition: box-shadow 0.35s var(--ease-spring-soft), opacity 0.3s ease;
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext y='28' font-size='28'%3E%E2%98%9D%EF%B8%8F%3C/text%3E%3C/svg%3E") 16 4, pointer;
+  cursor: pointer;
 }
 
 /* Seul le disque actif est visible */
@@ -420,22 +420,24 @@ body {
   white-space: nowrap;
 }
 
-/* Hint "maintenez" clignotant */
+/* Hint "cliquez pour decouvrir" anime */
 .project-disc.is-active .disc-label::after {
-  content: "\261D cliquez pour decouvrir";
-}
-html[lang="en"] .project-disc.is-active .disc-label::after {
-  content: "\261D click to discover";
+  content: "cliquez pour decouvrir";
   display: block; margin-top: 0.4rem;
   font-size: clamp(0.48rem, 1.5vmin, 0.58rem); letter-spacing: 0.08em; text-transform: uppercase;
   font-family: var(--font-sans);
   color: var(--accent-gold);
   white-space: nowrap;
-  animation: hintBlink 2.4s ease-in-out infinite;
+  animation: hintPulse 3s ease-in-out infinite;
 }
-@keyframes hintBlink {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.6; }
+html[lang="en"] .project-disc.is-active .disc-label::after {
+  content: "click to discover";
+}
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.12; transform: translateY(0); }
+  25% { opacity: 0.6; transform: translateY(-2px); }
+  50% { opacity: 0.35; transform: translateY(0); }
+  75% { opacity: 0.55; transform: translateY(-1px); }
 }
 
 /* ===== FLECHES DE NAVIGATION ===== */

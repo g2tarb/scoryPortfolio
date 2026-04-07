@@ -197,6 +197,8 @@ async function main() {
       });
       // Rafraichir les dots
       buildDots();
+      // Relancer le chatbot dans la nouvelle langue
+      if (chatStateRef.restart) chatStateRef.restart();
       // Titre de page
       const project = projects[activeIndex];
       document.title = activeIndex === SCORY_INDEX
