@@ -989,7 +989,7 @@ body {
   .booking-title { font-size: 1.1rem; }
 }
 
-/* ===== SOUND VISUALIZER ===== */
+/* ===== SOUND VISUALIZER — barres collees au bord du bouton ===== */
 .sound-viz {
   position: absolute;
   top: 50%; left: 50%;
@@ -998,20 +998,21 @@ body {
 }
 .sound-viz__bar {
   position: absolute;
-  width: 3px;
-  height: 10px;
+  width: 2.5px;
+  height: 8px;
   background: var(--accent-gold);
-  border-radius: 2px;
-  /* Chaque barre tourne autour du centre puis se decale vers l'exterieur */
-  left: -1.5px;
-  top: -30px; /* rayon = 30px au-dessus du centre */
-  transform-origin: 1.5px 30px; /* pivot = le centre du bouton */
+  border-radius: 1.5px;
+  left: -1.25px;
+  /* Le haut de la barre commence au bord du cercle (rayon 23px) */
+  bottom: 23px;
+  /* Le pivot est au centre du bouton (23px sous le bas de la barre) */
+  transform-origin: 1.25px calc(100% + 23px);
   transform: rotate(calc(var(--i) * 30deg)) scaleY(0.3);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 .sound-toggle[aria-pressed="true"] .sound-viz__bar {
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 /* Volume slider */
@@ -1364,7 +1365,7 @@ body {
   /* Son */
   .sound-toggle { width: 36px; height: 36px; bottom: 0.6rem; right: 0.6rem; }
   .sound-toggle svg { width: 14px; height: 14px; }
-  .sound-viz__bar { width: 2px; height: 7px; top: -25px; transform-origin: 1px 25px; }
+  .sound-viz__bar { width: 2px; height: 6px; bottom: 19px; transform-origin: 1px calc(100% + 19px); }
   .sound-volume { width: 32px; right: 0.2rem; bottom: 2.8rem; }
 
   /* Booking */
