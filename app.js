@@ -77,7 +77,7 @@ const THEMES = [
     neuralFilter: "none",
     particleColors: [[201,169,98],[158,200,255],[192,132,252],[232,184,109],[245,242,255]],
   },
-  // 1 — 4dayvelopment
+  // 1 — 4dayvelopment (Three.js réseau orange/chaud)
   {
     gold: "#DA5426",
     amber: "#f2b13b",
@@ -88,10 +88,10 @@ const THEMES = [
     glowDisc: "rgba(218,84,38,0.15)",
     fontDisplay: "'Syne', system-ui, sans-serif",
     fontSans: "'Inter', system-ui, sans-serif",
-    neuralFilter: "hue-rotate(-25deg) saturate(1.3) brightness(1.1)",
+    neuralFilter: "hue-rotate(-30deg) saturate(1.8) brightness(1.15) contrast(1.1)",
     particleColors: [[218,84,38],[242,177,59],[136,64,131],[240,240,240],[255,160,80]],
   },
-  // 2 — Clara Martinez
+  // 2 — Clara Martinez (aurore boréale dorée/verte)
   {
     gold: "#C9A84C",
     amber: "#E8D49A",
@@ -102,10 +102,10 @@ const THEMES = [
     glowDisc: "rgba(201,168,76,0.18)",
     fontDisplay: "'Playfair Display', 'Times New Roman', serif",
     fontSans: "'Inter', system-ui, sans-serif",
-    neuralFilter: "hue-rotate(5deg) saturate(0.85) brightness(0.95)",
+    neuralFilter: "hue-rotate(85deg) saturate(1.6) brightness(1.2) contrast(1.05)",
     particleColors: [[201,168,76],[232,212,154],[168,134,58],[245,240,232],[180,155,90]],
   },
-  // 3 — Flaynn
+  // 3 — Flaynn (réseau violet/néon)
   {
     gold: "#7B2D8E",
     amber: "#C13584",
@@ -116,7 +116,7 @@ const THEMES = [
     glowDisc: "rgba(123,45,142,0.18)",
     fontDisplay: "'IBM Plex Sans', system-ui, sans-serif",
     fontSans: "'IBM Plex Sans', system-ui, sans-serif",
-    neuralFilter: "hue-rotate(75deg) saturate(1.4) brightness(1.05)",
+    neuralFilter: "hue-rotate(60deg) saturate(2) brightness(1.1) contrast(1.15)",
     particleColors: [[123,45,142],[193,53,132],[16,185,129],[240,240,243],[59,130,246]],
   },
 ];
@@ -342,6 +342,7 @@ function main() {
 
   let water = null;
   let waterSplashTween = null;
+  let waterFadeTimer = null;
   if (waterHost) {
     water = new WaterReflectionLayer(waterHost, { timeScale: reduced ? 0.22 : 1 });
     gsap.set(waterHost, { opacity: 0 });
@@ -381,7 +382,6 @@ function main() {
   /* ---------- État ---------- */
   let activeIndex = 0;
   let animating = false;
-  let longPressTimer = null;
   let detailVisible = false;
 
   const discs = () => [...track.querySelectorAll(".project-disc")];
@@ -459,9 +459,12 @@ function main() {
     });
   }
 
-  /* ---------- Fond eau / neural pour Scory ---------- */
+  /* ---------- Fond eau / neural ---------- */
   async function syncProjectWater() {
     if (!water || !waterHost) return;
+
+    // Annuler tout timer de crossfade précédent
+    if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
 
     // Disque Scory (index 0) → fond neural Three.js seul, pas d'image
     if (activeIndex === 0) {
@@ -481,12 +484,15 @@ function main() {
   function runWaterSplash() {
     if (!water || !waterHost) return;
     if (waterSplashTween) waterSplashTween.kill();
+    if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
+
     if (reduced) {
       water.setProgress(0.12);
       gsap.set(neuralHost, { opacity: 0.2 });
       gsap.set(waterHost, { opacity: 1 });
       return;
     }
+
     water.setProgress(1);
     const proxy = { p: 1 };
     waterSplashTween = gsap.timeline()
@@ -496,6 +502,12 @@ function main() {
         p: 0.1, duration: 2.45, ease: "power3.out",
         onUpdate: () => water.setProgress(proxy.p),
       }, 0);
+
+    // Après gel de l'image (3s) + 2s de pause → crossfade vers le fond neural thématique
+    waterFadeTimer = setTimeout(() => {
+      gsap.to(waterHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
+      gsap.to(neuralHost, { opacity: 1, duration: 2, ease: "power2.inOut" });
+    }, 5000);
   }
 
   /* ---------- Navigation avec transition particules ---------- */
@@ -639,35 +651,13 @@ function main() {
     }
   }
 
-  let longPressArmed = true;
-  let dragStartX = 0;
-  let dragStartY = 0;
-
-  carousel.addEventListener("pointerdown", (e) => {
+  /* Clic sur le disque actif → ouvre les détails */
+  carousel.addEventListener("click", (e) => {
     if (animating || detailVisible) return;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    longPressArmed = true;
     const target = e.target.closest(".project-disc");
     if (target && target.classList.contains("is-active")) {
-      longPressTimer = window.setTimeout(() => {
-        if (longPressArmed) openDetail();
-      }, 500);
+      openDetail();
     }
-  });
-
-  carousel.addEventListener("pointermove", (e) => {
-    const dx = Math.abs(e.clientX - dragStartX);
-    const dy = Math.abs(e.clientY - dragStartY);
-    // Seuil large (30px) pour éviter les faux positifs du trackpad Mac
-    if (dx + dy > 30) {
-      longPressArmed = false;
-      if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
-    }
-  });
-
-  carousel.addEventListener("pointerup", () => {
-    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
   });
 
   /* ---------- Swipe tactile avec velocite ---------- */

@@ -345,7 +345,7 @@ html, body {
 
 /* Hint "maintenez" clignotant */
 .project-disc.is-active .disc-label::after {
-  content: "\261D maintenez pour decouvrir";
+  content: "\261D cliquez pour decouvrir";
   display: block; margin-top: 0.7rem;
   font-size: 0.58rem; letter-spacing: 0.1em; text-transform: uppercase;
   font-family: var(--font-sans);
