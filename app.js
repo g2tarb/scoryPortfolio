@@ -831,12 +831,13 @@ async function main() {
     let audio = null;
     let audioCtx = null;
     let analyser = null;
+    let sourceNode = null;
     let soundOn = false;
     let vizRaf = 0;
     const iconOff = soundToggle.querySelector(".sound-icon--off");
     const iconOn = soundToggle.querySelector(".sound-icon--on");
 
-    // Creer les barres de visualisation autour du bouton
+    // Barres de visualisation
     const vizContainer = document.createElement("div");
     vizContainer.className = "sound-viz";
     const BARS = 12;
@@ -864,26 +865,42 @@ async function main() {
       audio = new Audio("./audio/La Bohème - Charles Aznavour.mp3");
       audio.loop = true;
       audio.volume = volSlider.value / 100;
-      // Analyser pour la visualisation
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const source = audioCtx.createMediaElementSource(audio);
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;
-      source.connect(analyser);
-      analyser.connect(audioCtx.destination);
+      audio.setAttribute("playsinline", "");
+      audio.setAttribute("webkit-playsinline", "");
+      // AudioContext + Analyser (cree dans le geste utilisateur pour iOS)
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        sourceNode = audioCtx.createMediaElementSource(audio);
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 64;
+        sourceNode.connect(analyser);
+        analyser.connect(audioCtx.destination);
+      } catch {
+        // Fallback : pas de visualiseur, mais le son marche
+        analyser = null;
+      }
     }
 
     const barEls = vizContainer.querySelectorAll(".sound-viz__bar");
+
     function vizLoop() {
-      if (!soundOn || !analyser) return;
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(data);
-      for (let i = 0; i < BARS; i++) {
-        const val = data[Math.floor(i * data.length / BARS)] / 255;
-        const angle = i * 30;
-        const sy = 0.3 + val * 1.2;
-        barEls[i].style.transform = `rotate(${angle}deg) scaleY(${sy})`;
-        barEls[i].style.opacity = 0.3 + val * 0.7;
+      if (!soundOn) return;
+      if (analyser) {
+        const data = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(data);
+        for (let i = 0; i < BARS; i++) {
+          const val = data[Math.floor(i * data.length / BARS)] / 255;
+          barEls[i].style.transform = `rotate(${i * 30}deg) scaleY(${0.3 + val * 1.2})`;
+          barEls[i].style.opacity = 0.3 + val * 0.7;
+        }
+      } else {
+        // Fallback sans analyser : animation simple basee sur le temps
+        const t = Date.now() * 0.003;
+        for (let i = 0; i < BARS; i++) {
+          const val = 0.3 + Math.abs(Math.sin(t + i * 0.5)) * 0.7;
+          barEls[i].style.transform = `rotate(${i * 30}deg) scaleY(${val})`;
+          barEls[i].style.opacity = 0.3 + val * 0.4;
+        }
       }
       vizRaf = requestAnimationFrame(vizLoop);
     }
@@ -893,9 +910,10 @@ async function main() {
       if (!audio) return;
       soundOn = !soundOn;
       if (soundOn) {
+        // Resume AudioContext (obligatoire iOS/Safari apres geste)
         if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
         audio.currentTime = 0;
-        audio.play().catch(() => {});
+        audio.play().catch(() => { soundOn = false; });
         volSlider.style.display = "block";
         vizLoop();
       } else {
