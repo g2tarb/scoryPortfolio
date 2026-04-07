@@ -1,16 +1,15 @@
 /**
  * SCORY — app.js
  * Carrousel disques, transitions particules, chatbot devis, booking.
+ * Three.js charge en differe pour ne pas bloquer le main thread.
  */
 import gsap from "gsap";
-import { FlaynnNeuralBackground } from "./three-neural.js";
-import { WaterReflectionLayer } from "./three-water.js";
-import { ParticleTransition } from "./particles.js";
 import { PROJECTS, THEMES, CHAT_FLOW } from "./data.js";
+// Three.js modules charges apres le loader (dynamic import)
 
 /* ---------- Constantes ---------- */
 const EASE_SPRING_HEAVY = "back.out(1.32)";
-const LOADER_DELAY_MS = 2200;
+const LOADER_DELAY_MS = 1000;
 const CLOSE_OUTSIDE_DELAY_MS = 600;
 const WATER_FADE_DELAY_MS = 5000;
 const DISC_SPIN_SPEED = 0.06;
@@ -68,7 +67,12 @@ function trapFocus(container) {
   return () => container.removeEventListener("keydown", handler);
 }
 
-function main() {
+/** Yield au browser pour ne pas bloquer le main thread */
+function yieldToBrowser() {
+  return new Promise((r) => setTimeout(r, 0));
+}
+
+async function main() {
   const stage = document.getElementById("museum-stage");
   const neuralHost = document.getElementById("neural-host");
   const waterHost = document.getElementById("water-host");
@@ -92,14 +96,18 @@ function main() {
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
-  /* ---------- Three.js (avec fallback CSS) ---------- */
-  let neural;
-  try {
-    neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
-  } catch {
-    document.body.classList.add("no-webgl");
-    neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
-  }
+  /* ===== PHASE 1 : Loader + carrousel sans Three.js ===== */
+  // Stub neural tant que Three.js n'est pas charge
+  let neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
+
+  /* ===== PHASE 2 : Three.js charge en arriere-plan ===== */
+  const threeReady = import("./three-neural.js").then(({ FlaynnNeuralBackground }) => {
+    try {
+      neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
+    } catch {
+      document.body.classList.add("no-webgl");
+    }
+  }).catch(() => { document.body.classList.add("no-webgl"); });
 
   /* ---------- Fonds projet (initialisés au premier usage) ---------- */
   const projectBgs = {};
@@ -145,35 +153,44 @@ function main() {
     activeProjectBg = null;
   }
 
-  // Masquer le loader + animation d'entree sequentielle
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      if (loader) loader.classList.add("is-hidden");
-      if (!reduced) {
-        const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-        tl.from(".floating-brand", { opacity: 0, y: -20, duration: 0.7 }, 0.1)
-          .from(".project-carousel", { opacity: 0, y: 40, scale: 0.97, duration: 0.9 }, 0.25)
-          .from(".nav-arrow", { opacity: 0, scale: 0.5, duration: 0.5, stagger: 0.1 }, 0.5)
-          .from(".museum-label", { opacity: 0, x: 30, duration: 0.7 }, 0.4)
-          .from(".scroll-hint", { opacity: 0, y: 15, duration: 0.5 }, 0.7);
-      }
-    }, LOADER_DELAY_MS);
+  // PHASE 3 : Masquer le loader une fois Three.js pret (ou timeout)
+  const loaderTimeout = new Promise((r) => setTimeout(r, LOADER_DELAY_MS));
+  Promise.all([threeReady, loaderTimeout]).then(() => {
+    if (loader) loader.classList.add("is-hidden");
+    if (!reduced) {
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      tl.from(".floating-brand", { opacity: 0, y: -20, duration: 0.7 }, 0.1)
+        .from(".project-carousel", { opacity: 0, y: 40, scale: 0.97, duration: 0.9 }, 0.25)
+        .from(".nav-arrow", { opacity: 0, scale: 0.5, duration: 0.5, stagger: 0.1 }, 0.5)
+        .from(".museum-label", { opacity: 0, x: 30, duration: 0.7 }, 0.4)
+        .from(".scroll-hint", { opacity: 0, y: 15, duration: 0.5 }, 0.7);
+    }
+    void syncProjectWater();
   });
 
   let water = null;
   let waterSplashTween = null;
   let waterFadeTimer = null;
-  // Water renderer créé au premier besoin (pas au chargement)
-  function ensureWater() {
+  let WaterReflectionLayer = null;
+  async function ensureWater() {
     if (!water && waterHost) {
+      if (!WaterReflectionLayer) {
+        const mod = await import("./three-water.js");
+        WaterReflectionLayer = mod.WaterReflectionLayer;
+      }
       water = new WaterReflectionLayer(waterHost, { timeScale: reduced ? 0.22 : 1 });
     }
   }
   if (waterHost) gsap.set(waterHost, { opacity: 0 });
   gsap.set(neuralHost, { opacity: 1 });
 
-  /* ---------- Particules ---------- */
-  const particles = new ParticleTransition(particleCanvas);
+  /* ---------- Particules (lazy) ---------- */
+  let particles = { transition() { return Promise.resolve(); }, resize() {}, setColors() {} };
+  import("./particles.js").then(({ ParticleTransition }) => {
+    particles = new ParticleTransition(particleCanvas);
+    const t = THEMES[activeIndex];
+    if (t) particles.setColors(t.particleColors);
+  });
 
   /* ---------- Thème dynamique ---------- */
   function applyTheme(index) {
@@ -304,7 +321,7 @@ function main() {
   /* ---------- Fond eau / neural / projet ---------- */
   async function syncProjectWater() {
     if (!waterHost) return;
-    ensureWater();
+    await ensureWater();
     if (!water) return;
 
     // Annuler tout timer de crossfade précédent
@@ -686,7 +703,6 @@ function main() {
   setLabel(0);
   buildDots();
   applyTheme(0);
-  void syncProjectWater();
 
   // Preload seulement les 2 prochaines images (pas tout d'un coup)
   function preloadNearby(index) {
@@ -704,6 +720,8 @@ function main() {
     neural.setRotationInfluence(0);
     neural.setTransitionProgress(0);
   }
+
+  await yieldToBrowser(); // Liberer le main thread avant les observers
 
   /* ---------- Pause quand onglet cache ---------- */
   document.addEventListener("visibilitychange", () => {
@@ -728,6 +746,8 @@ function main() {
     }
   }, { threshold: 0.05 });
   stageVisibility.observe(stage);
+
+  await yieldToBrowser(); // Liberer avant les observers scroll
 
   /* ---------- Scroll Reveal ---------- */
   const revealElements = document.querySelectorAll(".reveal");

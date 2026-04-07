@@ -117,9 +117,7 @@ body {
 }
 .skip-link:focus { left: 0.75rem; outline: none; box-shadow: var(--focus-ring); }
 
-/* ===== ANTI-FOUC ===== */
-.loader ~ * { opacity: 0; }
-.loader.is-hidden ~ * { opacity: 1; transition: opacity 0.4s ease; }
+/* loader ~ * visibility: geree en CSS inline dans index.html pour FCP */
 
 /* ===== FALLBACK WEBGL ===== */
 .no-webgl .neural-host,

@@ -23,21 +23,34 @@
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@600;700&family=Playfair+Display:wght@700&family=IBM+Plex+Sans:wght@400;600&display=swap"
-      rel="stylesheet"
-      media="print" onload="this.media='all'"
-    />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Syne:wght@700&family=Playfair+Display:wght@700&family=IBM+Plex+Sans:wght@600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="prefetch" href="./mentions-legales.html" />
     <link rel="stylesheet" href="./defaut.css" />
-    <link rel="stylesheet" href="./styles.css" />
-    <script async src="https://unpkg.com/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+    <style>
+      /* Critical CSS — inline pour FCP rapide */
+      *,*::before,*::after{box-sizing:border-box}
+      html{overflow-x:clip;-webkit-font-smoothing:antialiased}
+      body{margin:0;min-height:100%;background:#07060a;color:rgba(245,242,255,.92);font-family:'DM Sans',system-ui,sans-serif;overflow-x:clip}
+      .loader{position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;background:#07060a}
+      .loader.is-hidden{opacity:0;visibility:hidden;pointer-events:none;transition:opacity .6s ease,visibility .6s ease}
+      .loader__content{display:flex;flex-direction:column;align-items:center;gap:.8rem}
+      .loader__word{display:flex;gap:.15em}
+      .loader__letter{font-family:'Cormorant Garamond',serif;font-size:clamp(2.5rem,8vw,4.5rem);font-weight:600;letter-spacing:.08em;color:#c9a962;opacity:0;animation:li .5s ease forwards}
+      .loader__letter:nth-child(2){animation-delay:.08s}
+      .loader__letter:nth-child(3){animation-delay:.16s}
+      .loader__letter:nth-child(4){animation-delay:.24s}
+      .loader__letter:nth-child(5){animation-delay:.32s}
+      @keyframes li{0%{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+      .loader__tagline{margin:0;opacity:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(.8rem,2.2vw,1.1rem);color:rgba(245,242,255,.45);animation:ti .8s ease .6s forwards}
+      @keyframes ti{0%{opacity:0;transform:translateY(8px);letter-spacing:.2em}to{opacity:1;transform:translateY(0);letter-spacing:.08em}}
+      .loader~*{opacity:0}
+      .loader.is-hidden~*{opacity:1;transition:opacity .4s ease}
+    </style>
+    <link rel="stylesheet" href="./styles.css" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="./styles.css" /></noscript>
     <script type="importmap">
       {
         "imports": {
