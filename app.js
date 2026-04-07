@@ -822,30 +822,37 @@ async function main() {
     revealElements.forEach((el) => revealObserver.observe(el));
   }
 
-  /* ---------- Pixel Rain (pixels deviennent les sections) ---------- */
-  const pixelRainCanvas = document.getElementById("pixel-rain");
-  if (pixelRainCanvas && !reduced) {
-    const rainTrigger = document.querySelector(".stats-section");
-    if (rainTrigger) {
-      const rainObserver = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          rainObserver.disconnect();
-          import("./pixel-rain.js").then(({ PixelRain }) => {
-            const pixelRain = new PixelRain(pixelRainCanvas);
-            const tm = THEMES[activeIndex];
-            if (tm) pixelRain.setColors(tm.particleColors);
-            // Les sections que les pixels vont former
-            const sections = [
-              document.querySelector(".stats-section"),
-              document.querySelector(".process-section"),
-              document.querySelector(".about-section"),
-            ].filter(Boolean);
-            pixelRain.start(sections);
-          });
+  /* ---------- Teleportation sections (vide → mi-vide → rempli + rebond) ---------- */
+  const teleportSections = document.querySelectorAll(".stats-section, .process-section, .about-section");
+  if (teleportSections.length > 0 && !reduced) {
+    teleportSections.forEach((section) => {
+      gsap.set(section, { opacity: 0, scale: 0.3, y: 60, filter: "blur(8px)" });
+      const obs = new IntersectionObserver((entries) => {
+        if (!entries[0].isIntersecting) return;
+        obs.disconnect();
+        // Phase 1 : teleportation — apparition flash semi-visible (0 → 0.4)
+        gsap.to(section, {
+          opacity: 0.4, scale: 0.7, y: 20, filter: "blur(4px)",
+          duration: 0.4, ease: "power4.out",
+        });
+        // Phase 2 : materialisation — devient plein avec rebond (0.4 → 1)
+        gsap.to(section, {
+          opacity: 1, scale: 1, y: 0, filter: "blur(0px)",
+          duration: 2.6, ease: "elastic.out(1, 0.35)",
+          delay: 0.4,
+          onComplete: () => gsap.set(section, { clearProps: "all" }),
+        });
+        // Stagger enfants (cartes) pour un effet cascade
+        const cards = section.querySelectorAll(".glass-panel, .section-title, .about-mission, .about-philosophy, .about-values");
+        if (cards.length > 0) {
+          gsap.fromTo(cards,
+            { opacity: 0, y: 30, scale: 0.8 },
+            { opacity: 1, y: 0, scale: 1, duration: 1.5, stagger: 0.15, ease: "elastic.out(1, 0.4)", delay: 0.6 }
+          );
         }
-      }, { threshold: 0.05 });
-      rainObserver.observe(rainTrigger);
-    }
+      }, { threshold: 0.08 });
+      obs.observe(section);
+    });
   }
 
   /* ---------- Scroll hint click → chatbot ---------- */
@@ -879,18 +886,18 @@ async function main() {
     statCards.forEach((c) => statsObserver.observe(c));
   }
 
-  /* ---------- Stagger reveal (seulement contact — stats/process/about geres par pixel rain) ---------- */
+  /* ---------- Contact stagger ---------- */
   const contactGrid = document.querySelector(".contact-grid");
-  if (contactGrid) {
+  if (contactGrid && !reduced) {
     const contactObserver = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
         gsap.fromTo(contactGrid.children,
-          { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 0.6, stagger: 0.12, ease: "power2.out" }
+          { opacity: 0, y: 40, scale: 0.8 },
+          { opacity: 1, y: 0, scale: 1, duration: 1.5, stagger: 0.12, ease: "elastic.out(1, 0.4)" }
         );
         contactObserver.disconnect();
       }
-    }, { threshold: 0.2 });
+    }, { threshold: 0.15 });
     contactObserver.observe(contactGrid);
   }
 
