@@ -261,11 +261,58 @@
           <span class="contact-label">GitHub</span>
         </a>
       </div>
-      <a href="https://cal.com/" target="_blank" rel="noopener noreferrer" class="cta-rdv detail-panel__cta">
+      <button type="button" id="open-booking" class="cta-rdv detail-panel__cta">
         Prendre rendez-vous
         <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>
-      </a>
+      </button>
     </section>
+
+    <!-- Booking modal -->
+    <div id="booking-overlay" class="booking-overlay" aria-hidden="true">
+      <div class="booking-modal glass-panel" id="booking-modal">
+        <button class="booking-close" id="booking-close" aria-label="Fermer">&times;</button>
+        <h2 class="booking-title gradient-text">Prendre rendez-vous</h2>
+
+        <!-- Etape 1 : calendrier -->
+        <div class="booking-step" id="booking-step-cal">
+          <div class="booking-cal">
+            <div class="booking-cal__nav">
+              <button class="booking-cal__arrow" id="cal-prev" aria-label="Mois precedent"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <span class="booking-cal__month" id="cal-month"></span>
+              <button class="booking-cal__arrow" id="cal-next" aria-label="Mois suivant"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 6 15 12 9 18"/></svg></button>
+            </div>
+            <div class="booking-cal__weekdays">
+              <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
+            </div>
+            <div class="booking-cal__grid" id="cal-grid"></div>
+          </div>
+        </div>
+
+        <!-- Etape 2 : creneaux -->
+        <div class="booking-step booking-step--hidden" id="booking-step-time">
+          <p class="booking-date-chosen" id="booking-date-chosen"></p>
+          <div class="booking-slots" id="booking-slots"></div>
+          <button class="booking-back" id="booking-back-cal">← Changer de date</button>
+        </div>
+
+        <!-- Etape 3 : formulaire -->
+        <div class="booking-step booking-step--hidden" id="booking-step-form">
+          <p class="booking-date-chosen" id="booking-summary"></p>
+          <input type="text" class="booking-input" id="booking-name" placeholder="Votre nom" required />
+          <input type="email" class="booking-input" id="booking-email" placeholder="Votre email" required />
+          <textarea class="booking-input booking-textarea" id="booking-msg" placeholder="Un mot sur votre projet (optionnel)" rows="3"></textarea>
+          <button class="booking-submit detail-panel__cta" id="booking-submit">Confirmer le rendez-vous</button>
+          <button class="booking-back" id="booking-back-time">← Changer l'heure</button>
+        </div>
+
+        <!-- Etape 4 : confirmation -->
+        <div class="booking-step booking-step--hidden" id="booking-step-done">
+          <div class="booking-done-icon">✓</div>
+          <p class="booking-done-text">Rendez-vous confirme ! Vous recevrez un email de confirmation sous 24h.</p>
+          <p class="booking-done-detail" id="booking-done-detail"></p>
+        </div>
+      </div>
+    </div>
 
     <footer class="museum-footer reveal">
       <p class="gradient-text museum-signature">

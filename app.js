@@ -1206,6 +1206,153 @@ function main() {
     }
   }, { threshold: 0.3 });
   chatObserver.observe(document.getElementById("chatbot-section"));
+
+  /* =================================================================
+     BOOKING — Planning in-app
+     ================================================================= */
+  const bookingOverlay = document.getElementById("booking-overlay");
+  const bookingModal = document.getElementById("booking-modal");
+  const openBookingBtn = document.getElementById("open-booking");
+  const closeBookingBtn = document.getElementById("booking-close");
+
+  if (bookingOverlay && openBookingBtn) {
+    const SLOTS = ["09:00","10:00","11:00","14:00","15:00","16:00","17:00"];
+    const MONTHS_FR = ["Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Aout","Septembre","Octobre","Novembre","Decembre"];
+    let calYear, calMonth, selectedDate = null, selectedSlot = null;
+
+    const stepCal = document.getElementById("booking-step-cal");
+    const stepTime = document.getElementById("booking-step-time");
+    const stepForm = document.getElementById("booking-step-form");
+    const stepDone = document.getElementById("booking-step-done");
+    const calGrid = document.getElementById("cal-grid");
+    const calMonthLabel = document.getElementById("cal-month");
+    const slotsContainer = document.getElementById("booking-slots");
+
+    function showStep(step) {
+      [stepCal, stepTime, stepForm, stepDone].forEach((s) => s.classList.add("booking-step--hidden"));
+      step.classList.remove("booking-step--hidden");
+    }
+
+    function openBooking() {
+      const now = new Date();
+      calYear = now.getFullYear();
+      calMonth = now.getMonth();
+      selectedDate = null;
+      selectedSlot = null;
+      showStep(stepCal);
+      renderCalendar();
+      bookingOverlay.classList.add("is-open");
+      bookingOverlay.setAttribute("aria-hidden", "false");
+    }
+
+    function closeBooking() {
+      bookingOverlay.classList.remove("is-open");
+      bookingOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    function renderCalendar() {
+      calMonthLabel.textContent = `${MONTHS_FR[calMonth]} ${calYear}`;
+      calGrid.innerHTML = "";
+      const firstDay = new Date(calYear, calMonth, 1);
+      let startDay = firstDay.getDay(); // 0=dim
+      if (startDay === 0) startDay = 7; // lun=1
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      // Cases vides avant le 1er
+      for (let i = 1; i < startDay; i++) {
+        const empty = document.createElement("div");
+        calGrid.appendChild(empty);
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(calYear, calMonth, d);
+        const btn = document.createElement("button");
+        btn.className = "cal-day";
+        btn.textContent = d;
+        const dayOfWeek = date.getDay();
+        const isPast = date < today;
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+        if (isPast || isWeekend) {
+          btn.disabled = true;
+        } else {
+          if (date.getTime() === today.getTime()) btn.classList.add("is-today");
+          btn.addEventListener("click", () => {
+            selectedDate = date;
+            calGrid.querySelectorAll(".cal-day").forEach((b) => b.classList.remove("is-selected"));
+            btn.classList.add("is-selected");
+            // Passer aux créneaux après un court délai visuel
+            setTimeout(() => goToSlots(), 200);
+          });
+        }
+        calGrid.appendChild(btn);
+      }
+    }
+
+    function formatDateFr(date) {
+      const jours = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+      return `${jours[date.getDay()]} ${date.getDate()} ${MONTHS_FR[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    function goToSlots() {
+      if (!selectedDate) return;
+      document.getElementById("booking-date-chosen").textContent = formatDateFr(selectedDate);
+      slotsContainer.innerHTML = "";
+      SLOTS.forEach((slot) => {
+        const btn = document.createElement("button");
+        btn.className = "booking-slot";
+        btn.textContent = slot;
+        btn.addEventListener("click", () => {
+          selectedSlot = slot;
+          slotsContainer.querySelectorAll(".booking-slot").forEach((b) => b.classList.remove("is-selected"));
+          btn.classList.add("is-selected");
+          setTimeout(() => goToForm(), 200);
+        });
+        slotsContainer.appendChild(btn);
+      });
+      showStep(stepTime);
+    }
+
+    function goToForm() {
+      if (!selectedDate || !selectedSlot) return;
+      document.getElementById("booking-summary").textContent = `${formatDateFr(selectedDate)} a ${selectedSlot}`;
+      showStep(stepForm);
+      document.getElementById("booking-name").focus();
+    }
+
+    // Navigation
+    openBookingBtn.addEventListener("click", (e) => { e.preventDefault(); openBooking(); });
+    closeBookingBtn.addEventListener("click", closeBooking);
+    bookingOverlay.addEventListener("click", (e) => { if (e.target === bookingOverlay) closeBooking(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && bookingOverlay.classList.contains("is-open")) closeBooking(); });
+
+    document.getElementById("cal-prev").addEventListener("click", () => {
+      calMonth--;
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderCalendar();
+    });
+    document.getElementById("cal-next").addEventListener("click", () => {
+      calMonth++;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      renderCalendar();
+    });
+    document.getElementById("booking-back-cal").addEventListener("click", () => showStep(stepCal));
+    document.getElementById("booking-back-time").addEventListener("click", () => showStep(stepTime));
+
+    document.getElementById("booking-submit").addEventListener("click", () => {
+      const name = document.getElementById("booking-name").value.trim();
+      const email = document.getElementById("booking-email").value.trim();
+      if (!name || !email) return;
+      document.getElementById("booking-done-detail").textContent = `${formatDateFr(selectedDate)} a ${selectedSlot} — ${name} (${email})`;
+      showStep(stepDone);
+      // Reset form pour prochain usage
+      document.getElementById("booking-name").value = "";
+      document.getElementById("booking-email").value = "";
+      document.getElementById("booking-msg").value = "";
+    });
+  }
 }
 
 main();
