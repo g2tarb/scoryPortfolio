@@ -6,6 +6,9 @@ import gsap from "gsap";
 import { FlaynnNeuralBackground } from "./three-neural.js";
 import { WaterReflectionLayer } from "./three-water.js";
 import { ParticleTransition } from "./particles.js";
+import { UniverseBackground } from "./universe.js";
+import { AuroraBorealis } from "./aurora.js";
+import { FlaynnNebula } from "./nebula-flaynn.js";
 
 const EASE_SPRING_HEAVY = "back.out(1.32)";
 
@@ -321,9 +324,53 @@ function main() {
 
   const reduced = prefersReducedMotion();
   const loader = document.getElementById("loader");
+  const projectBgHost = document.getElementById("project-bg-host");
 
   /* ---------- Three.js ---------- */
   const neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
+
+  /* ---------- Fonds projet (initialisés au premier usage) ---------- */
+  const projectBgs = {};
+  let activeProjectBg = null;
+
+  function getProjectBg(index) {
+    if (projectBgs[index]) return projectBgs[index];
+    if (!projectBgHost) return null;
+    switch (index) {
+      case 1: projectBgs[1] = new UniverseBackground(projectBgHost); break;
+      case 2: projectBgs[2] = new AuroraBorealis(projectBgHost); break;
+      case 3: projectBgs[3] = new FlaynnNebula(projectBgHost); break;
+      default: return null;
+    }
+    return projectBgs[index];
+  }
+
+  function showProjectBg(index) {
+    // Stopper tous les fonds actifs
+    Object.values(projectBgs).forEach((bg) => bg.stop());
+    // Cacher tous les canvas
+    if (projectBgHost) {
+      projectBgHost.querySelectorAll(".project-bg-canvas").forEach((c) => { c.style.display = "none"; });
+    }
+    if (index === 0 || !projectBgHost) {
+      gsap.to(projectBgHost, { opacity: 0, duration: 1 });
+      activeProjectBg = null;
+      return;
+    }
+    const bg = getProjectBg(index);
+    if (!bg) return;
+    bg.canvas.style.display = "block";
+    bg.start();
+    activeProjectBg = bg;
+    gsap.to(projectBgHost, { opacity: 1, duration: 2, ease: "power2.inOut" });
+  }
+
+  function hideProjectBg() {
+    if (!projectBgHost) return;
+    gsap.to(projectBgHost, { opacity: 0, duration: 0.5 });
+    Object.values(projectBgs).forEach((bg) => bg.stop());
+    activeProjectBg = null;
+  }
 
   // Masquer le loader + animation d'entree sequentielle
   requestAnimationFrame(() => {
@@ -459,12 +506,13 @@ function main() {
     });
   }
 
-  /* ---------- Fond eau / neural ---------- */
+  /* ---------- Fond eau / neural / projet ---------- */
   async function syncProjectWater() {
     if (!water || !waterHost) return;
 
     // Annuler tout timer de crossfade précédent
     if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
+    hideProjectBg();
 
     // Disque Scory (index 0) → fond neural Three.js seul, pas d'image
     if (activeIndex === 0) {
@@ -503,10 +551,11 @@ function main() {
         onUpdate: () => water.setProgress(proxy.p),
       }, 0);
 
-    // Après gel de l'image (3s) + 2s de pause → crossfade vers le fond neural thématique
+    // Après gel image (3s) + 2s pause → crossfade vers le vrai fond du projet
     waterFadeTimer = setTimeout(() => {
       gsap.to(waterHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
-      gsap.to(neuralHost, { opacity: 1, duration: 2, ease: "power2.inOut" });
+      gsap.to(neuralHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
+      showProjectBg(activeIndex);
     }, 5000);
   }
 
