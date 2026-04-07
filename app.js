@@ -873,15 +873,17 @@ async function main() {
       analyser.connect(audioCtx.destination);
     }
 
+    const barEls = vizContainer.querySelectorAll(".sound-viz__bar");
     function vizLoop() {
       if (!soundOn || !analyser) return;
       const data = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(data);
-      const bars = vizContainer.querySelectorAll(".sound-viz__bar");
       for (let i = 0; i < BARS; i++) {
         const val = data[Math.floor(i * data.length / BARS)] / 255;
-        bars[i].style.scale = `1 ${0.3 + val * 0.7}`;
-        bars[i].style.opacity = 0.4 + val * 0.6;
+        const angle = i * 30;
+        const sy = 0.3 + val * 1.2;
+        barEls[i].style.transform = `rotate(${angle}deg) scaleY(${sy})`;
+        barEls[i].style.opacity = 0.3 + val * 0.7;
       }
       vizRaf = requestAnimationFrame(vizLoop);
     }
@@ -892,17 +894,18 @@ async function main() {
       soundOn = !soundOn;
       if (soundOn) {
         if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+        audio.currentTime = 0;
         audio.play().catch(() => {});
         volSlider.style.display = "block";
         vizLoop();
       } else {
         audio.pause();
+        audio.currentTime = 0;
         cancelAnimationFrame(vizRaf);
         volSlider.style.display = "none";
-        // Reset les barres
-        vizContainer.querySelectorAll(".sound-viz__bar").forEach((b) => {
-          b.style.scale = "1 0.3";
-          b.style.opacity = "0.3";
+        barEls.forEach((b, i) => {
+          b.style.transform = `rotate(${i * 30}deg) scaleY(0.3)`;
+          b.style.opacity = "0";
         });
       }
       soundToggle.setAttribute("aria-pressed", String(soundOn));
