@@ -2,7 +2,7 @@
  * SCORY — Service Worker
  * Cache les assets statiques pour un chargement instantane au 2e visit.
  */
-const CACHE_NAME = "scory-v4";
+const CACHE_NAME = "scory-v5";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
@@ -19,12 +19,17 @@ const STATIC_ASSETS = [
   "./aurora.js",
   "./universe.js",
   "./nebula-flaynn.js",
+  "./pixel-rain.js",
   "./image/fond4Day.jpg",
   "./image/fondClara.jpg",
   "./image/fondFlaynn.jpg",
+  "./image/fondAnimus.png",
   "./image/4dayMobile.jpg",
   "./image/claramartinezMobile.jpg",
   "./image/flaynnMobile.jpg",
+  "./image/animusMobile.jpeg",
+  "./image/og-image.jpg",
+  "./manifest.json",
 ];
 
 self.addEventListener("install", (e) => {
