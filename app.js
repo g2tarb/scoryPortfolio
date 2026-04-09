@@ -179,26 +179,28 @@ async function main() {
     Object.values(projectBgs).forEach((bg) => bg.stop());
     if (projectBgHost) {
       projectBgHost.querySelectorAll(".project-bg-canvas, .flaynn-orbit").forEach((c) => { c.style.display = "none"; });
-      // Reset CSS fallback
-      projectBgHost.style.backgroundImage = "";
     }
     if (index === 0 || !projectBgHost) {
+      projectBgHost.style.backgroundImage = "";
       gsap.to(projectBgHost, { opacity: 0, duration: 1 });
       activeProjectBg = null;
       return;
     }
+
+    // Toujours mettre l'image en CSS background (filet de securite)
+    const el = discs()[index];
+    const isMob = window.innerWidth <= 600;
+    const url = (isMob && el?.dataset?.imageMobile) || el?.dataset?.image;
+    if (url) {
+      projectBgHost.style.backgroundImage = `url(${url})`;
+      projectBgHost.style.backgroundSize = "cover";
+      projectBgHost.style.backgroundPosition = "center";
+    }
+
     const bg = await getProjectBg(index);
     if (!bg) {
-      // Fallback CSS : affiche l'image du disque en background si Canvas echoue
-      const el = discs()[index];
-      const isMob = window.innerWidth <= 600;
-      const url = (isMob && el?.dataset?.imageMobile) || el?.dataset?.image;
-      if (url) {
-        projectBgHost.style.backgroundImage = `url(${url})`;
-        projectBgHost.style.backgroundSize = "cover";
-        projectBgHost.style.backgroundPosition = "center";
-        gsap.to(projectBgHost, { opacity: 0.35, duration: 2, ease: "power2.inOut" });
-      }
+      // Canvas echoue : l'image CSS est deja la, on la montre
+      gsap.to(projectBgHost, { opacity: 0.3, duration: 2, ease: "power2.inOut" });
       return;
     }
     bg.canvas.style.display = "block";
@@ -456,13 +458,13 @@ async function main() {
     if (!url) return;
     try {
       await water.loadTexture(url);
+      runWaterSplash();
     } catch {
-      // Image indisponible : passer directement au fond projet
+      // Water echoue : montrer le fond projet directement
       gsap.to(neuralHost, { opacity: 0, duration: 1 });
+      gsap.to(waterHost, { opacity: 0, duration: 0.5 });
       showProjectBg(activeIndex);
-      return;
     }
-    runWaterSplash();
   }
 
   function runWaterSplash() {
