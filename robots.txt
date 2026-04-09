@@ -3,7 +3,7 @@ Allow: /
 Disallow: /fondAnime/
 Disallow: /audio/
 
-Sitemap: https://scory.fr/sitemap.xml
+Sitemap: https://scory-portfolio.vercel.app/sitemap.xml
 
 # Crawl-delay pour etre poli avec les bots
 User-agent: Googlebot
