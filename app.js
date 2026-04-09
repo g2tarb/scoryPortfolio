@@ -30,7 +30,6 @@ const LOADER_DELAY_MS = 1500;
 const CLOSE_OUTSIDE_DELAY_MS = 600;
 const WATER_FADE_DELAY_MS = 5000;
 const DISC_SPIN_SPEED = 0.06;
-const CURSOR_THROTTLE_MS = 16;
 const RESIZE_DEBOUNCE_MS = 100;
 const SWIPE_VELOCITY_MIN = 0.3;
 const SWIPE_DISTANCE_FAST = 40;
@@ -732,6 +731,7 @@ async function main() {
   if (!reduced) startSpin();
 
   // Tilt 3D au survol (pause la rotation, ajoute le tilt)
+  const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
   if (!isTouchDevice && !reduced) {
     carousel.addEventListener("mouseenter", () => {
       stopSpin();

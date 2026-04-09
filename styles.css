@@ -1151,18 +1151,6 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   padding: clamp(1rem, 4vw, 3rem);
   max-width: 620px; margin: 0 auto;
 }
-/* Video de fond pleine largeur derriere la section */
-.chatbot-bg-video {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100vw; height: 100%;
-  object-fit: cover;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.35;
-}
 /* Halo lumineux derriere le chatbot — change selon le disque actif */
 .chatbot-glow {
   position: absolute; inset: -30%; z-index: 0; pointer-events: none;

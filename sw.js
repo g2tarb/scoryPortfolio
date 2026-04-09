@@ -19,7 +19,7 @@ const STATIC_ASSETS = [
   "./aurora.js",
   "./universe.js",
   "./nebula-flaynn.js",
-  "./pixel-rain.js",
+  "./cursor.js",
   "./image/fond4Day.jpg",
   "./image/fondClara.jpg",
   "./image/fondFlaynn.jpg",
