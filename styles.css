@@ -1163,15 +1163,17 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   pointer-events: none;
   opacity: 0.35;
 }
-/* Halo lumineux derriere le chatbot */
+/* Halo lumineux derriere le chatbot — change selon le disque actif */
 .chatbot-glow {
-  position: absolute; inset: -20%; z-index: 0; pointer-events: none;
+  position: absolute; inset: -30%; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse at 30% 20%, var(--theme-glow-strong) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, var(--theme-tint-b) 0%, transparent 50%);
-  opacity: 0.6;
+    radial-gradient(ellipse at 30% 20%, var(--theme-glow-strong) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 80%, var(--theme-tint-b) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, var(--theme-tint-a) 0%, transparent 60%);
+  opacity: 0.8;
   animation: chatGlowDrift 8s ease-in-out infinite alternate;
-  filter: blur(40px);
+  filter: blur(50px);
+  transition: background 1.5s ease, opacity 1.5s ease;
 }
 @keyframes chatGlowDrift {
   0% { transform: translate(0, 0) scale(1); }
@@ -1181,16 +1183,18 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   padding: 0; overflow: hidden; position: relative; z-index: 1;
   box-shadow:
     var(--glass-shadow),
-    0 0 60px var(--theme-glow),
-    0 0 120px var(--theme-glow-strong);
-  transition: box-shadow 0.8s ease;
+    0 0 40px var(--theme-glow),
+    0 0 80px var(--theme-glow-strong),
+    0 0 160px var(--theme-glow);
+  transition: box-shadow 1.5s ease, border-color 1.5s ease;
   border: 1px solid var(--theme-tint-c);
 }
-/* Bordure animee gradient */
+/* Bordure animee gradient — change couleur selon le disque */
 .chatbot-container::after {
   content: ""; position: absolute; inset: -1px; border-radius: inherit; z-index: -1;
   background: conic-gradient(from var(--border-angle, 0deg), var(--accent-gold), var(--accent-magenta), var(--accent-ice), var(--accent-gold));
-  opacity: 0.15;
+  opacity: 0.25;
+  transition: background 1.5s ease;
   animation: borderSpin 6s linear infinite;
 }
 @property --border-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
@@ -1236,8 +1240,8 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   box-shadow: 0 0 15px var(--theme-glow-strong);
 }
 @keyframes orbPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 15px var(--theme-glow-strong); }
-  50% { transform: scale(1.1); box-shadow: 0 0 25px var(--theme-glow-strong), 0 0 50px var(--theme-glow); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 20px var(--theme-glow-strong), 0 0 40px var(--theme-glow); }
+  50% { transform: scale(1.12); box-shadow: 0 0 30px var(--theme-glow-strong), 0 0 60px var(--theme-glow), 0 0 100px var(--theme-glow); }
 }
 .chatbot-avatar__ring {
   position: absolute; inset: 0; border-radius: 50%;
