@@ -179,6 +179,8 @@ async function main() {
     Object.values(projectBgs).forEach((bg) => bg.stop());
     if (projectBgHost) {
       projectBgHost.querySelectorAll(".project-bg-canvas, .flaynn-orbit").forEach((c) => { c.style.display = "none"; });
+      // Reset CSS fallback
+      projectBgHost.style.backgroundImage = "";
     }
     if (index === 0 || !projectBgHost) {
       gsap.to(projectBgHost, { opacity: 0, duration: 1 });
@@ -186,7 +188,19 @@ async function main() {
       return;
     }
     const bg = await getProjectBg(index);
-    if (!bg) return;
+    if (!bg) {
+      // Fallback CSS : affiche l'image du disque en background si Canvas echoue
+      const el = discs()[index];
+      const isMob = window.innerWidth <= 600;
+      const url = (isMob && el?.dataset?.imageMobile) || el?.dataset?.image;
+      if (url) {
+        projectBgHost.style.backgroundImage = `url(${url})`;
+        projectBgHost.style.backgroundSize = "cover";
+        projectBgHost.style.backgroundPosition = "center";
+        gsap.to(projectBgHost, { opacity: 0.35, duration: 2, ease: "power2.inOut" });
+      }
+      return;
+    }
     bg.canvas.style.display = "block";
     if (bg.orb) bg.orb.style.display = "block";
     bg.start();
@@ -412,9 +426,17 @@ async function main() {
 
   /* ---------- Fond eau / neural / projet ---------- */
   async function syncProjectWater() {
-    if (!waterHost) return;
+    if (!waterHost) {
+      // Pas de water host : afficher directement le fond projet
+      if (activeIndex !== SCORY_INDEX) showProjectBg(activeIndex);
+      return;
+    }
     await ensureWater();
-    if (!water) return;
+    if (!water) {
+      // Water shader echoue (WebGL indisponible) : afficher directement le fond projet
+      if (activeIndex !== SCORY_INDEX) showProjectBg(activeIndex);
+      return;
+    }
 
     // Annuler tout timer de crossfade précédent
     if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
