@@ -19,6 +19,7 @@ import gsap from "gsap";
 import { PROJECTS as PROJECTS_ALL, THEMES, CHAT_FLOW as CHAT_FLOW_ALL } from "./data.js";
 import { getLang, setLang, t } from "./i18n.js";
 import { initCursor, initMagneticArrows } from "./cursor.js";
+import { initAudio } from "./audio.js";
 
 /** Getters bilingues */
 function PROJECTS() { return PROJECTS_ALL[getLang()] || PROJECTS_ALL.fr; }
@@ -297,11 +298,16 @@ async function main() {
     s.setProperty("--theme-warm-b", hexToRgba(t.amber, 0.2));
     s.setProperty("--theme-warm-c", hexToRgba(t.amber, 0.25));
     particles.setColors(t.particleColors);
-    // Titre de page dynamique
+    // Titre de page dynamique + hash routing
     const project = PROJECTS()[index];
     document.title = index === SCORY_INDEX
-      ? "SCORY — Musee Digital"
+      ? "SCORY — Agence Web Freelance"
       : `${project?.title || ""} — SCORY`;
+    const slug = project?.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-$/, "") || "";
+    const hash = index === SCORY_INDEX ? "" : slug;
+    if (window.location.hash.slice(1) !== hash) {
+      history.replaceState(null, "", hash ? `#${hash}` : window.location.pathname);
+    }
   }
 
   /* ---------- État ---------- */
@@ -628,6 +634,7 @@ async function main() {
     }
     detailPanel.classList.add("is-visible");
     detailPanel.setAttribute("aria-hidden", "false");
+    stage.setAttribute("aria-hidden", "true");
     _detailPrevFocus = document.activeElement;
     requestAnimationFrame(() => { _detailFocusTrap = trapFocus(detailPanel); });
     // Fermer au clic en dehors du panneau
@@ -651,6 +658,7 @@ async function main() {
     detailVisible = false;
     detailPanel.classList.remove("is-visible");
     detailPanel.setAttribute("aria-hidden", "true");
+    stage.removeAttribute("aria-hidden");
     if (_closeOnOutsideRef) {
       document.removeEventListener("click", _closeOnOutsideRef, true);
       _closeOnOutsideRef = null;
@@ -767,10 +775,22 @@ async function main() {
   }
 
   /* ---------- Init ---------- */
-  setActiveClasses(0);
-  setLabel(0);
+  // Hash routing: naviguer au projet si #slug dans l'URL
+  let startIndex = 0;
+  const initialHash = window.location.hash.slice(1);
+  if (initialHash) {
+    const projects = PROJECTS();
+    const matchIdx = projects.findIndex((p) =>
+      p.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-$/, "") === initialHash
+    );
+    if (matchIdx >= 0) startIndex = matchIdx;
+  }
+
+  setActiveClasses(startIndex);
+  setLabel(startIndex);
+  activeIndex = startIndex;
   buildDots();
-  applyTheme(0);
+  applyTheme(startIndex);
 
   // Preload seulement les 2 prochaines images (pas tout d'un coup)
   function preloadNearby(index) {
@@ -910,119 +930,8 @@ async function main() {
     contactObserver.observe(contactGrid);
   }
 
-  /* ---------- Son ambiant + visualiseur + volume ---------- */
-  const soundToggle = document.getElementById("sound-toggle");
-  if (soundToggle) {
-    let audio = null;
-    let audioCtx = null;
-    let analyser = null;
-    let sourceNode = null;
-    let soundOn = false;
-    let vizRaf = 0;
-    const iconOff = soundToggle.querySelector(".sound-icon--off");
-    const iconOn = soundToggle.querySelector(".sound-icon--on");
-
-    // Barres de visualisation
-    const vizContainer = document.createElement("div");
-    vizContainer.className = "sound-viz";
-    const BARS = 12;
-    for (let i = 0; i < BARS; i++) {
-      const bar = document.createElement("span");
-      bar.className = "sound-viz__bar";
-      bar.style.setProperty("--i", i);
-      vizContainer.appendChild(bar);
-    }
-    soundToggle.appendChild(vizContainer);
-
-    // Slider de volume
-    const volSlider = document.createElement("input");
-    volSlider.type = "range";
-    volSlider.min = "0";
-    volSlider.max = "100";
-    volSlider.value = "30";
-    volSlider.className = "sound-volume";
-    volSlider.setAttribute("aria-label", "Volume");
-    soundToggle.parentElement.appendChild(volSlider);
-    volSlider.style.display = "none";
-
-    function initAudio() {
-      if (audio) return;
-      audio = new Audio();
-      // M4A (AAC 64kbps, 935KB) avec fallback MP3
-      const canM4a = audio.canPlayType("audio/mp4; codecs=mp4a.40.2");
-      audio.src = canM4a ? "./audio/boheme-light.m4a" : "./audio/La Bohème - Charles Aznavour.mp3";
-      audio.loop = true;
-      audio.volume = volSlider.value / 100;
-      audio.setAttribute("playsinline", "");
-      audio.setAttribute("webkit-playsinline", "");
-      // AudioContext + Analyser (cree dans le geste utilisateur pour iOS)
-      try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        sourceNode = audioCtx.createMediaElementSource(audio);
-        analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 64;
-        sourceNode.connect(analyser);
-        analyser.connect(audioCtx.destination);
-      } catch {
-        // Fallback : pas de visualiseur, mais le son marche
-        analyser = null;
-      }
-    }
-
-    const barEls = vizContainer.querySelectorAll(".sound-viz__bar");
-
-    function vizLoop() {
-      if (!soundOn) return;
-      if (analyser) {
-        const data = new Uint8Array(analyser.frequencyBinCount);
-        analyser.getByteFrequencyData(data);
-        for (let i = 0; i < BARS; i++) {
-          const val = data[Math.floor(i * data.length / BARS)] / 255;
-          barEls[i].style.transform = `rotate(${i * 30}deg) scaleY(${0.3 + val * 1.2})`;
-          barEls[i].style.opacity = 0.3 + val * 0.7;
-        }
-      } else {
-        // Fallback sans analyser : animation simple basee sur le temps
-        const t = Date.now() * 0.003;
-        for (let i = 0; i < BARS; i++) {
-          const val = 0.3 + Math.abs(Math.sin(t + i * 0.5)) * 0.7;
-          barEls[i].style.transform = `rotate(${i * 30}deg) scaleY(${val})`;
-          barEls[i].style.opacity = 0.3 + val * 0.4;
-        }
-      }
-      vizRaf = requestAnimationFrame(vizLoop);
-    }
-
-    soundToggle.addEventListener("click", () => {
-      initAudio();
-      if (!audio) return;
-      soundOn = !soundOn;
-      if (soundOn) {
-        // Resume AudioContext (obligatoire iOS/Safari apres geste)
-        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
-        audio.currentTime = 0;
-        audio.play().catch(() => { soundOn = false; });
-        volSlider.style.display = "block";
-        vizLoop();
-      } else {
-        audio.pause();
-        audio.currentTime = 0;
-        cancelAnimationFrame(vizRaf);
-        volSlider.style.display = "none";
-        barEls.forEach((b, i) => {
-          b.style.transform = `rotate(${i * 30}deg) scaleY(0.3)`;
-          b.style.opacity = "0";
-        });
-      }
-      soundToggle.setAttribute("aria-pressed", String(soundOn));
-      iconOff.style.display = soundOn ? "none" : "block";
-      iconOn.style.display = soundOn ? "block" : "none";
-    });
-
-    volSlider.addEventListener("input", () => {
-      if (audio) audio.volume = volSlider.value / 100;
-    });
-  }
+  /* ---------- Son ambiant (module audio.js) ---------- */
+  initAudio();
 
   /* ---------- Easter Egg (Konami Code) ---------- */
   const KONAMI = [38,38,40,40,37,39,37,39,66,65];
