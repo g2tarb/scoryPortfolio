@@ -111,7 +111,8 @@ async function main() {
 
   const reduced = prefersReducedMotion();
   const isMobile = window.innerWidth <= 600;
-  const isLowEnd = isMobile || navigator.hardwareConcurrency <= 4;
+  const isLowEnd = navigator.hardwareConcurrency <= 2;
+  const skipNeural = isMobile || isLowEnd;
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
@@ -119,8 +120,8 @@ async function main() {
   // Stub neural tant que Three.js n'est pas charge
   let neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
 
-  /* ===== PHASE 2 : Three.js charge en arriere-plan (skip sur mobile/low-end) ===== */
-  const threeReady = isLowEnd
+  /* ===== PHASE 2 : Neural skip sur mobile (lourd), fonds projets toujours actifs ===== */
+  const threeReady = skipNeural
     ? Promise.resolve().then(() => { document.body.classList.add("no-webgl"); })
     : import("./three-neural.js").then(({ FlaynnNeuralBackground }) => {
         try {
@@ -180,12 +181,28 @@ async function main() {
       projectBgHost.querySelectorAll(".project-bg-canvas, .flaynn-orbit").forEach((c) => { c.style.display = "none"; });
     }
     if (index === 0 || !projectBgHost) {
+      projectBgHost.style.backgroundImage = "";
       gsap.to(projectBgHost, { opacity: 0, duration: 1 });
       activeProjectBg = null;
       return;
     }
+
+    // Toujours mettre l'image en CSS background (filet de securite)
+    const el = discs()[index];
+    const isMob = window.innerWidth <= 600;
+    const url = (isMob && el?.dataset?.imageMobile) || el?.dataset?.image;
+    if (url) {
+      projectBgHost.style.backgroundImage = `url(${url})`;
+      projectBgHost.style.backgroundSize = "cover";
+      projectBgHost.style.backgroundPosition = "center";
+    }
+
     const bg = await getProjectBg(index);
-    if (!bg) return;
+    if (!bg) {
+      // Canvas echoue : l'image CSS est deja la, on la montre
+      gsap.to(projectBgHost, { opacity: 0.3, duration: 2, ease: "power2.inOut" });
+      return;
+    }
     bg.canvas.style.display = "block";
     if (bg.orb) bg.orb.style.display = "block";
     bg.start();
@@ -411,9 +428,17 @@ async function main() {
 
   /* ---------- Fond eau / neural / projet ---------- */
   async function syncProjectWater() {
-    if (!waterHost) return;
+    if (!waterHost) {
+      // Pas de water host : afficher directement le fond projet
+      if (activeIndex !== SCORY_INDEX) showProjectBg(activeIndex);
+      return;
+    }
     await ensureWater();
-    if (!water) return;
+    if (!water) {
+      // Water shader echoue (WebGL indisponible) : afficher directement le fond projet
+      if (activeIndex !== SCORY_INDEX) showProjectBg(activeIndex);
+      return;
+    }
 
     // Annuler tout timer de crossfade précédent
     if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
@@ -433,13 +458,13 @@ async function main() {
     if (!url) return;
     try {
       await water.loadTexture(url);
+      runWaterSplash();
     } catch {
-      // Image indisponible : passer directement au fond projet
+      // Water echoue : montrer le fond projet directement
       gsap.to(neuralHost, { opacity: 0, duration: 1 });
+      gsap.to(waterHost, { opacity: 0, duration: 0.5 });
       showProjectBg(activeIndex);
-      return;
     }
-    runWaterSplash();
   }
 
   function runWaterSplash() {
