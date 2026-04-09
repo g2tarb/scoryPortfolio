@@ -20,6 +20,8 @@ export const TRANSLATIONS = {
   "disc.2.meta": { fr: "Coaching premium", en: "Premium coaching" },
   "disc.3.title": { fr: "Flaynn", en: "Flaynn" },
   "disc.3.meta": { fr: "SaaS B2B", en: "B2B SaaS" },
+  "disc.4.title": { fr: "ANIMUS", en: "ANIMUS" },
+  "disc.4.meta": { fr: "Jeu narratif IA", en: "AI narrative game" },
   // Cartel
   "cartel.kicker": { fr: "Cartel", en: "Label" },
   // Detail panel

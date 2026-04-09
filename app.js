@@ -125,6 +125,32 @@ async function main() {
         case 1: { const { UniverseBackground } = await import("./universe.js"); projectBgs[1] = new UniverseBackground(projectBgHost); break; }
         case 2: { const { AuroraBorealis } = await import("./aurora.js"); projectBgs[2] = new AuroraBorealis(projectBgHost); break; }
         case 3: { const { FlaynnNebula } = await import("./nebula-flaynn.js"); projectBgs[3] = new FlaynnNebula(projectBgHost); break; }
+        case 4: {
+          const video = document.createElement("video");
+          video.src = "./fondAnime/diable.mp4";
+          video.autoplay = true;
+          video.loop = true;
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute("webkit-playsinline", "");
+          video.setAttribute("preload", "metadata");
+          video.className = "project-bg-canvas animus-bg-video";
+          video.style.display = "none";
+          projectBgHost.appendChild(video);
+          projectBgs[4] = {
+            canvas: video,
+            orb: null,
+            start() {
+              video.play().catch(() => {
+                // iOS fallback: play on first user interaction
+                const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
+                document.addEventListener("touchstart", playOnce, { once: true });
+              });
+            },
+            stop() { video.pause(); }
+          };
+          break;
+        }
         default: return null;
       }
     } catch { return null; }
@@ -549,6 +575,7 @@ async function main() {
         img.src = src;
         img.alt = `Capture de ${p.title}`;
         img.className = "detail-panel__screenshot";
+        img.decoding = "async";
         img.loading = "lazy";
         img.onerror = () => img.remove();
         detailScreenshots.appendChild(img);
@@ -731,17 +758,21 @@ async function main() {
     carousel.addEventListener("mouseenter", () => {
       stopSpin();
     });
+    let _mmRaf = 0;
     carousel.addEventListener("mousemove", (e) => {
       if (animating) return;
-      const disc = discs().find((d) => d.classList.contains("is-active"));
-      if (!disc) return;
-      const rect = disc.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      gsap.to(disc, {
-        rotateY: x * 14, rotateX: -y * 14,
-        rotation: discSpinAngle,
-        duration: 0.4, ease: "power2.out",
+      cancelAnimationFrame(_mmRaf);
+      _mmRaf = requestAnimationFrame(() => {
+        const disc = discs().find((d) => d.classList.contains("is-active"));
+        if (!disc) return;
+        const rect = disc.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        gsap.to(disc, {
+          rotateY: x * 14, rotateX: -y * 14,
+          rotation: discSpinAngle,
+          duration: 0.4, ease: "power2.out",
+        });
       });
     });
     carousel.addEventListener("mouseleave", () => {

@@ -17,6 +17,10 @@
     <meta name="twitter:title" content="SCORY — Musee Digital" />
     <meta name="twitter:description" content="Portfolio interactif concu comme un musee digital." />
     <meta name="twitter:image" content="./image/og-image.jpg" />
+    <link rel="canonical" href="https://scory.fr/" />
+    <meta property="og:url" content="https://scory.fr/" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:locale:alternate" content="en_US" />
     <title>SCORY — Musee Digital</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%2307060a' width='32' height='32' rx='6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='%23c9a962' font-family='serif' font-size='20' font-weight='600'%3ES%3C/text%3E%3C/svg%3E" />
     <link rel="dns-prefetch" href="https://unpkg.com" />
@@ -24,9 +28,8 @@
     <link rel="modulepreload" href="https://unpkg.com/gsap@3.12.5/index.js" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap" />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Syne:wght@700&family=Playfair+Display:wght@700&family=IBM+Plex+Sans:wght@600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@700&family=Syne:wght@700&family=Playfair+Display:wght@700&family=IBM+Plex+Sans:wght@600&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="prefetch" href="./mentions-legales.html" />
     <link rel="stylesheet" href="./defaut.css" />
@@ -144,6 +147,13 @@
             <div class="disc-label">
               <span class="disc-title" data-i18n="disc.3.title">Flaynn</span>
               <span class="disc-meta" data-i18n="disc.3.meta">SaaS B2B</span>
+            </div>
+          </article>
+          <article class="project-disc card-glass" data-index="4" data-image="./image/fondAnimus.png" data-image-mobile="./image/animusMobile.jpeg" tabindex="-1">
+            <div class="disc-groove" aria-hidden="true"></div>
+            <div class="disc-label">
+              <span class="disc-title" data-i18n="disc.4.title">ANIMUS</span>
+              <span class="disc-meta" data-i18n="disc.4.meta">Jeu narratif IA</span>
             </div>
           </article>
         </div>
@@ -284,16 +294,16 @@
     <section class="contact-section reveal" aria-label="Contact">
       <h2 class="section-title gradient-text" data-i18n="contact.title">Contactez-nous</h2>
       <div class="contact-grid">
-        <a href="mailto:contact@scory.fr" class="contact-card glass-panel">
-          <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        <a href="mailto:contact@scory.fr" class="contact-card glass-panel" aria-label="Envoyer un email a contact@scory.fr">
+          <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
           <span class="contact-label">contact@scory.fr</span>
         </a>
-        <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" class="contact-card glass-panel">
-          <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" class="contact-card glass-panel" aria-label="Voir le profil LinkedIn">
+          <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
           <span class="contact-label">LinkedIn</span>
         </a>
-        <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="contact-card glass-panel">
-          <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        <a href="https://github.com/g2tarb" target="_blank" rel="noopener noreferrer" class="contact-card glass-panel" aria-label="Voir le profil GitHub">
+          <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
           <span class="contact-label">GitHub</span>
         </a>
       </div>
@@ -364,15 +374,35 @@
     </div>
 
     <script type="application/ld+json">
-    {
+    [{
       "@context": "https://schema.org",
-      "@type": "CreativeWork",
+      "@type": "WebSite",
+      "url": "https://scory.fr/",
       "name": "SCORY — Musee Digital",
       "description": "Portfolio interactif concu comme un musee digital immersif avec Three.js, GSAP et WebGL.",
-      "creator": { "@type": "Organization", "name": "Scory" },
-      "inLanguage": "fr",
-      "genre": "Portfolio"
-    }
+      "inLanguage": ["fr", "en"]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Scory",
+      "url": "https://scory.fr/",
+      "email": "contact@scory.fr",
+      "sameAs": ["https://linkedin.com/company/scory", "https://github.com/g2tarb"]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Projets",
+      "numberOfItems": 5,
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "item": {"@type": "CreativeWork", "name": "Portfolio Scory", "description": "Musee digital interactif"}},
+        {"@type": "ListItem", "position": 2, "item": {"@type": "CreativeWork", "name": "4dayvelopment", "url": "https://4dayvelopment.fr/", "description": "Agence web — ecosystemes digitaux"}},
+        {"@type": "ListItem", "position": 3, "item": {"@type": "CreativeWork", "name": "Clara Martinez", "url": "https://clara-martinez-project.vercel.app/", "description": "Coaching premium"}},
+        {"@type": "ListItem", "position": 4, "item": {"@type": "CreativeWork", "name": "Flaynn", "url": "https://flaynn.tech/", "description": "SaaS B2B — scoring startups"}},
+        {"@type": "ListItem", "position": 5, "item": {"@type": "CreativeWork", "name": "ANIMUS", "url": "https://ange-tawny.vercel.app/", "description": "Jeu narratif IA"}}
+      ]
+    }]
     </script>
     <script type="module" src="./app.js"></script>
   </body>

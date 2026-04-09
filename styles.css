@@ -168,6 +168,11 @@ body {
 .project-bg-host .project-bg-canvas {
   position: absolute; inset: 0; display: block; width: 100%; height: 100%;
 }
+.project-bg-host .animus-bg-video {
+  object-fit: cover;
+  opacity: 0.4;
+  filter: saturate(1.3) contrast(1.1);
+}
 
 /* ===== Orbe Flaynn (copie hero-orbit flaynn.tech) ===== */
 .flaynn-orbit {
@@ -359,6 +364,21 @@ body {
 }
 .project-disc[data-index="3"].is-active {
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(123,45,142,0.28) inset, 0 0 80px rgba(123,45,142,0.2);
+}
+
+/* ANIMUS — Or celeste / Rouge demon */
+.project-disc[data-index="4"] {
+  background: radial-gradient(circle at 30% 25%, rgba(240,192,64,0.34), rgba(240,192,64,0.02) 55%),
+    linear-gradient(160deg, rgba(60,30,14,0.82), rgba(20,10,6,0.6));
+  border-color: rgba(240,192,64,0.22);
+}
+.project-disc[data-index="4"] .disc-title { font-family: 'Cinzel Decorative', 'Times New Roman', serif; font-weight: 700; }
+.project-disc[data-index="4"] .disc-meta { color: rgba(224,64,0,0.65); }
+.project-disc[data-index="4"] .disc-groove {
+  background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(240,192,64,0.07) 5px, rgba(240,192,64,0.07) 6px);
+}
+.project-disc[data-index="4"].is-active {
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(240,192,64,0.28) inset, 0 0 80px rgba(240,192,64,0.2);
 }
 
 /* Disque actif — glow statique (pas d'animation box-shadow continue = meilleur FPS) */
@@ -1131,15 +1151,29 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   padding: clamp(1rem, 4vw, 3rem);
   max-width: 620px; margin: 0 auto;
 }
-/* Halo lumineux derriere le chatbot */
+/* Video de fond pleine largeur derriere la section */
+.chatbot-bg-video {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw; height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.35;
+}
+/* Halo lumineux derriere le chatbot — change selon le disque actif */
 .chatbot-glow {
-  position: absolute; inset: -20%; z-index: 0; pointer-events: none;
+  position: absolute; inset: -30%; z-index: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse at 30% 20%, var(--theme-glow-strong) 0%, transparent 50%),
-    radial-gradient(ellipse at 70% 80%, var(--theme-tint-b) 0%, transparent 50%);
-  opacity: 0.6;
+    radial-gradient(ellipse at 30% 20%, var(--theme-glow-strong) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 80%, var(--theme-tint-b) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 50%, var(--theme-tint-a) 0%, transparent 60%);
+  opacity: 0.8;
   animation: chatGlowDrift 8s ease-in-out infinite alternate;
-  filter: blur(40px);
+  filter: blur(50px);
+  transition: background 1.5s ease, opacity 1.5s ease;
 }
 @keyframes chatGlowDrift {
   0% { transform: translate(0, 0) scale(1); }
@@ -1149,16 +1183,18 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   padding: 0; overflow: hidden; position: relative; z-index: 1;
   box-shadow:
     var(--glass-shadow),
-    0 0 60px var(--theme-glow),
-    0 0 120px var(--theme-glow-strong);
-  transition: box-shadow 0.8s ease;
+    0 0 40px var(--theme-glow),
+    0 0 80px var(--theme-glow-strong),
+    0 0 160px var(--theme-glow);
+  transition: box-shadow 1.5s ease, border-color 1.5s ease;
   border: 1px solid var(--theme-tint-c);
 }
-/* Bordure animee gradient */
+/* Bordure animee gradient — change couleur selon le disque */
 .chatbot-container::after {
   content: ""; position: absolute; inset: -1px; border-radius: inherit; z-index: -1;
   background: conic-gradient(from var(--border-angle, 0deg), var(--accent-gold), var(--accent-magenta), var(--accent-ice), var(--accent-gold));
-  opacity: 0.15;
+  opacity: 0.25;
+  transition: background 1.5s ease;
   animation: borderSpin 6s linear infinite;
 }
 @property --border-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
@@ -1204,8 +1240,8 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   box-shadow: 0 0 15px var(--theme-glow-strong);
 }
 @keyframes orbPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 15px var(--theme-glow-strong); }
-  50% { transform: scale(1.1); box-shadow: 0 0 25px var(--theme-glow-strong), 0 0 50px var(--theme-glow); }
+  0%, 100% { transform: scale(1); box-shadow: 0 0 20px var(--theme-glow-strong), 0 0 40px var(--theme-glow); }
+  50% { transform: scale(1.12); box-shadow: 0 0 30px var(--theme-glow-strong), 0 0 60px var(--theme-glow), 0 0 100px var(--theme-glow); }
 }
 .chatbot-avatar__ring {
   position: absolute; inset: 0; border-radius: 50%;
@@ -1680,6 +1716,32 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   .chat-msg { animation: none !important; }
   .scroll-hint__arrow { animation: none !important; }
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
+
+/* =============================================================================
+   TOUCH DEVICES — Disable sticky hover
+   ============================================================================= */
+@media (hover: none) {
+  .nav-arrow:hover,
+  .nav-dot:hover,
+  .project-disc:hover,
+  .detail-panel__close:hover,
+  .detail-panel__cta:hover,
+  .label-chip:hover,
+  .stat-card:hover,
+  .process-card:hover,
+  .contact-card:hover,
+  .detail-panel__screenshot:hover,
+  .lang-toggle:hover,
+  .sound-toggle:hover,
+  .chat-option:hover,
+  .booking-slot:hover {
+    transform: none !important;
+    box-shadow: inherit !important;
+    background: inherit !important;
+  }
+  .nav-arrow:hover .nav-arrow__glow { opacity: 0 !important; }
+  .project-disc:hover::before { opacity: 0 !important; }
 }
 
 /* ===== SCROLLBAR CHATBOT ===== */
