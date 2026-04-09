@@ -133,7 +133,7 @@ async function main() {
           video.muted = true;
           video.playsInline = true;
           video.setAttribute("webkit-playsinline", "");
-          video.setAttribute("preload", "auto");
+          video.setAttribute("preload", "metadata");
           video.className = "project-bg-canvas animus-bg-video";
           video.style.display = "none";
           projectBgHost.appendChild(video);
@@ -575,6 +575,7 @@ async function main() {
         img.src = src;
         img.alt = `Capture de ${p.title}`;
         img.className = "detail-panel__screenshot";
+        img.decoding = "async";
         img.loading = "lazy";
         img.onerror = () => img.remove();
         detailScreenshots.appendChild(img);
