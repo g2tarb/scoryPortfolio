@@ -1130,13 +1130,14 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   position: relative; z-index: 2;
   padding: clamp(1rem, 4vw, 3rem);
   max-width: 620px; margin: 0 auto;
-  overflow: hidden;
 }
-/* Video de fond en boucle infinie derriere le chatbot */
+/* Video de fond pleine largeur derriere la section */
 .chatbot-bg-video {
   position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw; height: 100%;
   object-fit: cover;
   z-index: -1;
   pointer-events: none;
