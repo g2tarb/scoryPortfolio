@@ -24,7 +24,7 @@ const STATIC_ASSETS = [
   "./image/fond4Day.jpg",
   "./image/fondClara.jpg",
   "./image/fondFlaynn.jpg",
-  "./image/fondAnimus.png",
+  "./image/fondAnimus.jpg",
   "./image/4dayMobile.jpg",
   "./image/claramartinezMobile.jpg",
   "./image/flaynnMobile.jpg",
