@@ -111,7 +111,8 @@ async function main() {
 
   const reduced = prefersReducedMotion();
   const isMobile = window.innerWidth <= 600;
-  const isLowEnd = isMobile || navigator.hardwareConcurrency <= 4;
+  const isLowEnd = navigator.hardwareConcurrency <= 2;
+  const skipNeural = isMobile || isLowEnd;
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
@@ -119,8 +120,8 @@ async function main() {
   // Stub neural tant que Three.js n'est pas charge
   let neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
 
-  /* ===== PHASE 2 : Three.js charge en arriere-plan (skip sur mobile/low-end) ===== */
-  const threeReady = isLowEnd
+  /* ===== PHASE 2 : Neural skip sur mobile (lourd), fonds projets toujours actifs ===== */
+  const threeReady = skipNeural
     ? Promise.resolve().then(() => { document.body.classList.add("no-webgl"); })
     : import("./three-neural.js").then(({ FlaynnNeuralBackground }) => {
         try {
