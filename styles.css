@@ -366,6 +366,21 @@ body {
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(123,45,142,0.28) inset, 0 0 80px rgba(123,45,142,0.2);
 }
 
+/* ANIMUS — Or celeste / Rouge demon */
+.project-disc[data-index="4"] {
+  background: radial-gradient(circle at 30% 25%, rgba(240,192,64,0.34), rgba(240,192,64,0.02) 55%),
+    linear-gradient(160deg, rgba(60,30,14,0.82), rgba(20,10,6,0.6));
+  border-color: rgba(240,192,64,0.22);
+}
+.project-disc[data-index="4"] .disc-title { font-family: 'Cinzel Decorative', 'Times New Roman', serif; font-weight: 700; }
+.project-disc[data-index="4"] .disc-meta { color: rgba(224,64,0,0.65); }
+.project-disc[data-index="4"] .disc-groove {
+  background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(240,192,64,0.07) 5px, rgba(240,192,64,0.07) 6px);
+}
+.project-disc[data-index="4"].is-active {
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(240,192,64,0.28) inset, 0 0 80px rgba(240,192,64,0.2);
+}
+
 /* Disque actif — glow statique (pas d'animation box-shadow continue = meilleur FPS) */
 .project-disc.is-active {
   transition: opacity 0.3s ease;
@@ -1697,6 +1712,32 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   .chat-msg { animation: none !important; }
   .scroll-hint__arrow { animation: none !important; }
   .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
+
+/* =============================================================================
+   TOUCH DEVICES — Disable sticky hover
+   ============================================================================= */
+@media (hover: none) {
+  .nav-arrow:hover,
+  .nav-dot:hover,
+  .project-disc:hover,
+  .detail-panel__close:hover,
+  .detail-panel__cta:hover,
+  .label-chip:hover,
+  .stat-card:hover,
+  .process-card:hover,
+  .contact-card:hover,
+  .detail-panel__screenshot:hover,
+  .lang-toggle:hover,
+  .sound-toggle:hover,
+  .chat-option:hover,
+  .booking-slot:hover {
+    transform: none !important;
+    box-shadow: inherit !important;
+    background: inherit !important;
+  }
+  .nav-arrow:hover .nav-arrow__glow { opacity: 0 !important; }
+  .project-disc:hover::before { opacity: 0 !important; }
 }
 
 /* ===== SCROLLBAR CHATBOT ===== */

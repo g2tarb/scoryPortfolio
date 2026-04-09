@@ -758,17 +758,21 @@ async function main() {
     carousel.addEventListener("mouseenter", () => {
       stopSpin();
     });
+    let _mmRaf = 0;
     carousel.addEventListener("mousemove", (e) => {
       if (animating) return;
-      const disc = discs().find((d) => d.classList.contains("is-active"));
-      if (!disc) return;
-      const rect = disc.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      gsap.to(disc, {
-        rotateY: x * 14, rotateX: -y * 14,
-        rotation: discSpinAngle,
-        duration: 0.4, ease: "power2.out",
+      cancelAnimationFrame(_mmRaf);
+      _mmRaf = requestAnimationFrame(() => {
+        const disc = discs().find((d) => d.classList.contains("is-active"));
+        if (!disc) return;
+        const rect = disc.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        gsap.to(disc, {
+          rotateY: x * 14, rotateX: -y * 14,
+          rotation: discSpinAngle,
+          duration: 0.4, ease: "power2.out",
+        });
       });
     });
     carousel.addEventListener("mouseleave", () => {
