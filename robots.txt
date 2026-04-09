@@ -1,3 +1,13 @@
 User-agent: *
 Allow: /
+Disallow: /fondAnime/
+Disallow: /audio/
+
 Sitemap: https://scory.fr/sitemap.xml
+
+# Crawl-delay pour etre poli avec les bots
+User-agent: Googlebot
+Crawl-delay: 1
+
+User-agent: Bingbot
+Crawl-delay: 2
