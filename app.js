@@ -125,6 +125,24 @@ async function main() {
         case 1: { const { UniverseBackground } = await import("./universe.js"); projectBgs[1] = new UniverseBackground(projectBgHost); break; }
         case 2: { const { AuroraBorealis } = await import("./aurora.js"); projectBgs[2] = new AuroraBorealis(projectBgHost); break; }
         case 3: { const { FlaynnNebula } = await import("./nebula-flaynn.js"); projectBgs[3] = new FlaynnNebula(projectBgHost); break; }
+        case 4: {
+          const video = document.createElement("video");
+          video.src = "./fondAnime/diable.mp4";
+          video.autoplay = true;
+          video.loop = true;
+          video.muted = true;
+          video.playsInline = true;
+          video.className = "project-bg-canvas animus-bg-video";
+          video.style.display = "none";
+          projectBgHost.appendChild(video);
+          projectBgs[4] = {
+            canvas: video,
+            orb: null,
+            start() { video.play().catch(() => {}); },
+            stop() { video.pause(); }
+          };
+          break;
+        }
         default: return null;
       }
     } catch { return null; }
