@@ -132,13 +132,21 @@ async function main() {
           video.loop = true;
           video.muted = true;
           video.playsInline = true;
+          video.setAttribute("webkit-playsinline", "");
+          video.setAttribute("preload", "auto");
           video.className = "project-bg-canvas animus-bg-video";
           video.style.display = "none";
           projectBgHost.appendChild(video);
           projectBgs[4] = {
             canvas: video,
             orb: null,
-            start() { video.play().catch(() => {}); },
+            start() {
+              video.play().catch(() => {
+                // iOS fallback: play on first user interaction
+                const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
+                document.addEventListener("touchstart", playOnce, { once: true });
+              });
+            },
             stop() { video.pause(); }
           };
           break;
