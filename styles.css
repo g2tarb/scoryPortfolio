@@ -1757,6 +1757,17 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
 .chatbot-pills { scrollbar-width: thin; scrollbar-color: var(--theme-tint-c) transparent; }
 
 /* ===== PRINT ===== */
+/* SEO: contenu statique crawlable mais invisible */
+.seo-content {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  padding: 0; margin: -1px;
+}
+
 @media print {
   body { background: #fff; color: #111; }
   body::after,

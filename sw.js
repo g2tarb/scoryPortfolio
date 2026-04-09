@@ -2,7 +2,7 @@
  * SCORY — Service Worker
  * Cache les assets statiques pour un chargement instantane au 2e visit.
  */
-const CACHE_NAME = "scory-v5";
+const CACHE_NAME = "scory-v6";
 const STATIC_ASSETS = [
   "./",
   "./index.html",

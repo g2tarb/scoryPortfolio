@@ -3,9 +3,22 @@
  * Carrousel disques, transitions particules, chatbot devis, booking.
  * Three.js charge en differe pour ne pas bloquer le main thread.
  */
+/**
+ * SCORY — app.js
+ * Orchestrateur principal. Les modules sont scindés par responsabilité :
+ *   - cursor.js     → curseur custom + effet magnétique flèches
+ *   - particles.js  → transitions particules entre disques
+ *   - chatbot.js    → chatbot devis interactif
+ *   - booking.js    → calendrier de réservation
+ *   - three-*.js    → rendus WebGL (chargés en différé)
+ *   - aurora.js / universe.js / nebula-flaynn.js → fonds projet
+ *   - i18n.js       → internationalisation FR/EN
+ *   - data.js       → données projets, thèmes, flux chatbot
+ */
 import gsap from "gsap";
 import { PROJECTS as PROJECTS_ALL, THEMES, CHAT_FLOW as CHAT_FLOW_ALL } from "./data.js";
 import { getLang, setLang, t } from "./i18n.js";
+import { initCursor, initMagneticArrows } from "./cursor.js";
 
 /** Getters bilingues */
 function PROJECTS() { return PROJECTS_ALL[getLang()] || PROJECTS_ALL.fr; }
@@ -97,6 +110,8 @@ async function main() {
   if (!stage || !neuralHost || !carousel || !track) return;
 
   const reduced = prefersReducedMotion();
+  const isMobile = window.innerWidth <= 600;
+  const isLowEnd = isMobile || navigator.hardwareConcurrency <= 4;
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
@@ -104,14 +119,16 @@ async function main() {
   // Stub neural tant que Three.js n'est pas charge
   let neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
 
-  /* ===== PHASE 2 : Three.js charge en arriere-plan ===== */
-  const threeReady = import("./three-neural.js").then(({ FlaynnNeuralBackground }) => {
-    try {
-      neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
-    } catch {
-      document.body.classList.add("no-webgl");
-    }
-  }).catch(() => { document.body.classList.add("no-webgl"); });
+  /* ===== PHASE 2 : Three.js charge en arriere-plan (skip sur mobile/low-end) ===== */
+  const threeReady = isLowEnd
+    ? Promise.resolve().then(() => { document.body.classList.add("no-webgl"); })
+    : import("./three-neural.js").then(({ FlaynnNeuralBackground }) => {
+        try {
+          neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
+        } catch {
+          document.body.classList.add("no-webgl");
+        }
+      }).catch(() => { document.body.classList.add("no-webgl"); });
 
   /* ---------- Fonds projet (initialisés au premier usage) ---------- */
   const projectBgs = {};
@@ -686,48 +703,9 @@ async function main() {
     }, RESIZE_DEBOUNCE_MS);
   }, { passive: true });
 
-  /* ---------- Curseur custom + Tilt 3D + Neural feedback ---------- */
-  const cursorDot = document.getElementById("cursor-dot");
-  const cursorRing = document.getElementById("cursor-ring");
-  const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-
-  if (!isTouchDevice && cursorDot && cursorRing) {
-    let lastCursorFrame = 0;
-    document.addEventListener("mousemove", (e) => {
-      // Dot instantané (pas de throttle)
-      gsap.set(cursorDot, { x: e.clientX, y: e.clientY });
-      // Ring + neural throttlé à ~60fps
-      const now = performance.now();
-      if (now - lastCursorFrame < CURSOR_THROTTLE_MS) return;
-      lastCursorFrame = now;
-      gsap.to(cursorRing, { x: e.clientX, y: e.clientY, duration: 0.28, ease: "power2.out" });
-      if (!reduced) {
-        const influence = Math.hypot(e.clientX / innerWidth - 0.5, e.clientY / innerHeight - 0.5) * 0.35;
-        neural.setRotationInfluence(influence);
-      }
-    }, { passive: true });
-    // Hover ring sur éléments interactifs
-    document.addEventListener("mouseover", (e) => {
-      const hit = e.target.closest("a, button, .project-disc, .chat-pill, .nav-dot, .nav-arrow, input");
-      cursorRing.classList.toggle("is-hover", !!hit);
-    });
-  }
-
-  // Effet magnétique sur les flèches
-  if (!isTouchDevice) {
-    [arrowLeft, arrowRight].forEach((arrow) => {
-      const svg = arrow.querySelector("svg");
-      arrow.addEventListener("mousemove", (e) => {
-        const rect = arrow.getBoundingClientRect();
-        const dx = (e.clientX - rect.left - rect.width / 2) * 0.35;
-        const dy = (e.clientY - rect.top - rect.height / 2) * 0.35;
-        gsap.to(svg, { x: dx, y: dy, duration: 0.25, ease: "power2.out" });
-      });
-      arrow.addEventListener("mouseleave", () => {
-        gsap.to(svg, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.4)" });
-      });
-    });
-  }
+  /* ---------- Curseur custom (module cursor.js) ---------- */
+  initCursor({ neural, reduced });
+  initMagneticArrows([arrowLeft, arrowRight]);
 
   // Rotation lente continue du disque actif (guard contre double boucle)
   let discSpinAngle = 0;
