@@ -1686,6 +1686,12 @@ body.eco-mode .chatbot-orbits { display: none; }
   border-bottom-left-radius: 4px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.15), 0 0 20px var(--theme-glow);
 }
+.chat-msg--discount {
+  background: linear-gradient(135deg, rgba(201,169,98,0.15), rgba(201,169,98,0.05)) !important;
+  border-color: var(--accent-gold) !important;
+  box-shadow: 0 0 25px var(--theme-glow), 0 4px 15px rgba(0,0,0,0.2) !important;
+  line-height: 1.7;
+}
 .chat-msg--user {
   align-self: flex-end;
   background: linear-gradient(135deg, var(--accent-gold), var(--accent-amber));

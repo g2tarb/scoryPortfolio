@@ -1198,8 +1198,17 @@ async function main() {
     if (stage === 3 && !_osWon) {
       _osWon = true;
       _overscrollCooldown = true;
-      // Vibration si supportee
       if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
+      // Sauvegarder le discount
+      localStorage.setItem("scory_discount", "SCROLL5");
+      // Apres 2s d'affichage → scroll vers le chatbot
+      setTimeout(() => {
+        overscrollBottom.classList.remove("is-visible");
+        const chatSection = document.getElementById("chatbot-section");
+        if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Injecter un message de felicitation dans le chatbot
+        setTimeout(() => injectDiscountMessage(), 800);
+      }, 2000);
     }
   }
 
@@ -1282,6 +1291,28 @@ async function main() {
       if (!_osWon) { _osAccum = 0; resetOverscroll(); }
     }
   }, { passive: true });
+
+  /* ---------- Discount message injection ---------- */
+  function injectDiscountMessage() {
+    const msgContainer = document.getElementById("chatbot-messages");
+    if (!msgContainer) return;
+
+    const msg = document.createElement("div");
+    msg.className = "chat-msg chat-msg--bot chat-msg--discount";
+    msg.innerHTML = `
+      <span style="font-size:1.5rem;display:block;margin-bottom:0.4rem;">🎉🎉🎉</span>
+      <strong>FELICITATIONS !</strong> Vous avez decouvert le secret !<br><br>
+      Vous venez de debloquer <strong style="color:var(--accent-gold);">-5% de discount</strong> sur votre prochain projet.<br><br>
+      Code : <strong style="color:var(--accent-gold);letter-spacing:0.1em;">SCROLL5</strong><br><br>
+      Allez, estimez votre projet — le discount est deja applique ! 👇
+    `;
+    msg.style.opacity = "0";
+    msg.style.transform = "translateY(10px)";
+    msgContainer.appendChild(msg);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    gsap.to(msg, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
+  }
 
   /* ---------- Scroll hint click → chatbot ---------- */
   const scrollHint = document.querySelector(".scroll-hint");
