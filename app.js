@@ -617,25 +617,35 @@ async function main() {
     // Tuer toute animation GSAP residuelle sur les disques
     d.forEach((disc) => gsap.killTweensOf(disc));
 
-    // Position du disque pour les particules
-    const rect = currentDisc.getBoundingClientRect();
+    // Slide horizontal — le disque sort, le nouveau entre
+    const slideDistance = innerWidth * 0.4;
+    const exitX = -direction * slideDistance;
+    const enterX = direction * slideDistance;
 
-    // Masquer le disque courant
-    currentDisc.removeAttribute("style");
-    currentDisc.style.display = "none";
-
-    // Transition shader neural
-    const tProxy = { p: 0 };
-    gsap.to(tProxy, {
-      p: 1, duration: 1.2, ease: "power2.inOut",
-      onUpdate: () => neural.setTransitionProgress(tProxy.p),
-      onComplete: () => neural.setTransitionProgress(0),
+    // Disque courant sort en glissant
+    gsap.to(currentDisc, {
+      x: exitX, opacity: 0, scale: 0.85,
+      duration: 0.35, ease: "power2.in",
+      onComplete: () => {
+        currentDisc.removeAttribute("style");
+        currentDisc.style.display = "none";
+      }
     });
 
-    // Transition particules
-    await particles.transition(rect, direction);
+    // Transition shader neural (subtile)
+    if (!ecoMode) {
+      const tProxy = { p: 0 };
+      gsap.to(tProxy, {
+        p: 0.5, duration: 0.5, ease: "power2.inOut",
+        onUpdate: () => neural.setTransitionProgress(tProxy.p),
+        onComplete: () => gsap.to(tProxy, { p: 0, duration: 0.3, onUpdate: () => neural.setTransitionProgress(tProxy.p) }),
+      });
+    }
 
-    // Nettoyer TOUS les disques — display:none sauf le nouveau
+    // Attendre la sortie
+    await new Promise(r => setTimeout(r, 250));
+
+    // Nettoyer TOUS les disques
     d.forEach((disc) => {
       gsap.killTweensOf(disc);
       disc.removeAttribute("style");
@@ -649,13 +659,13 @@ async function main() {
     updateDots();
     applyTheme(activeIndex);
 
-    // Faire apparaitre le nouveau disque
+    // Nouveau disque entre en glissant depuis l'autre cote
     const nextDisc = d[activeIndex];
     nextDisc.style.display = "grid";
     gsap.fromTo(nextDisc,
-      { opacity: 0, scale: 0.9 },
+      { x: enterX, opacity: 0, scale: 0.85 },
       {
-        opacity: 1, scale: 1, duration: 0.35, ease: EASE_SPRING_HEAVY, overwrite: true,
+        x: 0, opacity: 1, scale: 1, duration: 0.4, ease: "power2.out", overwrite: true,
         onComplete: () => {
           // Garder display:grid, nettoyer le reste
           nextDisc.style.cssText = "";
