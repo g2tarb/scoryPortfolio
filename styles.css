@@ -1376,6 +1376,78 @@ body.eco-mode .eco-switch:active .eco-switch__knob {
   0% { transform: translate(0, 0) scale(1); }
   100% { transform: translate(15px, -10px) scale(1.05); }
 }
+/* ===== ORBITES CIRCULAIRES AUTOUR DU BOT ===== */
+.chatbot-orbits {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.chatbot-orbit {
+  position: absolute;
+  border: 1px solid rgba(var(--accent-gold), 0.06);
+  border-radius: 50%;
+  animation: orbitSpin linear infinite;
+}
+.chatbot-orbit--1 {
+  inset: -20px;
+  border-color: var(--theme-tint-c);
+  animation-duration: 20s;
+}
+.chatbot-orbit--2 {
+  inset: -45px;
+  border-color: rgba(255,255,255,0.03);
+  animation-duration: 30s;
+  animation-direction: reverse;
+}
+.chatbot-orbit--3 {
+  inset: -75px;
+  border-color: rgba(255,255,255,0.02);
+  animation-duration: 45s;
+}
+@keyframes orbitSpin { to { transform: rotate(360deg); } }
+
+.chatbot-orbit__dot {
+  position: absolute;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 8px var(--theme-glow), 0 0 20px var(--theme-glow);
+  top: 0; left: 50%;
+  transform: translate(-50%, -50%);
+  transition: background 1.5s ease, box-shadow 1.5s ease;
+}
+.chatbot-orbit--1 .chatbot-orbit__dot {
+  width: 5px; height: 5px;
+}
+.chatbot-orbit--2 .chatbot-orbit__dot {
+  width: 4px; height: 4px;
+  background: var(--accent-ice);
+  box-shadow: 0 0 6px var(--accent-ice), 0 0 15px rgba(158,200,255,0.2);
+}
+.chatbot-orbit--2 .chatbot-orbit__dot--b {
+  top: auto; bottom: 0; left: 50%;
+  transform: translate(-50%, 50%);
+  width: 3px; height: 3px;
+  background: var(--accent-magenta);
+  box-shadow: 0 0 6px var(--accent-magenta), 0 0 12px rgba(192,132,252,0.2);
+}
+.chatbot-orbit--3 .chatbot-orbit__dot {
+  width: 3px; height: 3px;
+  opacity: 0.6;
+}
+
+/* Responsive orbites */
+@media (max-width: 600px) {
+  .chatbot-orbit--1 { inset: -12px; }
+  .chatbot-orbit--2 { inset: -28px; }
+  .chatbot-orbit--3 { inset: -48px; }
+  .chatbot-orbit__dot { width: 4px !important; height: 4px !important; }
+}
+
+/* Eco: pas d'orbites */
+body.eco-mode .chatbot-orbits { display: none; }
+
 .chatbot-container {
   padding: 0; overflow: visible; position: relative; z-index: 1;
   box-shadow:
