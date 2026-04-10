@@ -1696,27 +1696,9 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   contain-intrinsic-size: auto 400px;
 }
 
-/* Mobile : desactiver backdrop-filter (le plus couteux GPU) */
+/* Mobile : garder les effets visuels, optimiser juste le bruit de fond */
 @media (max-width: 600px) {
-  .glass-panel {
-    backdrop-filter: none; -webkit-backdrop-filter: none;
-    background: linear-gradient(145deg, rgba(22,19,28,0.92), rgba(14,12,18,0.95));
-  }
-  .glass-panel::before { opacity: 0.4; }
-  .card-glass {
-    backdrop-filter: none; -webkit-backdrop-filter: none;
-    background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.08), rgba(12,10,18,0.9) 52%),
-      linear-gradient(160deg, rgba(30,24,40,0.95), rgba(12,10,18,0.9));
-  }
-  .nav-arrow {
-    backdrop-filter: none; -webkit-backdrop-filter: none;
-    background: rgba(22,19,28,0.9);
-  }
-  .sound-toggle {
-    backdrop-filter: none; -webkit-backdrop-filter: none;
-    background: rgba(22,19,28,0.9);
-  }
-  body::after { display: none; }
+  body::after { display: none; } /* supprime le bruit SVG overlay (seul element inutile sur mobile) */
 }
 
 /* =============================================================================

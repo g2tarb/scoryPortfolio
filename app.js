@@ -110,9 +110,8 @@ async function main() {
   if (!stage || !neuralHost || !carousel || !track) return;
 
   const reduced = prefersReducedMotion();
-  const isMobile = window.innerWidth <= 600;
   const isLowEnd = navigator.hardwareConcurrency <= 2;
-  const skipNeural = isMobile || isLowEnd;
+  const skipNeural = isLowEnd;
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
