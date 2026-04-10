@@ -682,9 +682,25 @@ async function main() {
         detailScreenshots.appendChild(img);
       });
     }
-    // Bouton CTA « Visiter le site »
+    // Bouton CTA
     detailCtaWrap.innerHTML = "";
-    if (p.url) {
+    if (!p.url && activeIndex === SCORY_INDEX) {
+      // Disque Scory → CTA vers le chatbot devis
+      const cta = document.createElement("button");
+      cta.type = "button";
+      cta.className = "detail-panel__cta";
+      cta.innerHTML = `Estimer mon projet <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>`;
+      cta.addEventListener("pointerup", (e) => e.stopPropagation());
+      cta.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeDetail();
+        setTimeout(() => {
+          const chatSection = document.getElementById("chatbot-section");
+          if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 400);
+      });
+      detailCtaWrap.appendChild(cta);
+    } else if (p.url) {
       const cta = document.createElement("a");
       cta.href = p.url;
       cta.target = "_blank";
