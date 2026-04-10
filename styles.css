@@ -940,6 +940,151 @@ body.eco-mode .eco-pill__track {
 body.eco-mode .eco-pill:active .eco-pill__thumb {
   left: calc(100% - 35px);
 }
+
+/* Desktop only */
+.eco-pill--desktop { display: block; }
+.eco-switch { display: none; }
+.eco-message { display: none; }
+
+@media (max-width: 600px) {
+  .eco-pill--desktop { display: none !important; }
+  .eco-switch { display: block; }
+}
+
+/* ===== INTERRUPTEUR PHYSIQUE MOBILE ===== */
+.eco-switch {
+  position: fixed;
+  bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  left: 0.6rem;
+  z-index: 100;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.eco-switch__body {
+  width: 36px; height: 56px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #1a1820 0%, #0e0c14 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  position: relative;
+  overflow: hidden;
+}
+.eco-switch__lever {
+  position: absolute;
+  top: 6px; left: 6px;
+  width: 24px; height: 22px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #2a2835 0%, #1e1b28 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+  transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
+}
+/* Levier enfonce = eco */
+body.eco-mode .eco-switch__lever {
+  top: 28px;
+  background: linear-gradient(180deg, #1a2820 0%, #0e1410 100%);
+  border-color: rgba(16,185,129,0.2);
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.08);
+}
+.eco-switch__label {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.3rem;
+  letter-spacing: 0.12em;
+  text-align: center;
+  width: 100%;
+  color: rgba(245,242,255,0.2);
+  transition: color 0.3s ease;
+  user-select: none;
+}
+.eco-switch__label--on { top: 32px; }
+.eco-switch__label--off { bottom: 5px; }
+body.eco-mode .eco-switch__label--on { bottom: auto; top: 5px; color: rgba(245,242,255,0.15); }
+body.eco-mode .eco-switch__label--off { top: auto; bottom: 32px; }
+
+/* LED indicator */
+.eco-switch__led {
+  position: absolute;
+  top: 3px; right: 3px;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 6px var(--accent-gold), 0 0 12px var(--theme-glow);
+  transition: all 0.3s ease;
+}
+body.eco-mode .eco-switch__led {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981, 0 0 12px rgba(16,185,129,0.4);
+}
+
+/* Animation clic — vibration du levier */
+.eco-switch:active .eco-switch__lever {
+  transform: scaleY(0.85);
+}
+
+/* ===== MESSAGE ECO CONTEXTUEL ===== */
+.eco-message {
+  position: fixed;
+  bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+  left: 0.6rem;
+  z-index: 101;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(245,242,255,0.7);
+  background: rgba(7,6,10,0.8);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.eco-message.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.eco-message__dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* ===== MOBILE SCROLL ENHANCEMENTS ===== */
+@media (max-width: 600px) {
+  /* Sections apparaissent avec plus de puissance */
+  .reveal {
+    opacity: 0; transform: translateY(50px) scale(0.97);
+    transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal.is-revealed {
+    opacity: 1; transform: translateY(0) scale(1);
+  }
+
+  /* Sections empilees avec espacement genereux */
+  .stats-section, .process-section, .about-section,
+  .chatbot-section, .contact-section {
+    margin-bottom: 1rem;
+  }
+
+  /* Scroll snap doux sur les sections principales */
+  body {
+    scroll-snap-type: y proximity;
+  }
+  .stats-section, .process-section, .about-section,
+  .chatbot-section, .contact-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    scroll-margin-top: 1rem;
+  }
+}
 .sound-toggle {
   bottom: clamp(0.75rem, 2.5vw, 1.5rem);
   right: clamp(0.75rem, 2.5vw, 1.5rem);

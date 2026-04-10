@@ -83,14 +83,27 @@
     <!-- Toggle langue -->
     <button id="lang-toggle" class="lang-toggle" aria-label="Switch language">FR</button>
 
-    <!-- Toggle eco — pill switch style Apple -->
-    <div id="eco-toggle" class="eco-pill" aria-label="Mode performance">
+    <!-- Toggle eco — pill desktop -->
+    <div id="eco-toggle-desktop" class="eco-pill eco-pill--desktop" aria-label="Mode performance">
       <div class="eco-pill__track">
         <span class="eco-pill__option eco-pill__option--full">&#10024;</span>
         <span class="eco-pill__option eco-pill__option--eco">&#127807;</span>
         <div class="eco-pill__thumb"></div>
       </div>
     </div>
+
+    <!-- Toggle eco — interrupteur physique mobile -->
+    <div id="eco-toggle-mobile" class="eco-switch" aria-label="Mode performance">
+      <div class="eco-switch__body">
+        <div class="eco-switch__lever"></div>
+        <div class="eco-switch__label eco-switch__label--on">ON</div>
+        <div class="eco-switch__label eco-switch__label--off">OFF</div>
+        <div class="eco-switch__led"></div>
+      </div>
+    </div>
+
+    <!-- Eco mode message -->
+    <div id="eco-message" class="eco-message"></div>
 
     <!-- Son ambiant -->
     <button id="sound-toggle" class="sound-toggle" aria-label="Activer le son ambiant" aria-pressed="false">

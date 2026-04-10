@@ -96,34 +96,54 @@ function applyEcoMode(eco) {
   document.body.classList.toggle("eco-mode", eco);
 }
 
-function showEcoToast(msg) {
-  let toast = document.getElementById("eco-toast");
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "eco-toast";
-    toast.className = "toast-ephemere";
-    document.body.appendChild(toast);
-  }
-  toast.textContent = msg;
-  toast.classList.add("is-visible");
-  setTimeout(() => toast.classList.remove("is-visible"), 1800);
+function showEcoMessage(text, color) {
+  const msg = document.getElementById("eco-message");
+  if (!msg) return;
+  msg.innerHTML = `<span class="eco-message__dot" style="background:${color};box-shadow:0 0 6px ${color}"></span>${text}`;
+  msg.classList.add("is-visible");
+  setTimeout(() => msg.classList.remove("is-visible"), 2500);
 }
 
 function toggleEcoMode() {
   const isEco = document.body.classList.contains("eco-mode");
   const newMode = isEco ? "full" : "eco";
   localStorage.setItem(PERF_KEY, newMode);
-  showEcoToast(isEco ? "\u2728 Full Performance" : "\uD83C\uDF3F Mode Eco");
+
+  const isMobile = window.innerWidth <= 600;
+  if (isMobile) {
+    showEcoMessage(
+      isEco ? "Full Performance" : "Mode Eco",
+      isEco ? "#c9a962" : "#10b981"
+    );
+  } else {
+    // Desktop toast
+    let toast = document.getElementById("eco-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "eco-toast";
+      toast.className = "toast-ephemere";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = isEco ? "\u2728 Full Performance" : "\uD83C\uDF3F Mode Eco";
+    toast.classList.add("is-visible");
+    setTimeout(() => toast.classList.remove("is-visible"), 1800);
+  }
+
   applyEcoMode(!isEco);
-  setTimeout(() => window.location.reload(), 1200);
+  setTimeout(() => window.location.reload(), isMobile ? 1500 : 1200);
 }
 
-// Bind via addEventListener (plus fiable que onclick sur mobile)
+// Bind les deux toggles (desktop pill + mobile switch)
 document.addEventListener("DOMContentLoaded", () => {
-  const ecoBtn = document.getElementById("eco-toggle");
-  if (ecoBtn) {
-    ecoBtn.addEventListener("click", toggleEcoMode);
-    ecoBtn.addEventListener("touchend", (e) => { e.preventDefault(); toggleEcoMode(); });
+  const desktopBtn = document.getElementById("eco-toggle-desktop");
+  const mobileBtn = document.getElementById("eco-toggle-mobile");
+
+  if (desktopBtn) {
+    desktopBtn.addEventListener("click", toggleEcoMode);
+  }
+  if (mobileBtn) {
+    mobileBtn.addEventListener("click", toggleEcoMode);
+    mobileBtn.addEventListener("touchend", (e) => { e.preventDefault(); toggleEcoMode(); });
   }
 });
 
@@ -950,17 +970,31 @@ async function main() {
 
   await yieldToBrowser(); // Liberer avant les observers scroll
 
-  /* ---------- Scroll Reveal ---------- */
+  /* ---------- Scroll Reveal (enhanced mobile) ---------- */
+  const isMobileView = window.innerWidth <= 600;
   const revealElements = document.querySelectorAll(".reveal");
   if (revealElements.length > 0) {
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("is-revealed");
+          // Mobile: stagger les enfants pour un effet cascade
+          if (isMobileView && !reduced) {
+            const children = entry.target.querySelectorAll(".stat-card, .process-card, .about-value, .contact-card");
+            children.forEach((child, i) => {
+              child.style.opacity = "0";
+              child.style.transform = "translateY(20px)";
+              child.style.transition = `opacity 0.6s ease ${i * 0.1}s, transform 0.6s ease ${i * 0.1}s`;
+              requestAnimationFrame(() => {
+                child.style.opacity = "1";
+                child.style.transform = "translateY(0)";
+              });
+            });
+          }
           revealObserver.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+    }, { threshold: isMobileView ? 0.08 : 0.15, rootMargin: "0px 0px -40px 0px" });
     revealElements.forEach((el) => revealObserver.observe(el));
   }
 
