@@ -513,6 +513,74 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
 }
 .nav-arrow--left { left: clamp(0.75rem, 4vw, 2.5rem); }
 .nav-arrow--right { right: clamp(0.75rem, 4vw, 2.5rem); }
+
+/* ===== SWIPE HINT MOBILE ===== */
+.swipe-hint {
+  display: none;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.swipe-hint.is-visible { opacity: 1; }
+.swipe-hint.is-faded { opacity: 0.15; transition: opacity 1.5s ease; }
+
+.swipe-hint__hand {
+  color: var(--accent-gold);
+  animation: swipeHandMove 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px var(--theme-glow));
+}
+@keyframes swipeHandMove {
+  0%, 100% { transform: translateX(0); }
+  30% { transform: translateX(-14px); }
+  70% { transform: translateX(14px); }
+}
+
+.swipe-hint__text {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(245,242,255,0.4);
+}
+
+.swipe-hint__arrows {
+  display: flex;
+  gap: 24px;
+}
+.swipe-hint__arrow {
+  font-size: 1.2rem;
+  color: var(--accent-gold);
+  opacity: 0.4;
+  animation: swipeArrowPulse 2s ease-in-out infinite;
+}
+.swipe-hint__arrow--left { animation-delay: 0s; }
+.swipe-hint__arrow--right { animation-delay: 0.3s; }
+@keyframes swipeArrowPulse {
+  0%, 100% { opacity: 0.2; transform: translateX(0); }
+  50% { opacity: 0.6; }
+}
+.swipe-hint__arrow--left { animation-name: swipeArrowLeft; }
+.swipe-hint__arrow--right { animation-name: swipeArrowRight; }
+@keyframes swipeArrowLeft {
+  0%, 100% { opacity: 0.2; transform: translateX(0); }
+  50% { opacity: 0.6; transform: translateX(-4px); }
+}
+@keyframes swipeArrowRight {
+  0%, 100% { opacity: 0.2; transform: translateX(0); }
+  50% { opacity: 0.6; transform: translateX(4px); }
+}
+
+/* Mobile: afficher hint, cacher fleches */
+@media (max-width: 600px) {
+  .nav-arrow { display: none !important; }
+  .swipe-hint { display: flex; }
+}
 /* Glow statique (pas d'animation continue = meilleur FPS) */
 
 /* Dots indicateurs */

@@ -775,6 +775,7 @@ async function main() {
     detailPanel.classList.add("is-visible", "is-animating");
     detailPanel.setAttribute("aria-hidden", "false");
     stage.setAttribute("aria-hidden", "true");
+    if (swipeHint) { swipeHint.classList.remove("is-visible"); swipeHint.classList.remove("is-faded"); }
 
     // Positionner le panel au centre manuellement
     const pw = detailPanel.offsetWidth;
@@ -879,6 +880,13 @@ async function main() {
     if (_detailPrevFocus) { _detailPrevFocus.focus(); _detailPrevFocus = null; }
     _holdActive = false;
     _holdDisc = null;
+    // Relancer le swipe hint apres fermeture
+    if (swipeHint && "ontouchstart" in window) {
+      setTimeout(() => {
+        swipeHint.classList.remove("is-faded");
+        swipeHint.classList.remove("is-visible");
+      }, 500);
+    }
   }
 
   /* Bouton X ferme le detail */
@@ -1297,6 +1305,56 @@ async function main() {
       }
     }, { threshold: 0.15 });
     contactObserver.observe(contactGrid);
+  }
+
+  /* ---------- Swipe hint mobile ---------- */
+  const swipeHint = document.getElementById("swipe-hint");
+  if (swipeHint && "ontouchstart" in window) {
+    let _swipeHintTimer = null;
+    let _swipeHintShown = false;
+
+    function showSwipeHint() {
+      if (_swipeHintShown || detailVisible) return;
+      _swipeHintShown = true;
+      swipeHint.classList.add("is-visible");
+    }
+
+    function fadeSwipeHint() {
+      swipeHint.classList.remove("is-visible");
+      swipeHint.classList.add("is-faded");
+    }
+
+    function hideSwipeHint() {
+      swipeHint.classList.remove("is-visible");
+      swipeHint.classList.remove("is-faded");
+    }
+
+    // Apparait apres 2.5s d'inactivite
+    function resetSwipeHintTimer() {
+      clearTimeout(_swipeHintTimer);
+      if (detailVisible) { hideSwipeHint(); return; }
+      _swipeHintShown = false;
+      swipeHint.classList.remove("is-faded");
+      swipeHint.classList.remove("is-visible");
+      _swipeHintTimer = setTimeout(showSwipeHint, 2500);
+    }
+
+    // Premier affichage apres 2.5s
+    _swipeHintTimer = setTimeout(showSwipeHint, 2500);
+
+    // Passe en discret quand l'utilisateur touche/swipe
+    carousel.addEventListener("touchstart", () => {
+      if (_swipeHintShown) fadeSwipeHint();
+    }, { passive: true });
+
+    // Reapparait apres 2.5s d'inactivite
+    carousel.addEventListener("touchend", () => {
+      resetSwipeHintTimer();
+    }, { passive: true });
+
+    // Disparait quand detail ouvert
+    const _origOpenDetail = openDetail;
+    // On override pas directement, on utilise un observer sur detailVisible
   }
 
   /* ---------- Son ambiant (module audio.js) ---------- */
