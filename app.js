@@ -1195,30 +1195,46 @@ async function main() {
     osStages.forEach((s, i) => { if (s) s.style.display = i === 0 ? "block" : "none"; });
   }
 
-  // Touch: progressif
+  // Touch: progressif + blocage pull-to-refresh natif
   let _touchStartY = 0;
+  let _touchIsAtEdge = false;
+
   document.addEventListener("touchstart", (e) => {
     _touchStartY = e.touches[0].clientY;
     if (!_osWon) _osAccum = 0;
+    // Detecter si on est au bord (haut ou bas) au debut du touch
+    const atTop = window.scrollY <= 0;
+    const atBottom = (innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
+    _touchIsAtEdge = atTop || atBottom;
   }, { passive: true });
 
+  // Non-passive pour pouvoir preventDefault et bloquer le pull-to-refresh natif iOS
   document.addEventListener("touchmove", (e) => {
     if (_overscrollCooldown) return;
-    const dy = _touchStartY - e.touches[0].clientY; // positif = tire vers le haut (scroll down)
+    const currentY = e.touches[0].clientY;
+    const dy = _touchStartY - currentY; // positif = scroll down
+    const pullDown = currentY - _touchStartY; // positif = tire vers le bas
     const atBottom = (innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
     const atTop = window.scrollY <= 0;
 
+    // Bloquer le pull-to-refresh natif quand on est en haut et qu'on tire vers le bas
+    if (atTop && pullDown > 0 && _touchIsAtEdge) {
+      e.preventDefault(); // bloque le refresh natif Safari/Chrome
+    }
+
+    // Overscroll bas — panneau progressif
     if (atBottom && dy > 10) {
+      e.preventDefault();
       updateOverscrollStage(dy / OS_THRESHOLD);
     }
 
-    // Pull-to-refresh haut
-    if (atTop && e.touches[0].clientY - _touchStartY > 80 && overscrollTop) {
+    // Pull-to-refresh custom haut
+    if (atTop && pullDown > 100 && overscrollTop) {
       _overscrollCooldown = true;
       overscrollTop.classList.add("is-visible");
       setTimeout(() => { window.location.reload(); }, 1200);
     }
-  }, { passive: true });
+  }, { passive: false }); // NON-PASSIVE pour pouvoir preventDefault
 
   document.addEventListener("touchend", () => {
     if (!_osWon && !_overscrollCooldown) resetOverscroll();

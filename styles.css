@@ -58,7 +58,7 @@ html {
 html {
   overflow-x: clip;
   scroll-behavior: smooth;
-  overscroll-behavior-x: none;
+  overscroll-behavior: none; /* bloque le pull-to-refresh natif Chrome + Safari */
 }
 body {
   margin: 0;
@@ -68,7 +68,7 @@ body {
   font-family: var(--font-sans);
   font-optical-sizing: auto;
   overflow-x: clip;
-  overscroll-behavior-x: none;
+  overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
 
