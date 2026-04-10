@@ -322,12 +322,22 @@
           <div class="chatbot-avatar">
             <div class="chatbot-avatar__orb"></div>
             <div class="chatbot-avatar__ring"></div>
+            <div class="chatbot-avatar__ring chatbot-avatar__ring--outer"></div>
+            <div class="chatbot-avatar__particles">
+              <span></span><span></span><span></span><span></span>
+            </div>
           </div>
           <div class="chatbot-header__text">
-            <span class="chatbot-name">Scory Assistant</span>
-            <span class="chatbot-status"><span class="chatbot-status__dot"></span> <span id="chatbot-status-text">En ligne</span></span>
+            <span class="chatbot-name" data-i18n="chat.name">Scory Assistant</span>
+            <span class="chatbot-status">
+              <span class="chatbot-status__dot"></span>
+              <span id="chatbot-status-text" data-i18n="chat.status">Pret a estimer votre projet</span>
+            </span>
           </div>
-          <div class="chatbot-header__badge">IA</div>
+          <div class="chatbot-header__badge">
+            <span class="chatbot-badge__pulse"></span>
+            IA
+          </div>
         </div>
         <div class="chatbot-messages" id="chatbot-messages"></div>
         <div class="chatbot-input-area" id="chatbot-input-area">
@@ -335,6 +345,9 @@
           <div class="chatbot-typing" id="chatbot-typing" style="display:none">
             <span></span><span></span><span></span>
           </div>
+        </div>
+        <div class="chatbot-footer">
+          <span class="chatbot-footer__secure">&#128274; Estimation gratuite &middot; Sans engagement</span>
         </div>
       </div>
     </section>
