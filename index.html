@@ -538,6 +538,24 @@
       <p>Basee a Paris, France. Nous travaillons avec des clients dans toute la France et a l'international.</p>
     </div>
 
+    <!-- Panneau overscroll haut (pull to refresh) -->
+    <div id="overscroll-top" class="overscroll-top" aria-hidden="true">
+      <div class="overscroll-top__content">
+        <p class="overscroll-top__text"><span class="overscroll-top__spinner"></span>Rechargement...</p>
+      </div>
+    </div>
+
+    <!-- Panneau overscroll bas -->
+    <div id="overscroll-panel" class="overscroll-panel" aria-hidden="true">
+      <div class="overscroll-panel__content">
+        <div class="overscroll-panel__emoji">&#128064;</div>
+        <p class="overscroll-panel__text">Hey, ou allez-vous comme ca ?</p>
+        <p class="overscroll-panel__sub">Vous avez tout vu ! Si un projet vous plait, parlons-en.</p>
+        <button class="overscroll-panel__cta" onclick="document.getElementById('chatbot-section').scrollIntoView({behavior:'smooth',block:'center'}); document.getElementById('overscroll-panel').classList.remove('is-visible');">
+          Estimer mon projet
+        </button>
+      </div>
+    </div>
     <script type="module" src="./app.js"></script>
   </body>
 </html>

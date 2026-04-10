@@ -1185,6 +1185,74 @@ async function main() {
     });
   }
 
+  /* ---------- Overscroll panels (haut + bas) ---------- */
+  const overscrollBottom = document.getElementById("overscroll-panel");
+  const overscrollTop = document.getElementById("overscroll-top");
+  let _overscrollCooldown = false;
+
+  // Detection touchmove au-dela des limites
+  let _touchStartY = 0;
+  document.addEventListener("touchstart", (e) => { _touchStartY = e.touches[0].clientY; }, { passive: true });
+  document.addEventListener("touchmove", (e) => {
+    if (_overscrollCooldown) return;
+    const dy = e.touches[0].clientY - _touchStartY;
+    const atBottom = (window.innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
+    const atTop = window.scrollY <= 0;
+
+    // Tire vers le bas en etant en bas de page
+    if (atBottom && dy < -60 && overscrollBottom) {
+      _overscrollCooldown = true;
+      overscrollBottom.classList.add("is-visible");
+      setTimeout(() => {
+        overscrollBottom.classList.remove("is-visible");
+        _overscrollCooldown = false;
+      }, 4000);
+    }
+
+    // Tire vers le haut en etant en haut de page → reload
+    if (atTop && dy > 80 && overscrollTop) {
+      _overscrollCooldown = true;
+      overscrollTop.classList.add("is-visible");
+      setTimeout(() => { window.location.reload(); }, 1200);
+    }
+  }, { passive: true });
+
+  // Desktop: scroll wheel au-dela des limites
+  let _wheelAccum = 0;
+  let _wheelTimer = null;
+  window.addEventListener("wheel", (e) => {
+    if (_overscrollCooldown) return;
+    const atBottom = (window.innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
+    const atTop = window.scrollY <= 0;
+
+    if (atBottom && e.deltaY > 0) {
+      _wheelAccum += e.deltaY;
+      clearTimeout(_wheelTimer);
+      _wheelTimer = setTimeout(() => { _wheelAccum = 0; }, 500);
+      if (_wheelAccum > 300 && overscrollBottom) {
+        _overscrollCooldown = true;
+        _wheelAccum = 0;
+        overscrollBottom.classList.add("is-visible");
+        setTimeout(() => {
+          overscrollBottom.classList.remove("is-visible");
+          _overscrollCooldown = false;
+        }, 4000);
+      }
+    } else if (atTop && e.deltaY < 0) {
+      _wheelAccum += Math.abs(e.deltaY);
+      clearTimeout(_wheelTimer);
+      _wheelTimer = setTimeout(() => { _wheelAccum = 0; }, 500);
+      if (_wheelAccum > 300 && overscrollTop) {
+        _overscrollCooldown = true;
+        _wheelAccum = 0;
+        overscrollTop.classList.add("is-visible");
+        setTimeout(() => { window.location.reload(); }, 1200);
+      }
+    } else {
+      _wheelAccum = 0;
+    }
+  }, { passive: true });
+
   /* ---------- Scroll hint click → chatbot ---------- */
   const scrollHint = document.querySelector(".scroll-hint");
   if (scrollHint) {
