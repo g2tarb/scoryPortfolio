@@ -606,6 +606,33 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
 .nav-dot.is-active:hover { background: var(--accent-amber); }
 
 /* ===== PANNEAU DETAILS (LONG PRESS) ===== */
+/* ===== TV STATIC OVERLAY (changement de chaine) ===== */
+.tv-static {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.03) 2px,
+      rgba(255,255,255,0.03) 4px
+    );
+  background-size: 100% 4px;
+  animation: tvFlicker 0.1s steps(3) infinite;
+  mix-blend-mode: overlay;
+}
+@keyframes tvFlicker {
+  0% { background-position: 0 0; }
+  33% { background-position: 0 -2px; }
+  66% { background-position: 0 -1px; }
+  100% { background-position: 0 -3px; }
+}
+body.eco-mode .tv-static { display: none; }
+
 /* Lenis smooth scroll body */
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto; }

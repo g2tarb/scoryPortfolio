@@ -619,8 +619,17 @@ async function main() {
     getProjectBg(nextIndex).catch(() => {});
     preloadNearby(nextIndex);
 
-    // ===== TRANSITION VINYLE — le disque tourne vite puis le suivant prend le relais =====
+    // ===== TRANSITION MULTIPLEX — changement de chaine =====
     const nextDisc = d[nextIndex];
+
+    // Creer l'overlay static TV (si pas deja la)
+    let staticOverlay = document.getElementById("tv-static");
+    if (!staticOverlay) {
+      staticOverlay = document.createElement("div");
+      staticOverlay.id = "tv-static";
+      staticOverlay.className = "tv-static";
+      stage.appendChild(staticOverlay);
+    }
 
     const tl = gsap.timeline({
       onComplete: () => {
@@ -638,29 +647,36 @@ async function main() {
       }
     });
 
-    // Phase 1: le disque actuel accelere sa rotation + shrink + fade (0.5s)
+    // Phase 1: le disque tourne vite + le fond se coupe (0.4s)
     tl.to(currentDisc, {
       rotation: discSpinAngle + direction * 360,
       scale: 0.6, opacity: 0,
-      duration: 0.5, ease: "power2.in",
+      duration: 0.4, ease: "power2.in",
     }, 0);
 
-    // Neural pulse pendant la transition
+    // Le fond fait un glitch — flash static TV
+    tl.to(staticOverlay, { opacity: 0.15, duration: 0.08 }, 0.3);
+    tl.to(staticOverlay, { opacity: 0.25, duration: 0.05 }, 0.38);
+    tl.to(staticOverlay, { opacity: 0.1, duration: 0.04 }, 0.43);
+    // Le fond neural flash noir
     if (!ecoMode) {
-      tl.to({}, { duration: 0.1,
-        onStart: () => {
-          const p = { v: 0 };
-          gsap.to(p, { v: 0.15, duration: 0.3, onUpdate: () => neural.setTransitionProgress(p.v) });
-        }
-      }, 0.3);
+      tl.to(neuralHost, { opacity: 0, duration: 0.1, ease: "none" }, 0.35);
+      tl.to(neuralHost, { opacity: 0.6, duration: 0.15, ease: "none" }, 0.45);
+      tl.to(neuralHost, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.6);
+    }
+    // Cacher les fonds projet pendant la coupure
+    if (projectBgHost) {
+      tl.to(projectBgHost, { opacity: 0, duration: 0.1 }, 0.35);
     }
 
-    // Phase 2: le nouveau disque apparait en tournant et se stabilise (0.7s)
+    // Phase 2: static disparait, nouveau disque entre (0.6s)
+    tl.to(staticOverlay, { opacity: 0, duration: 0.15 }, 0.55);
+
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
       { rotation: -direction * 180, scale: 0.5, opacity: 0 },
       { rotation: 0, scale: 1, opacity: 1,
-        duration: 0.7, ease: "power2.out",
+        duration: 0.6, ease: "power2.out",
         onStart: () => {
           if (!ecoMode) {
             const p = { v: 0.15 };
