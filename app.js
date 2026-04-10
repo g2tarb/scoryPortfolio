@@ -619,14 +619,14 @@ async function main() {
     getProjectBg(nextIndex).catch(() => {});
     preloadNearby(nextIndex);
 
-    // ===== TRANSITION 1.2s — sortie lente, pause, entree douce =====
-    const slideX = direction * innerWidth * 0.4;
+    // ===== TRANSITION VINYLE — le disque tourne vite puis le suivant prend le relais =====
+    const nextDisc = d[nextIndex];
 
     const tl = gsap.timeline({
       onComplete: () => {
         currentDisc.removeAttribute("style");
         currentDisc.style.display = "none";
-        d[nextIndex].style.cssText = "";
+        nextDisc.style.cssText = "";
         activeIndex = nextIndex;
         setActiveClasses(activeIndex);
         setLabel(activeIndex, true);
@@ -638,37 +638,37 @@ async function main() {
       }
     });
 
-    // Phase 1: le disque actuel sort doucement (0.5s)
+    // Phase 1: le disque actuel accelere sa rotation + shrink + fade (0.5s)
     tl.to(currentDisc, {
-      x: -slideX, opacity: 0, scale: 0.85, rotation: -direction * 8,
+      rotation: discSpinAngle + direction * 360,
+      scale: 0.6, opacity: 0,
       duration: 0.5, ease: "power2.in",
     }, 0);
 
-    // Phase 2: pause — moment de respiration (0.5s)
-    // Le fond neural pulse legerement pendant la pause
+    // Neural pulse pendant la transition
     if (!ecoMode) {
-      tl.to({}, { duration: 0.5,
+      tl.to({}, { duration: 0.1,
         onStart: () => {
           const p = { v: 0 };
-          gsap.to(p, { v: 0.2, duration: 0.2, onUpdate: () => neural.setTransitionProgress(p.v) });
+          gsap.to(p, { v: 0.15, duration: 0.3, onUpdate: () => neural.setTransitionProgress(p.v) });
         }
-      }, 0.5);
+      }, 0.3);
     }
 
-    // Phase 3: le nouveau disque entre doucement (0.5s)
-    const nextDisc = d[nextIndex];
+    // Phase 2: le nouveau disque apparait en tournant et se stabilise (0.7s)
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      { x: slideX, opacity: 0, scale: 0.85, rotation: direction * 8 },
-      { x: 0, opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "power2.out",
+      { rotation: -direction * 180, scale: 0.5, opacity: 0 },
+      { rotation: 0, scale: 1, opacity: 1,
+        duration: 0.7, ease: "power2.out",
         onStart: () => {
           if (!ecoMode) {
-            const p = { v: 0.2 };
-            gsap.to(p, { v: 0, duration: 0.3, onUpdate: () => neural.setTransitionProgress(p.v) });
+            const p = { v: 0.15 };
+            gsap.to(p, { v: 0, duration: 0.4, onUpdate: () => neural.setTransitionProgress(p.v) });
           }
         }
       },
-      0.15 // leger overlap — le nouveau commence avant que l'ancien ait fini
+      0.4 // le nouveau commence avant que l'ancien ait fini de disparaitre
     );
   }
 
