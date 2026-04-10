@@ -58,8 +58,7 @@ html {
 html {
   overflow-x: clip;
   scroll-behavior: smooth;
-  /* Prevent pull-to-refresh on mobile Chrome */
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
 }
 body {
   margin: 0;
@@ -69,6 +68,7 @@ body {
   font-family: var(--font-sans);
   font-optical-sizing: auto;
   overflow-x: clip;
+  overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1700,7 +1700,9 @@ body.eco-mode .chatbot-orbits { display: none; }
 .museum-footer {
   position: relative; z-index: 2;
   padding: clamp(1.25rem, 3vw, 2rem) clamp(1rem, 3vw, 2rem) clamp(2rem, 4vw, 3rem);
+  padding-bottom: calc(clamp(2rem, 4vw, 3rem) + env(safe-area-inset-bottom, 0px));
   text-align: center;
+  background: var(--surface-void);
 }
 .footer-copy {
   margin: 0.75rem 0 0; font-size: clamp(0.62rem, 1.5vw, 0.72rem);
