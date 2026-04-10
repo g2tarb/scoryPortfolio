@@ -89,55 +89,32 @@ function yieldToBrowser() {
   return new Promise((r) => setTimeout(r, 0));
 }
 
-/* ---------- Performance mode detection + popup ---------- */
+/* ---------- Mode eco toggle ---------- */
 const PERF_KEY = "scory_perf_mode";
 
-function isLowEndDevice() {
-  const cores = navigator.hardwareConcurrency || 4;
-  const mem = navigator.deviceMemory || 8; // Chrome only, fallback 8
-  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  const isOldIOS = /iPhone OS (9|10|11|12|13|14)_/.test(navigator.userAgent);
-  const isOldAndroid = /Android (4|5|6|7|8)\./.test(navigator.userAgent);
-  return (isMobile && (cores <= 4 || mem <= 4)) || isOldIOS || isOldAndroid;
-}
-
-function getPerfMode() {
-  return localStorage.getItem(PERF_KEY) || null;
-}
-
-function choosePerfMode(mode) {
-  localStorage.setItem(PERF_KEY, mode);
-  const popup = document.getElementById("perf-popup");
-  if (popup) { popup.classList.remove("is-visible"); popup.setAttribute("aria-hidden", "true"); }
-  if (mode === "eco") {
-    document.body.classList.add("eco-mode");
-  } else {
-    document.body.classList.remove("eco-mode");
+function applyEcoMode(eco) {
+  document.body.classList.toggle("eco-mode", eco);
+  const btn = document.getElementById("eco-toggle");
+  if (btn) {
+    btn.querySelector(".eco-icon--off").style.display = eco ? "none" : "inline";
+    btn.querySelector(".eco-icon--on").style.display = eco ? "inline" : "none";
+    btn.setAttribute("aria-label", eco ? "Mode complet" : "Mode eco");
   }
-  // Recharger pour appliquer proprement (Three.js doit etre init ou non)
+}
+
+function toggleEcoMode() {
+  const isEco = document.body.classList.contains("eco-mode");
+  const newMode = isEco ? "full" : "eco";
+  localStorage.setItem(PERF_KEY, newMode);
+  applyEcoMode(!isEco);
   window.location.reload();
 }
 
-// Expose au onclick du HTML
-window.choosePerfMode = choosePerfMode;
+window.toggleEcoMode = toggleEcoMode;
 
-function checkPerfPopup() {
-  const saved = getPerfMode();
-  if (saved === "eco") {
-    document.body.classList.add("eco-mode");
-    return true;
-  }
-  if (saved === "full") return false;
-  // Pas de choix sauvegarde + appareil low-end → afficher le popup
-  if (isLowEndDevice()) {
-    const popup = document.getElementById("perf-popup");
-    if (popup) {
-      popup.classList.add("is-visible");
-      popup.setAttribute("aria-hidden", "false");
-    }
-    return true; // bloque le chargement Three.js en attendant
-  }
-  return false;
+function initEcoMode() {
+  const saved = localStorage.getItem(PERF_KEY);
+  if (saved === "eco") applyEcoMode(true);
 }
 
 async function main() {
@@ -1053,8 +1030,8 @@ async function main() {
 }
 
 /* ---------- Boot ---------- */
-// Check perf mode avant de lancer (applique eco-mode si sauvegarde)
-checkPerfPopup();
+// Applique eco-mode si sauvegarde
+initEcoMode();
 
 try {
   main();

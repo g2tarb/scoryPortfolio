@@ -1717,49 +1717,38 @@ body.eco-mode body::after { display: none; }
 body.eco-mode .project-bg-host { background-size: cover; background-position: center; opacity: 0.25 !important; display: block !important; }
 
 /* ============================================================================
-   POPUP PERFORMANCE
+   BOUTON ECO MODE
    ============================================================================ */
-.perf-popup {
-  display: none;
-  position: fixed; inset: 0; z-index: 1000;
-  align-items: center; justify-content: center;
-  background: rgba(7,6,10,0.92);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  padding: 1rem;
+.eco-toggle {
+  position: fixed;
+  top: 0.75rem;
+  right: 7.5rem;
+  z-index: 90;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: rgba(7,6,10,0.5);
+  backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  color: rgba(245,242,255,0.6);
+  transition: all 0.3s ease;
 }
-.perf-popup.is-visible { display: flex; }
-.perf-popup__card {
-  max-width: 380px; width: 100%;
-  padding: 2rem 1.5rem; text-align: center;
-  border-radius: 20px;
-  animation: perfPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+.eco-toggle:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  box-shadow: 0 0 15px var(--theme-glow);
 }
-@keyframes perfPopIn {
-  from { opacity: 0; transform: scale(0.9) translateY(20px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+.eco-icon--on { display: none; }
+body.eco-mode .eco-icon--off { display: none; }
+body.eco-mode .eco-icon--on { display: inline; }
+body.eco-mode .eco-toggle { border-color: #10b981; color: #10b981; }
+body.eco-mode .eco-toggle:hover { box-shadow: 0 0 15px rgba(16,185,129,0.3); }
+
+@media (max-width: 600px) {
+  .eco-toggle { top: auto; bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px)); right: auto; left: 0.6rem; width: 40px; height: 40px; }
 }
-.perf-popup__icon { font-size: 2rem; margin-bottom: 0.75rem; }
-.perf-popup__title {
-  font-family: var(--font-display); font-size: 1.2rem;
-  color: var(--accent-gold); margin-bottom: 0.5rem;
-}
-.perf-popup__text {
-  font-size: 0.78rem; color: rgba(245,242,255,0.6);
-  line-height: 1.6; margin-bottom: 1.5rem;
-}
-.perf-popup__buttons { display: flex; flex-direction: column; gap: 0.75rem; }
-.perf-popup__btn {
-  display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
-  padding: 1rem; border-radius: 14px; border: 1px solid var(--glass-border);
-  background: var(--surface-mist); cursor: pointer;
-  transition: all 0.3s ease; min-height: 48px;
-}
-.perf-popup__btn:hover { transform: translateY(-2px); }
-.perf-popup__btn--full:hover { border-color: var(--accent-gold); box-shadow: 0 0 30px rgba(201,169,98,0.2); }
-.perf-popup__btn--eco:hover { border-color: #10b981; box-shadow: 0 0 30px rgba(16,185,129,0.2); }
-.perf-popup__btn-icon { font-size: 1.3rem; }
-.perf-popup__btn-label { font-family: var(--font-display); font-size: 0.95rem; color: rgba(245,242,255,0.9); }
-.perf-popup__btn-desc { font-size: 0.65rem; color: rgba(245,242,255,0.4); }
 
 /* =============================================================================
    ACCESSIBILITE — Reduced motion
