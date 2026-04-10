@@ -535,6 +535,11 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
 .nav-dot.is-active:hover { background: var(--accent-amber); }
 
 /* ===== PANNEAU DETAILS (LONG PRESS) ===== */
+/* Lenis smooth scroll body */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+
 .detail-panel {
   position: fixed; z-index: 100;
   top: 50%; left: 50%;
@@ -546,10 +551,14 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   opacity: 0; pointer-events: none;
   box-shadow: var(--glass-shadow), 0 0 50px var(--theme-glow-strong);
   border-color: var(--theme-tint-c);
-  /* Pas de transition CSS — GSAP gere l'animation bubble */
+  transform-origin: center center;
+  /* GPU layer promotion */
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 .detail-panel.is-visible {
-  opacity: 1; pointer-events: auto;
+  pointer-events: auto;
 }
 .detail-panel__close {
   position: absolute; top: 0.6rem; right: 0.6rem;

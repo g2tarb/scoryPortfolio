@@ -16,6 +16,7 @@
  *   - data.js       → données projets, thèmes, flux chatbot
  */
 import gsap from "gsap";
+import Lenis from "lenis";
 import { PROJECTS as PROJECTS_ALL, THEMES, CHAT_FLOW as CHAT_FLOW_ALL } from "./data.js";
 import { getLang, setLang, t } from "./i18n.js";
 import { initCursor, initMagneticArrows } from "./cursor.js";
@@ -297,6 +298,24 @@ async function main() {
         .from(".scroll-hint", { opacity: 0, y: 15, duration: 0.5 }, 0.7);
     }
   }, LOADER_DELAY_MS);
+
+  // ===== LENIS SMOOTH SCROLL =====
+  if (!ecoMode) {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      touchMultiplier: 1.5,
+    });
+    function lenisRaf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(lenisRaf);
+    }
+    requestAnimationFrame(lenisRaf);
+    // Sync GSAP ScrollTrigger si present
+    lenis.on("scroll", () => { if (window.ScrollTrigger) window.ScrollTrigger.update(); });
+  }
+
   // Three.js lance le fond quand il est pret
   threeReady.then(() => void syncProjectWater());
 
@@ -743,68 +762,53 @@ async function main() {
       });
       detailCtaWrap.appendChild(cta);
     }
-    // ===== LE DISQUE LUI-MEME S'OUVRE =====
+    // ===== FLIP ANIMATION — GPU only (transform + opacity) =====
     const disc = _discsCache.find((d) => d.classList.contains("is-active"));
     if (!disc) return;
     stopSpin();
 
-    // Sauvegarder la position originale du disque
-    const discRect = disc.getBoundingClientRect();
-    disc._origParent = disc.parentElement;
-    disc._origNext = disc.nextElementSibling;
-    disc._origStyles = disc.getAttribute("style") || "";
+    // FIRST: position du disque
+    const first = disc.getBoundingClientRect();
 
-    // Sortir le disque du flow et le fixer a sa position actuelle
-    document.body.appendChild(disc);
-    gsap.set(disc, {
-      position: "fixed",
-      top: discRect.top,
-      left: discRect.left,
-      width: discRect.width,
-      height: discRect.height,
-      margin: 0,
-      zIndex: 200,
-      display: "block",
-    });
-
-    // Taille et position finale
-    const isMob = innerWidth <= 600;
-    const finalW = isMob ? innerWidth - 16 : Math.min(innerWidth * 0.88, 500);
-    const finalH = isMob ? innerHeight * 0.82 : innerHeight * 0.85;
-    const finalTop = (innerHeight - finalH) / 2;
-    const finalLeft = (innerWidth - finalW) / 2;
-
-    // Cacher le contenu du panel pour le reveler apres
+    // Preparer le panel en position finale (invisible)
+    const panelChildren = detailPanel.querySelectorAll(".detail-panel__icon, .detail-panel__title, .detail-panel__text, .detail-panel__screenshots, .detail-panel__stack, .detail-panel__cta-wrap, .detail-panel__hint, .detail-panel__close");
+    panelChildren.forEach(el => { el.style.opacity = "0"; });
+    detailPanel.style.willChange = "transform, opacity, border-radius";
     detailPanel.classList.add("is-visible");
     detailPanel.setAttribute("aria-hidden", "false");
     stage.setAttribute("aria-hidden", "true");
-    const panelChildren = detailPanel.querySelectorAll(".detail-panel__icon, .detail-panel__title, .detail-panel__text, .detail-panel__screenshots, .detail-panel__stack, .detail-panel__cta-wrap, .detail-panel__hint, .detail-panel__close");
-    panelChildren.forEach(el => { el.style.opacity = "0"; });
 
-    // Phase 1 : le disque se transforme en rectangle
-    gsap.to(disc, {
-      top: finalTop,
-      left: finalLeft,
-      width: finalW,
-      height: finalH,
-      borderRadius: isMob ? "16px" : "var(--radius-panel)",
-      aspectRatio: "auto",
-      duration: 0.5,
+    // LAST: position finale du panel
+    const last = detailPanel.getBoundingClientRect();
+
+    // INVERT: calculer le transform inverse pour que le panel apparaisse a la position du disque
+    const dx = first.left + first.width / 2 - (last.left + last.width / 2);
+    const dy = first.top + first.height / 2 - (last.top + last.height / 2);
+    const sx = first.width / last.width;
+    const sy = first.height / last.height;
+
+    // Cacher le disque
+    gsap.to(disc, { opacity: 0, scale: 0.85, duration: 0.25, ease: "power2.in" });
+
+    // Placer le panel a la position du disque (via transform)
+    gsap.set(detailPanel, {
+      transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
+      borderRadius: "50%",
+      opacity: 0.8,
+      transformOrigin: "center center",
+    });
+
+    // PLAY: animer vers la position finale (transform → identity)
+    gsap.to(detailPanel, {
+      transform: "translate(0, 0) scale(1, 1)",
+      borderRadius: "var(--radius-panel)",
+      opacity: 1,
+      duration: 0.55,
       ease: "power3.out",
       onComplete: () => {
-        // Phase 2 : positionner le panel par-dessus et reveler le contenu
-        gsap.set(detailPanel, {
-          position: "fixed",
-          top: finalTop, left: finalLeft,
-          width: finalW, maxHeight: finalH,
-          transform: "none", borderRadius: isMob ? "16px" : "var(--radius-panel)",
-          opacity: 1,
-        });
-        // Fade le disque, montrer le panel
-        gsap.to(disc, { opacity: 0, duration: 0.2 });
-        gsap.to(panelChildren, {
-          opacity: 1, duration: 0.3, stagger: 0.04, ease: "power2.out",
-        });
+        detailPanel.style.willChange = "";
+        // Reveal contenu en stagger
+        gsap.to(panelChildren, { opacity: 1, y: 0, duration: 0.35, stagger: 0.04, ease: "power2.out" });
         _detailPrevFocus = document.activeElement;
         requestAnimationFrame(() => { _detailFocusTrap = trapFocus(detailPanel); });
       }
@@ -812,7 +816,7 @@ async function main() {
 
     // Fermer au clic en dehors
     _closeOnOutsideRef = (e) => {
-      if (!detailPanel.contains(e.target) && !disc.contains(e.target)) closeDetail();
+      if (!detailPanel.contains(e.target)) closeDetail();
     };
     setTimeout(() => {
       document.addEventListener("click", _closeOnOutsideRef, true);
@@ -834,61 +838,44 @@ async function main() {
     if (_detailFocusTrap) { _detailFocusTrap(); _detailFocusTrap = null; }
 
     const disc = _discsCache.find((d) => d.classList.contains("is-active"));
+    const discRect = disc ? disc.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 200, height: 200 };
+    const panelRect = detailPanel.getBoundingClientRect();
 
-    // Phase 1 : cacher le contenu du panel
+    // Fade contenu
     const panelChildren = detailPanel.querySelectorAll(".detail-panel__icon, .detail-panel__title, .detail-panel__text, .detail-panel__screenshots, .detail-panel__stack, .detail-panel__cta-wrap, .detail-panel__hint, .detail-panel__close");
     gsap.to(panelChildren, { opacity: 0, duration: 0.15 });
 
-    // Remontrer le disque a la position du panel
-    if (disc) gsap.set(disc, { opacity: 1 });
+    // FLIP inverse: panel → position du disque
+    const dx = discRect.left + discRect.width / 2 - (panelRect.left + panelRect.width / 2);
+    const dy = discRect.top + discRect.height / 2 - (panelRect.top + panelRect.height / 2);
+    const sx = discRect.width / panelRect.width;
+    const sy = discRect.height / panelRect.height;
 
-    // Phase 2 : le panel disparait, le disque shrink vers sa place
-    setTimeout(() => {
-      detailPanel.classList.remove("is-visible");
-      detailPanel.setAttribute("aria-hidden", "true");
-      gsap.set(detailPanel, { clearProps: "all" });
+    detailPanel.style.willChange = "transform, opacity, border-radius";
+    gsap.to(detailPanel, {
+      transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
+      borderRadius: "50%",
+      opacity: 0,
+      duration: 0.45,
+      ease: "power3.in",
+      onComplete: () => {
+        detailPanel.classList.remove("is-visible");
+        detailPanel.setAttribute("aria-hidden", "true");
+        detailPanel.style.willChange = "";
+        gsap.set(detailPanel, { clearProps: "transform,borderRadius,opacity" });
 
-      if (disc && disc._origParent) {
-        // Calculer la destination (la place d'origine dans le carousel)
-        const isMob = innerWidth <= 600;
-        const discSize = isMob ? 160 : 240;
-
-        // Le disque shrink en bulle
-        gsap.to(disc, {
-          width: discSize,
-          height: discSize,
-          borderRadius: "50%",
-          top: "50%",
-          left: "50%",
-          xPercent: -50,
-          yPercent: -50,
-          aspectRatio: "1",
-          duration: 0.45,
-          ease: "power3.inOut",
-          onComplete: () => {
-            // Remettre le disque dans le DOM du carousel
-            disc.removeAttribute("style");
-            disc.setAttribute("style", disc._origStyles);
-            if (disc._origNext) {
-              disc._origParent.insertBefore(disc, disc._origNext);
-            } else {
-              disc._origParent.appendChild(disc);
-            }
-            delete disc._origParent;
-            delete disc._origNext;
-            delete disc._origStyles;
-
-            // Reanimer l'apparition
-            gsap.fromTo(disc,
-              { scale: 0.9, opacity: 0.7 },
-              { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.4)",
-                onComplete: () => { if (!reduced && !ecoMode) startSpin(); }
-              }
-            );
-          }
-        });
+        // Disque reapparait avec rebond
+        if (disc) {
+          gsap.to(disc, {
+            opacity: 1, scale: 1, rotation: discSpinAngle,
+            duration: 0.5, ease: "back.out(1.7)",
+            onComplete: () => { if (!reduced && !ecoMode) startSpin(); }
+          });
+        } else if (!reduced && !ecoMode) {
+          startSpin();
+        }
       }
-    }, 200);
+    });
 
     if (_detailPrevFocus) { _detailPrevFocus.focus(); _detailPrevFocus = null; }
     _holdActive = false;
