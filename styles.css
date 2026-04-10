@@ -2074,8 +2074,9 @@ body.eco-mode .chatbot-orbits { display: none; }
   .contact-icon svg { width: 20px; height: 20px; }
   .cta-rdv {
     font-size: 0.78rem; padding: 0.7rem 1.4rem; margin-top: 1.25rem;
-    min-height: 48px; display: flex; align-items: center; justify-content: center; /* tap target */
+    min-height: 48px; display: flex; align-items: center; justify-content: center;
     width: 100%; max-width: 300px;
+    margin-left: auto; margin-right: auto;
   }
 
   /* Chatbot — optimise tactile */
