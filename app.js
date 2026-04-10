@@ -1193,71 +1193,111 @@ async function main() {
     });
   }
 
-  /* ---------- Overscroll panels (haut + bas) ---------- */
+  /* ---------- Overscroll elastique progressif ---------- */
   const overscrollBottom = document.getElementById("overscroll-panel");
   const overscrollTop = document.getElementById("overscroll-top");
+  const osProgress = document.getElementById("overscroll-progress");
+  const osStages = [
+    document.getElementById("os-stage-1"),
+    document.getElementById("os-stage-2"),
+    document.getElementById("os-stage-3"),
+    document.getElementById("os-stage-win"),
+  ];
   let _overscrollCooldown = false;
+  let _osAccum = 0;
+  let _osCurrentStage = -1;
+  let _osWon = false;
+  const OS_THRESHOLD = innerHeight / 3; // 1/3 de l'ecran pour gagner
 
-  // Detection touchmove au-dela des limites
-  let _touchStartY = 0;
-  document.addEventListener("touchstart", (e) => { _touchStartY = e.touches[0].clientY; }, { passive: true });
-  document.addEventListener("touchmove", (e) => {
-    if (_overscrollCooldown) return;
-    const dy = e.touches[0].clientY - _touchStartY;
-    const atBottom = (window.innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
-    const atTop = window.scrollY <= 0;
+  function updateOverscrollStage(progress) {
+    // progress: 0 → 1 (1 = 1/3 ecran)
+    const clamped = Math.min(1, Math.max(0, progress));
+    if (osProgress) osProgress.style.setProperty("--os-progress", (clamped * 100) + "%");
 
-    // Tire vers le bas en etant en bas de page
-    if (atBottom && dy < -60 && overscrollBottom) {
-      _overscrollCooldown = true;
-      overscrollBottom.classList.add("is-visible");
-      setTimeout(() => {
-        overscrollBottom.classList.remove("is-visible");
-        _overscrollCooldown = false;
-      }, 4000);
+    let stage = -1;
+    if (clamped > 0.01) stage = 0; // yeux
+    if (clamped > 0.25) stage = 1; // insiste
+    if (clamped > 0.6) stage = 2;  // NOOON
+    if (clamped >= 0.98) stage = 3; // WIN
+
+    if (stage !== _osCurrentStage && stage >= 0) {
+      _osCurrentStage = stage;
+      osStages.forEach((s, i) => { if (s) s.style.display = i === stage ? "block" : "none"; });
     }
 
-    // Tire vers le haut en etant en haut de page → reload
-    if (atTop && dy > 80 && overscrollTop) {
+    if (stage >= 0 && !overscrollBottom.classList.contains("is-visible")) {
+      overscrollBottom.classList.add("is-visible");
+    }
+
+    if (stage === 3 && !_osWon) {
+      _osWon = true;
+      _overscrollCooldown = true;
+      // Vibration si supportee
+      if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
+    }
+  }
+
+  function resetOverscroll() {
+    if (_osWon) return; // garder le panneau win visible
+    _osAccum = 0;
+    _osCurrentStage = -1;
+    if (overscrollBottom) overscrollBottom.classList.remove("is-visible");
+    if (osProgress) osProgress.style.setProperty("--os-progress", "0%");
+    osStages.forEach((s, i) => { if (s) s.style.display = i === 0 ? "block" : "none"; });
+  }
+
+  // Touch: progressif
+  let _touchStartY = 0;
+  document.addEventListener("touchstart", (e) => {
+    _touchStartY = e.touches[0].clientY;
+    if (!_osWon) _osAccum = 0;
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (e) => {
+    if (_overscrollCooldown) return;
+    const dy = _touchStartY - e.touches[0].clientY; // positif = tire vers le haut (scroll down)
+    const atBottom = (innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
+    const atTop = window.scrollY <= 0;
+
+    if (atBottom && dy > 10) {
+      updateOverscrollStage(dy / OS_THRESHOLD);
+    }
+
+    // Pull-to-refresh haut
+    if (atTop && e.touches[0].clientY - _touchStartY > 80 && overscrollTop) {
       _overscrollCooldown = true;
       overscrollTop.classList.add("is-visible");
       setTimeout(() => { window.location.reload(); }, 1200);
     }
   }, { passive: true });
 
-  // Desktop: scroll wheel au-dela des limites
-  let _wheelAccum = 0;
+  document.addEventListener("touchend", () => {
+    if (!_osWon && !_overscrollCooldown) resetOverscroll();
+  }, { passive: true });
+
+  // Desktop: wheel progressif
   let _wheelTimer = null;
   window.addEventListener("wheel", (e) => {
     if (_overscrollCooldown) return;
-    const atBottom = (window.innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
+    const atBottom = (innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
     const atTop = window.scrollY <= 0;
 
     if (atBottom && e.deltaY > 0) {
-      _wheelAccum += e.deltaY;
+      _osAccum += e.deltaY;
       clearTimeout(_wheelTimer);
-      _wheelTimer = setTimeout(() => { _wheelAccum = 0; }, 500);
-      if (_wheelAccum > 300 && overscrollBottom) {
-        _overscrollCooldown = true;
-        _wheelAccum = 0;
-        overscrollBottom.classList.add("is-visible");
-        setTimeout(() => {
-          overscrollBottom.classList.remove("is-visible");
-          _overscrollCooldown = false;
-        }, 4000);
-      }
+      _wheelTimer = setTimeout(() => { if (!_osWon) resetOverscroll(); }, 800);
+      updateOverscrollStage(_osAccum / (OS_THRESHOLD * 2));
     } else if (atTop && e.deltaY < 0) {
-      _wheelAccum += Math.abs(e.deltaY);
+      _osAccum += Math.abs(e.deltaY);
       clearTimeout(_wheelTimer);
-      _wheelTimer = setTimeout(() => { _wheelAccum = 0; }, 500);
-      if (_wheelAccum > 300 && overscrollTop) {
+      _wheelTimer = setTimeout(() => { _osAccum = 0; }, 500);
+      if (_osAccum > 300 && overscrollTop) {
         _overscrollCooldown = true;
-        _wheelAccum = 0;
         overscrollTop.classList.add("is-visible");
         setTimeout(() => { window.location.reload(); }, 1200);
       }
     } else {
-      _wheelAccum = 0;
+      if (!_osWon) { _osAccum = 0; resetOverscroll(); }
     }
   }, { passive: true });
 

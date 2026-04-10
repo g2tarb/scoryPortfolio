@@ -556,15 +556,29 @@
       </div>
     </div>
 
-    <!-- Panneau overscroll bas -->
+    <!-- Panneau overscroll bas — elastique progressif -->
     <div id="overscroll-panel" class="overscroll-panel" aria-hidden="true">
       <div class="overscroll-panel__content">
-        <div class="overscroll-panel__emoji">&#128064;</div>
-        <p class="overscroll-panel__text">Hey, ou allez-vous comme ca ?</p>
-        <p class="overscroll-panel__sub">Vous avez tout vu ! Si un projet vous plait, parlons-en.</p>
-        <button class="overscroll-panel__cta" onclick="document.getElementById('chatbot-section').scrollIntoView({behavior:'smooth',block:'center'}); document.getElementById('overscroll-panel').classList.remove('is-visible');">
-          Estimer mon projet
-        </button>
+        <div class="overscroll-panel__progress" id="overscroll-progress"></div>
+        <div class="overscroll-panel__stage" id="os-stage-1">
+          <div class="overscroll-panel__emoji">&#128064;</div>
+          <p class="overscroll-panel__text">Hey, ou allez-vous comme ca ?</p>
+        </div>
+        <div class="overscroll-panel__stage" id="os-stage-2" style="display:none">
+          <p class="overscroll-panel__text">&#128587; Ah vous insistez...</p>
+          <p class="overscroll-panel__sub">Il n'y a plus rien en dessous, promis !</p>
+        </div>
+        <div class="overscroll-panel__stage" id="os-stage-3" style="display:none">
+          <p class="overscroll-panel__text" style="font-size:1.4rem">NOOOOOOOOON</p>
+        </div>
+        <div class="overscroll-panel__stage" id="os-stage-win" style="display:none">
+          <div class="overscroll-panel__emoji">&#127881;</div>
+          <p class="overscroll-panel__text">Felicitations !</p>
+          <p class="overscroll-panel__sub">Vous venez de gagner <strong style="color:var(--accent-gold)">5% de discount</strong> sur votre prochain projet.</p>
+          <button class="overscroll-panel__cta" onclick="document.getElementById('chatbot-section').scrollIntoView({behavior:'smooth',block:'center'}); document.getElementById('overscroll-panel').classList.remove('is-visible');">
+            Utiliser mon code : SCROLL5
+          </button>
+        </div>
       </div>
     </div>
     <script type="module" src="./app.js"></script>
