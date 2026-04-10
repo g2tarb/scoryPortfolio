@@ -1796,7 +1796,7 @@ body.eco-mode .eco-icon--on { display: inline; }
   .detail-panel__screenshot:hover,
   .lang-toggle:hover,
   .sound-toggle:hover,
-  .chat-option:hover,
+  .chat-pill:hover,
   .booking-slot:hover {
     transform: none !important;
     box-shadow: inherit !important;
