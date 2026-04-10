@@ -253,6 +253,8 @@ async function main() {
       gsap.to(projectBgHost, { opacity: 0.3, duration: 2, ease: "power2.inOut" });
       return;
     }
+    // Canvas OK : supprimer l'image CSS fallback pour laisser le Canvas seul
+    projectBgHost.style.backgroundImage = "";
     bg.canvas.style.display = "block";
     if (bg.orb) bg.orb.style.display = "block";
     bg.start();
