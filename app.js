@@ -619,12 +619,11 @@ async function main() {
     getProjectBg(nextIndex).catch(() => {});
     preloadNearby(nextIndex);
 
-    // ===== SLIDE SIMPLE GPU — 1 seule timeline, zero reflow =====
-    const slideX = direction * innerWidth * 0.35;
+    // ===== TRANSITION 1.2s — sortie lente, pause, entree douce =====
+    const slideX = direction * innerWidth * 0.4;
 
     const tl = gsap.timeline({
       onComplete: () => {
-        // Nettoyer
         currentDisc.removeAttribute("style");
         currentDisc.style.display = "none";
         d[nextIndex].style.cssText = "";
@@ -639,18 +638,36 @@ async function main() {
       }
     });
 
-    // Le disque actuel sort
+    // Phase 1: le disque actuel sort doucement (0.5s)
     tl.to(currentDisc, {
-      x: -slideX, opacity: 0, scale: 0.8,
-      duration: 0.3, ease: "power2.in",
+      x: -slideX, opacity: 0, scale: 0.85, rotation: -direction * 8,
+      duration: 0.5, ease: "power2.in",
     }, 0);
 
-    // Le nouveau disque entre
+    // Phase 2: pause — moment de respiration (0.2s)
+    // Le fond neural pulse legerement pendant la pause
+    if (!ecoMode) {
+      tl.to({}, { duration: 0.2,
+        onStart: () => {
+          const p = { v: 0 };
+          gsap.to(p, { v: 0.2, duration: 0.2, onUpdate: () => neural.setTransitionProgress(p.v) });
+        }
+      }, 0.5);
+    }
+
+    // Phase 3: le nouveau disque entre doucement (0.5s)
     const nextDisc = d[nextIndex];
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      { x: slideX, opacity: 0, scale: 0.8 },
-      { x: 0, opacity: 1, scale: 1, duration: 0.35, ease: "power2.out" },
+      { x: slideX, opacity: 0, scale: 0.85, rotation: direction * 8 },
+      { x: 0, opacity: 1, scale: 1, rotation: 0, duration: 0.5, ease: "power2.out",
+        onStart: () => {
+          if (!ecoMode) {
+            const p = { v: 0.2 };
+            gsap.to(p, { v: 0, duration: 0.3, onUpdate: () => neural.setTransitionProgress(p.v) });
+          }
+        }
+      },
       0.15 // leger overlap — le nouveau commence avant que l'ancien ait fini
     );
   }
