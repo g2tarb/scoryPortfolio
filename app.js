@@ -133,19 +133,15 @@ function toggleEcoMode() {
   setTimeout(() => window.location.reload(), isMobile ? 1500 : 1200);
 }
 
-// Bind les deux toggles (desktop pill + mobile switch)
-document.addEventListener("DOMContentLoaded", () => {
-  const desktopBtn = document.getElementById("eco-toggle-desktop");
-  const mobileBtn = document.getElementById("eco-toggle-mobile");
+// Bind les deux toggles immediatement (le module s'execute apres le DOM)
+const _desktopBtn = document.getElementById("eco-toggle-desktop");
+const _mobileBtn = document.getElementById("eco-toggle-mobile");
 
-  if (desktopBtn) {
-    desktopBtn.addEventListener("click", toggleEcoMode);
-  }
-  if (mobileBtn) {
-    mobileBtn.addEventListener("click", toggleEcoMode);
-    mobileBtn.addEventListener("touchend", (e) => { e.preventDefault(); toggleEcoMode(); });
-  }
-});
+if (_desktopBtn) _desktopBtn.addEventListener("click", toggleEcoMode);
+if (_mobileBtn) {
+  _mobileBtn.addEventListener("click", toggleEcoMode);
+  _mobileBtn.addEventListener("touchend", (e) => { e.preventDefault(); toggleEcoMode(); });
+}
 
 function initEcoMode() {
   const saved = localStorage.getItem(PERF_KEY);
