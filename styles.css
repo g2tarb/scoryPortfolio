@@ -582,6 +582,7 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
 @media (max-width: 600px) {
   .nav-arrow { display: none !important; }
   .disc-hint { display: flex; }
+  .disc-hint__tap { display: none; } /* 1 seule ligne sur mobile */
 }
 /* Glow statique (pas d'animation continue = meilleur FPS) */
 
@@ -626,10 +627,9 @@ html.lenis, html.lenis body { height: auto; }
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-/* Pendant l'animation GSAP: positionnement absolu, GSAP controle x/y/scale */
+/* Pendant l'animation GSAP: garder le centrage CSS, GSAP ajoute x/y/scale par-dessus */
 .detail-panel.is-animating {
-  top: 0; left: 0;
-  transform: none;
+  transform: translate(-50%, -50%);
 }
 .detail-panel.is-visible {
   pointer-events: auto;
@@ -1433,6 +1433,7 @@ body.eco-mode .eco-switch:active .eco-switch__knob {
   position: relative; z-index: 2;
   padding: clamp(1rem, 4vw, 3rem);
   max-width: 620px; margin: 0 auto;
+  overflow: hidden;
 }
 /* Halo lumineux derriere le chatbot — change selon le disque actif */
 .chatbot-glow {

@@ -619,33 +619,51 @@ async function main() {
     const gap = Math.min(innerWidth * 0.18, 80);
     const miniScale = 0.45;
 
-    // Phase 1: montrer tous les disques en petit, alignes horizontalement
+    // Phase 1: montrer les disques proches en petit (3 sur mobile, 5 sur desktop)
+    const isMobAnim = innerWidth <= 600;
+    const maxVisible = isMobAnim ? 1 : 2; // combien de voisins de chaque cote
+
     d.forEach((disc, i) => {
-      disc.style.display = "grid";
-      const offset = (i - activeIndex) * gap;
-      gsap.set(disc, {
-        x: offset,
-        scale: i === activeIndex ? 0.7 : miniScale,
-        opacity: i === activeIndex ? 1 : 0.4,
-        zIndex: i === activeIndex ? 2 : 1,
-      });
+      const dist = Math.abs(i - activeIndex);
+      if (dist <= maxVisible) {
+        disc.style.display = "grid";
+        const offset = (i - activeIndex) * gap;
+        gsap.set(disc, {
+          x: offset,
+          scale: i === activeIndex ? 0.7 : miniScale,
+          opacity: i === activeIndex ? 1 : 0.4,
+          zIndex: i === activeIndex ? 2 : 1,
+        });
+      } else {
+        disc.style.display = "none";
+      }
     });
 
     // Phase 2: faire tourner la roue + precharger en parallele
-    // Lancer le preload PENDANT l'animation (chargement cache)
     activeIndex = nextIndex;
     preloadNearby(activeIndex);
-    getProjectBg(nextIndex).catch(() => {}); // precharge le Canvas/video du prochain projet
-    const waterReady = ensureWater().catch(() => {}); // precharge le water shader
+    getProjectBg(nextIndex).catch(() => {});
+    const waterReady = ensureWater().catch(() => {});
+
+    // Montrer les disques proches du nouveau aussi
+    d.forEach((disc, i) => {
+      const dist = Math.abs(i - nextIndex);
+      if (dist <= maxVisible && disc.style.display === "none") {
+        disc.style.display = "grid";
+        gsap.set(disc, { x: (i - activeIndex) * gap, scale: miniScale, opacity: 0, zIndex: 1 });
+      }
+    });
 
     await new Promise((resolve) => {
       const tl = gsap.timeline({ onComplete: resolve });
       d.forEach((disc, i) => {
+        const dist = Math.abs(i - nextIndex);
+        if (dist > maxVisible) return;
         const targetOffset = (i - nextIndex) * gap;
         tl.to(disc, {
           x: targetOffset,
           scale: i === nextIndex ? 0.7 : miniScale,
-          opacity: i === nextIndex ? 1 : (Math.abs(i - nextIndex) <= 1 ? 0.4 : 0.15),
+          opacity: i === nextIndex ? 1 : (dist <= 1 ? 0.4 : 0.15),
           zIndex: i === nextIndex ? 2 : 1,
           duration: 0.35,
           ease: "power2.inOut",
@@ -799,20 +817,13 @@ async function main() {
     const panelChildren = detailPanel.querySelectorAll(":scope > *");
     panelChildren.forEach(el => { el.style.opacity = "0"; el.style.transform = "translateY(8px)"; });
 
-    // Passer en mode GSAP (top:0 left:0, pas de translate CSS)
     detailPanel.classList.add("is-visible", "is-animating");
     detailPanel.setAttribute("aria-hidden", "false");
     stage.setAttribute("aria-hidden", "true");
     if (discHint) discHint.classList.remove("is-visible");
 
-    // Positionner le panel au centre manuellement
-    const pw = detailPanel.offsetWidth;
-    const ph = detailPanel.offsetHeight;
-    const finalX = (innerWidth - pw) / 2;
-    const finalY = (innerHeight - ph) / 2;
-    gsap.set(detailPanel, { left: finalX, top: finalY });
-
-    // Mesurer la position finale
+    // Le panel est centre via CSS (top:50% left:50% translate(-50%,-50%))
+    // Mesurer sa position finale
     const last = detailPanel.getBoundingClientRect();
 
     // Scale uniforme (le plus grand ratio) pour garder le cercle
