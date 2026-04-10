@@ -690,36 +690,40 @@ async function main() {
       }
     });
 
-    // Phase 1: le disque tourne vite + le fond se coupe (0.4s)
+    // Phase 1: le disque actuel tourne vite — visible tout du long, shrink a la fin (0.6s)
     tl.to(currentDisc, {
-      rotation: discSpinAngle + direction * 360,
-      scale: 0.6, opacity: 0,
-      duration: 0.4, ease: "power2.in",
+      rotation: discSpinAngle + direction * 540,
+      scale: 0.4,
+      duration: 0.6, ease: "power2.in",
     }, 0);
+    // Opacity separee — reste visible 80% du temps, fade seulement a la fin
+    tl.to(currentDisc, {
+      opacity: 0,
+      duration: 0.2, ease: "power2.in",
+    }, 0.4);
 
-    // Le fond fait un glitch — flash static TV
-    tl.to(staticOverlay, { opacity: 0.15, duration: 0.08 }, 0.3);
-    tl.to(staticOverlay, { opacity: 0.25, duration: 0.05 }, 0.38);
-    tl.to(staticOverlay, { opacity: 0.1, duration: 0.04 }, 0.43);
-    // Le fond neural flash noir
+    // Static TV flash au moment de la coupure
+    tl.to(staticOverlay, { opacity: 0.15, duration: 0.08 }, 0.45);
+    tl.to(staticOverlay, { opacity: 0.25, duration: 0.05 }, 0.53);
+    tl.to(staticOverlay, { opacity: 0.1, duration: 0.04 }, 0.58);
+    tl.to(staticOverlay, { opacity: 0, duration: 0.15 }, 0.65);
+
+    // Neural flash
     if (!ecoMode) {
-      tl.to(neuralHost, { opacity: 0, duration: 0.1, ease: "none" }, 0.35);
-      tl.to(neuralHost, { opacity: 0.6, duration: 0.15, ease: "none" }, 0.45);
-      tl.to(neuralHost, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.6);
+      tl.to(neuralHost, { opacity: 0, duration: 0.1, ease: "none" }, 0.5);
+      tl.to(neuralHost, { opacity: 0.6, duration: 0.15, ease: "none" }, 0.6);
+      tl.to(neuralHost, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.75);
     }
-    // Cacher les fonds projet pendant la coupure
     if (projectBgHost) {
-      tl.to(projectBgHost, { opacity: 0, duration: 0.1 }, 0.35);
+      tl.to(projectBgHost, { opacity: 0, duration: 0.1 }, 0.5);
     }
 
-    // Phase 2: static disparait, nouveau disque entre (0.6s)
-    tl.to(staticOverlay, { opacity: 0, duration: 0.15 }, 0.55);
-
+    // Phase 2: le nouveau disque est DEJA visible, tourne vite, et ralentit pour se poser (0.7s)
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      { rotation: -direction * 180, scale: 0.5, opacity: 0 },
+      { rotation: -direction * 360, scale: 0.4, opacity: 1 },
       { rotation: 0, scale: 1, opacity: 1,
-        duration: 0.6, ease: "power2.out",
+        duration: 0.7, ease: "power2.out",
         onStart: () => {
           if (!ecoMode) {
             const p = { v: 0.15 };
