@@ -1215,25 +1215,59 @@ body.eco-mode .eco-toggle {
   100% { transform: translate(15px, -10px) scale(1.05); }
 }
 .chatbot-container {
-  padding: 0; overflow: hidden; position: relative; z-index: 1;
+  padding: 0; overflow: visible; position: relative; z-index: 1;
   box-shadow:
     var(--glass-shadow),
     0 0 40px var(--theme-glow),
-    0 0 80px var(--theme-glow-strong),
-    0 0 160px var(--theme-glow);
-  transition: box-shadow 1.5s ease, border-color 1.5s ease;
-  border: 1px solid var(--theme-tint-c);
+    0 0 80px var(--theme-glow-strong);
+  transition: box-shadow 1.5s ease;
+  border: none;
 }
-/* Bordure animee gradient — change couleur selon le disque */
+/* Bordure glitch — double contour anime avec decalage */
+.chatbot-container::before,
 .chatbot-container::after {
-  content: ""; position: absolute; inset: -1px; border-radius: inherit; z-index: -1;
+  content: ""; position: absolute; border-radius: inherit; pointer-events: none;
+}
+.chatbot-container::before {
+  inset: -2px;
+  z-index: -1;
   background: conic-gradient(from var(--border-angle, 0deg), var(--accent-gold), var(--accent-magenta), var(--accent-ice), var(--accent-gold));
-  opacity: 0.25;
-  transition: background 1.5s ease;
-  animation: borderSpin 6s linear infinite;
+  opacity: 0.3;
+  animation: borderSpin 6s linear infinite, glitchShift 8s ease-in-out infinite;
+  filter: blur(1px);
+}
+.chatbot-container::after {
+  inset: -1px;
+  z-index: -1;
+  background: conic-gradient(from calc(var(--border-angle, 0deg) + 180deg), var(--accent-ice), var(--accent-gold), var(--accent-magenta), var(--accent-ice));
+  opacity: 0.15;
+  animation: borderSpin 6s linear infinite reverse, glitchShift2 6s ease-in-out infinite;
+  filter: blur(2px);
 }
 @property --border-angle { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
 @keyframes borderSpin { to { --border-angle: 360deg; } }
+@keyframes glitchShift {
+  0%, 85%, 100% { clip-path: inset(0); transform: translate(0); }
+  86% { clip-path: inset(20% 0 60% 0); transform: translate(-3px, 0); }
+  88% { clip-path: inset(60% 0 10% 0); transform: translate(3px, 0); }
+  90% { clip-path: inset(40% 0 30% 0); transform: translate(-2px, 1px); }
+  92% { clip-path: inset(0); transform: translate(0); }
+}
+@keyframes glitchShift2 {
+  0%, 78%, 100% { clip-path: inset(0); transform: translate(0); }
+  80% { clip-path: inset(50% 0 20% 0); transform: translate(4px, 0); }
+  82% { clip-path: inset(10% 0 70% 0); transform: translate(-4px, 0); }
+  84% { clip-path: inset(30% 0 40% 0); transform: translate(2px, -1px); }
+  86% { clip-path: inset(0); transform: translate(0); }
+}
+
+/* Ligne neon interne */
+.chatbot-container > *:first-child {
+  position: relative;
+}
+.chatbot-container > .chatbot-progress {
+  box-shadow: 0 1px 8px var(--theme-glow-strong);
+}
 
 /* Barre de progression premium */
 .chatbot-progress {
