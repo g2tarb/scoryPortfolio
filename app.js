@@ -167,6 +167,31 @@ async function main() {
     if (!projectBgHost) return null;
     try {
       switch (index) {
+        case 0: {
+          const video = document.createElement("video");
+          video.src = "./scoryModel.mp4";
+          video.autoplay = true;
+          video.loop = true;
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute("webkit-playsinline", "");
+          video.setAttribute("preload", "metadata");
+          video.className = "project-bg-canvas scory-bg-video";
+          video.style.display = "none";
+          projectBgHost.appendChild(video);
+          projectBgs[0] = {
+            canvas: video,
+            orb: null,
+            start() {
+              video.play().catch(() => {
+                const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
+                document.addEventListener("touchstart", playOnce, { once: true });
+              });
+            },
+            stop() { video.pause(); }
+          };
+          break;
+        }
         case 1: { const { UniverseBackground } = await import("./universe.js"); projectBgs[1] = new UniverseBackground(projectBgHost); break; }
         case 2: { const { AuroraBorealis } = await import("./aurora.js"); projectBgs[2] = new AuroraBorealis(projectBgHost); break; }
         case 3: { const { FlaynnNebula } = await import("./nebula-flaynn.js"); projectBgs[3] = new FlaynnNebula(projectBgHost); break; }
@@ -207,9 +232,7 @@ async function main() {
     if (projectBgHost) {
       projectBgHost.querySelectorAll(".project-bg-canvas, .flaynn-orbit").forEach((c) => { c.style.display = "none"; });
     }
-    if (index === 0 || !projectBgHost) {
-      projectBgHost.style.backgroundImage = "";
-      gsap.to(projectBgHost, { opacity: 0, duration: 1 });
+    if (!projectBgHost) {
       activeProjectBg = null;
       return;
     }
@@ -456,14 +479,12 @@ async function main() {
   /* ---------- Fond eau / neural / projet ---------- */
   async function syncProjectWater() {
     if (!waterHost) {
-      // Pas de water host : afficher directement le fond projet
-      if (activeIndex !== SCORY_INDEX) showProjectBg(activeIndex);
+      showProjectBg(activeIndex);
       return;
     }
     await ensureWater();
     if (!water) {
-      // Water shader echoue (WebGL indisponible) : afficher directement le fond projet
-      if (activeIndex !== SCORY_INDEX) showProjectBg(activeIndex);
+      showProjectBg(activeIndex);
       return;
     }
 
@@ -471,11 +492,15 @@ async function main() {
     if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
     hideProjectBg();
 
-    // Disque Scory (index 0) → fond neural Three.js seul, pas d'image
+    // Disque Scory (index 0) → video scoryModel apres un bref neural
     if (activeIndex === SCORY_INDEX) {
       if (waterSplashTween) waterSplashTween.kill();
-      gsap.to(neuralHost, { opacity: 1, duration: 0.8, ease: "power2.out" });
+      gsap.to(neuralHost, { opacity: 0.5, duration: 1, ease: "power2.out" });
       gsap.to(waterHost, { opacity: 0, duration: 0.8, ease: "power2.out" });
+      waterFadeTimer = setTimeout(() => {
+        gsap.to(neuralHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
+        showProjectBg(0);
+      }, 2000);
       return;
     }
 
