@@ -905,7 +905,10 @@ body.eco-mode .eco-toggle {
   .eco-toggle {
     top: max(0.5rem, env(safe-area-inset-top, 0px));
     right: calc(0.5rem + 42px);
-    width: 36px; height: 36px; font-size: 0.75rem;
+    width: 44px; height: 44px; font-size: 0.85rem;
+    z-index: 100;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   .sound-toggle {
     bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));

@@ -107,10 +107,17 @@ function toggleEcoMode() {
   const newMode = isEco ? "full" : "eco";
   localStorage.setItem(PERF_KEY, newMode);
   applyEcoMode(!isEco);
-  window.location.reload();
+  setTimeout(() => window.location.reload(), 100);
 }
 
-window.toggleEcoMode = toggleEcoMode;
+// Bind via addEventListener (plus fiable que onclick sur mobile)
+document.addEventListener("DOMContentLoaded", () => {
+  const ecoBtn = document.getElementById("eco-toggle");
+  if (ecoBtn) {
+    ecoBtn.addEventListener("click", toggleEcoMode);
+    ecoBtn.addEventListener("touchend", (e) => { e.preventDefault(); toggleEcoMode(); });
+  }
+});
 
 function initEcoMode() {
   const saved = localStorage.getItem(PERF_KEY);
