@@ -94,12 +94,6 @@ const PERF_KEY = "scory_perf_mode";
 
 function applyEcoMode(eco) {
   document.body.classList.toggle("eco-mode", eco);
-  const btn = document.getElementById("eco-toggle");
-  if (btn) {
-    btn.querySelector(".eco-icon--off").style.display = eco ? "none" : "inline";
-    btn.querySelector(".eco-icon--on").style.display = eco ? "inline" : "none";
-    btn.setAttribute("aria-label", eco ? "Mode complet" : "Mode eco");
-  }
 }
 
 function showEcoToast(msg) {

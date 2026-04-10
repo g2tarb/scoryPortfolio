@@ -83,11 +83,14 @@
     <!-- Toggle langue -->
     <button id="lang-toggle" class="lang-toggle" aria-label="Switch language">FR</button>
 
-    <!-- Toggle eco -->
-    <button id="eco-toggle" class="eco-toggle" aria-label="Mode eco">
-      <span class="eco-icon eco-icon--off">&#127807;</span>
-      <span class="eco-icon eco-icon--on">&#10024;</span>
-    </button>
+    <!-- Toggle eco — pill switch style Apple -->
+    <div id="eco-toggle" class="eco-pill" aria-label="Mode performance">
+      <div class="eco-pill__track">
+        <span class="eco-pill__option eco-pill__option--full">&#10024;</span>
+        <span class="eco-pill__option eco-pill__option--eco">&#127807;</span>
+        <div class="eco-pill__thumb"></div>
+      </div>
+    </div>
 
     <!-- Son ambiant -->
     <button id="sound-toggle" class="sound-toggle" aria-label="Activer le son ambiant" aria-pressed="false">
