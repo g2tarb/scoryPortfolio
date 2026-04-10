@@ -109,38 +109,20 @@ function toggleEcoMode() {
   const newMode = isEco ? "full" : "eco";
   localStorage.setItem(PERF_KEY, newMode);
 
-  const isMobile = window.innerWidth <= 600;
-  if (isMobile) {
-    showEcoMessage(
-      isEco ? "Full Performance" : "Mode Eco",
-      isEco ? "#c9a962" : "#10b981"
-    );
-  } else {
-    // Desktop toast
-    let toast = document.getElementById("eco-toast");
-    if (!toast) {
-      toast = document.createElement("div");
-      toast.id = "eco-toast";
-      toast.className = "toast-ephemere";
-      document.body.appendChild(toast);
-    }
-    toast.textContent = isEco ? "\u2728 Full Performance" : "\uD83C\uDF3F Mode Eco";
-    toast.classList.add("is-visible");
-    setTimeout(() => toast.classList.remove("is-visible"), 1800);
-  }
+  showEcoMessage(
+    isEco ? "Full Performance" : "Mode Eco",
+    isEco ? "#c9a962" : "#10b981"
+  );
 
   applyEcoMode(!isEco);
-  setTimeout(() => window.location.reload(), isMobile ? 1500 : 1200);
+  setTimeout(() => window.location.reload(), 1500);
 }
 
-// Bind les deux toggles immediatement (le module s'execute apres le DOM)
-const _desktopBtn = document.getElementById("eco-toggle-desktop");
-const _mobileBtn = document.getElementById("eco-toggle-mobile");
-
-if (_desktopBtn) _desktopBtn.addEventListener("click", toggleEcoMode);
-if (_mobileBtn) {
-  _mobileBtn.addEventListener("click", toggleEcoMode);
-  _mobileBtn.addEventListener("touchend", (e) => { e.preventDefault(); toggleEcoMode(); });
+// Bind l'interrupteur eco (meme element desktop + mobile)
+const _ecoBtn = document.getElementById("eco-toggle");
+if (_ecoBtn) {
+  _ecoBtn.addEventListener("click", toggleEcoMode);
+  _ecoBtn.addEventListener("touchend", (e) => { e.preventDefault(); toggleEcoMode(); });
 }
 
 function initEcoMode() {

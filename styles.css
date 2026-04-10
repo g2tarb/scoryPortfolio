@@ -871,95 +871,24 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   padding: 0; width: 40px; height: 40px;
 }
 
-/* ===== Eco Pill Switch (Apple style) ===== */
-.eco-pill {
+
+/* ===== INTERRUPTEUR OVAL ON/OFF — couleurs du site ===== */
+.eco-switch {
   position: fixed;
   top: clamp(0.75rem, 2.5vw, 1.5rem);
   right: calc(clamp(0.75rem, 2.5vw, 1.5rem) + 48px);
-  z-index: 50;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
-.eco-pill__track {
-  display: flex;
-  align-items: center;
-  width: 68px; height: 32px;
-  border-radius: 999px;
-  background: rgba(7,6,10,0.5);
-  backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3);
-  border: 1px solid rgba(255,255,255,0.1);
-  position: relative;
-  padding: 0 3px;
-  transition: border-color 0.4s ease, box-shadow 0.4s ease;
-}
-.eco-pill:hover .eco-pill__track {
-  border-color: rgba(255,255,255,0.2);
-  box-shadow: 0 0 20px var(--theme-glow), 0 4px 20px rgba(0,0,0,0.3);
-}
-.eco-pill__option {
-  flex: 1;
-  text-align: center;
-  font-size: 0.75rem;
-  position: relative;
-  z-index: 2;
-  line-height: 32px;
-  transition: opacity 0.3s ease;
-  user-select: none;
-}
-.eco-pill__option--full { opacity: 1; }
-.eco-pill__option--eco { opacity: 0.4; }
-.eco-pill__thumb {
-  position: absolute;
-  top: 3px; left: 3px;
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: var(--accent-gold);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 12px var(--theme-glow);
-  transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease, box-shadow 0.4s ease;
-  z-index: 1;
-}
-
-/* Eco actif — thumb a droite */
-body.eco-mode .eco-pill__thumb {
-  left: calc(100% - 29px);
-  background: #10b981;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.4), 0 0 12px rgba(16,185,129,0.4);
-}
-body.eco-mode .eco-pill__option--full { opacity: 0.4; }
-body.eco-mode .eco-pill__option--eco { opacity: 1; }
-body.eco-mode .eco-pill__track {
-  border-color: rgba(16,185,129,0.25);
-}
-
-/* Effet enfoncement au clic */
-.eco-pill:active .eco-pill__thumb {
-  width: 32px;
-  transition: width 0.15s ease, left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-body.eco-mode .eco-pill:active .eco-pill__thumb {
-  left: calc(100% - 35px);
-}
-
-/* Desktop only */
-.eco-pill--desktop { display: block; }
-.eco-switch { display: none; }
-.eco-message { display: none; }
-
-@media (max-width: 600px) {
-  .eco-pill--desktop { display: none !important; }
-  .eco-switch { display: block; }
-}
-
-/* ===== INTERRUPTEUR OVAL MOBILE — couleurs du site ===== */
-.eco-switch {
-  position: fixed;
-  bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
-  left: 0.6rem;
   z-index: 100;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+@media (max-width: 600px) {
+  .eco-switch {
+    top: auto;
+    right: auto;
+    bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+    left: 0.6rem;
+  }
 }
 .eco-switch__track {
   width: 52px; height: 28px;
@@ -1044,8 +973,8 @@ body.eco-mode .eco-switch:active .eco-switch__knob {
 /* ===== MESSAGE ECO CONTEXTUEL ===== */
 .eco-message {
   position: fixed;
-  bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
-  left: 0.6rem;
+  top: clamp(0.75rem, 2.5vw, 1.5rem);
+  right: calc(clamp(0.75rem, 2.5vw, 1.5rem) + 108px);
   z-index: 101;
   font-family: var(--font-mono);
   font-size: 0.55rem;
@@ -1073,6 +1002,14 @@ body.eco-mode .eco-switch:active .eco-switch__knob {
   border-radius: 50%;
   margin-right: 6px;
   vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+  .eco-message {
+    top: auto; right: auto;
+    bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+    left: 0.6rem;
+  }
 }
 
 /* ===== MOBILE SCROLL ENHANCEMENTS ===== */
@@ -1122,17 +1059,6 @@ body.eco-mode .eco-switch:active .eco-switch__knob {
     right: 0.5rem;
     width: 36px; height: 36px; font-size: 0.55rem;
   }
-  .eco-pill {
-    top: max(0.5rem, env(safe-area-inset-top, 0px));
-    right: calc(0.5rem + 42px);
-    z-index: 100;
-  }
-  .eco-pill__track { width: 60px; height: 28px; }
-  .eco-pill__thumb { width: 22px; height: 22px; }
-  .eco-pill__option { font-size: 0.65rem; line-height: 28px; }
-  body.eco-mode .eco-pill__thumb { left: calc(100% - 25px); }
-  .eco-pill:active .eco-pill__thumb { width: 28px; }
-  body.eco-mode .eco-pill:active .eco-pill__thumb { left: calc(100% - 31px); }
   .sound-toggle {
     bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
     right: 0.6rem;
@@ -2015,7 +1941,7 @@ body.eco-mode .card-glass,
 body.eco-mode .nav-arrow,
 body.eco-mode .sound-toggle,
 body.eco-mode .lang-toggle,
-body.eco-mode .eco-pill__track,
+body.eco-mode .eco-switch__track,
 body.eco-mode .detail-panel,
 body.eco-mode .booking-overlay,
 body.eco-mode .chatbot-container {
