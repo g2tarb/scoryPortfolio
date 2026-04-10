@@ -90,6 +90,20 @@ function yieldToBrowser() {
   return new Promise((r) => setTimeout(r, 0));
 }
 
+/** Scroll fiable vers un element — fonctionne sur Safari iOS + Lenis */
+function scrollToElement(el) {
+  if (!el) return;
+  const targetY = el.getBoundingClientRect().top + window.scrollY - innerHeight * 0.15;
+  try { window.scrollTo({ top: targetY, behavior: "smooth" }); } catch { window.scrollTo(0, targetY); }
+  // Double fallback Safari
+  setTimeout(() => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top > innerHeight * 0.5) {
+      try { el.scrollIntoView({ behavior: "smooth", block: "start" }); } catch { el.scrollIntoView(true); }
+    }
+  }, 600);
+}
+
 /* ---------- Mode eco toggle ---------- */
 const PERF_KEY = "scory_perf_mode";
 
@@ -779,7 +793,7 @@ async function main() {
         closeDetail();
         setTimeout(() => {
           const chatSection = document.getElementById("chatbot-section");
-          if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "center" });
+          if (chatSection) scrollToElement(chatSection);
         }, 400);
       });
       detailCtaWrap.appendChild(cta);
@@ -1246,13 +1260,13 @@ async function main() {
       if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
       // Sauvegarder le discount
       localStorage.setItem("scory_discount", "SCROLL5");
-      // Apres 2s d'affichage → scroll vers le chatbot
+      // Apres 2s → fermer le panneau, scroll vers le chatbot, injecter message
       setTimeout(() => {
         overscrollBottom.classList.remove("is-visible");
+        _overscrollCooldown = true;
         const chatSection = document.getElementById("chatbot-section");
-        if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "center" });
-        // Injecter un message de felicitation dans le chatbot
-        setTimeout(() => injectDiscountMessage(), 800);
+        if (chatSection) scrollToElement(chatSection);
+        setTimeout(() => injectDiscountMessage(), 1200);
       }, 2000);
     }
   }
@@ -1337,6 +1351,16 @@ async function main() {
     }
   }, { passive: true });
 
+  /* ---------- Overscroll CTA → chatbot ---------- */
+  const overscrollCta = document.getElementById("overscroll-cta");
+  if (overscrollCta) {
+    overscrollCta.addEventListener("click", () => {
+      overscrollBottom.classList.remove("is-visible");
+      const cs = document.getElementById("chatbot-section");
+      if (cs) scrollToElement(cs);
+    });
+  }
+
   /* ---------- Discount message injection ---------- */
   function injectDiscountMessage() {
     const msgContainer = document.getElementById("chatbot-messages");
@@ -1365,7 +1389,7 @@ async function main() {
     scrollHint.style.cursor = "pointer";
     scrollHint.addEventListener("click", () => {
       const chatSection = document.getElementById("chatbot-section");
-      if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (chatSection) scrollToElement(chatSection);
     });
   }
 
