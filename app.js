@@ -794,18 +794,103 @@ async function main() {
     }
     if (_detailFocusTrap) { _detailFocusTrap(); _detailFocusTrap = null; }
     if (_detailPrevFocus) { _detailPrevFocus.focus(); _detailPrevFocus = null; }
+
+    // Animer le retour du disque : shrink → reprend rotation
+    const disc = _discsCache.find((d) => d.classList.contains("is-active"));
+    if (disc && !reduced) {
+      gsap.to(disc, {
+        scale: 1, rotation: discSpinAngle,
+        duration: 0.7, ease: "elastic.out(1, 0.6)",
+        onComplete: () => startSpin()
+      });
+    } else if (!reduced) {
+      startSpin();
+    }
+
+    _holdActive = false;
+    _holdDisc = null;
   }
 
   /* Bouton X ferme le detail */
   const detailCloseBtn = document.getElementById("detail-close");
   if (detailCloseBtn) detailCloseBtn.addEventListener("click", (e) => { e.stopPropagation(); closeDetail(); });
 
-  /* Clic sur le disque actif → ouvre les détails */
+  /* Clic / Long press sur le disque actif → animation + details */
+  let _holdTimer = null;
+  let _holdActive = false;
+  let _holdDisc = null;
+
+  function discPrepareOpen(disc) {
+    _holdActive = true;
+    _holdDisc = disc;
+    stopSpin();
+    // Le disque grossit et se redresse
+    gsap.to(disc, {
+      scale: 1.12, rotation: 0, rotateX: 0, rotateY: 0,
+      duration: 0.5, ease: "back.out(1.4)",
+      boxShadow: "0 0 60px var(--theme-glow-strong)",
+    });
+  }
+
+  function discOpenDetail() {
+    if (!_holdActive || detailVisible) return;
+    openDetail();
+  }
+
+  function discRestore() {
+    clearTimeout(_holdTimer);
+    _holdTimer = null;
+    if (!_holdDisc) return;
+    const disc = _holdDisc;
+    _holdActive = false;
+    _holdDisc = null;
+
+    if (!detailVisible) {
+      // Pas ouvert → retour direct
+      gsap.to(disc, {
+        scale: 1, rotation: discSpinAngle,
+        duration: 0.6, ease: "elastic.out(1, 0.5)",
+        onComplete: () => { if (!reduced) startSpin(); }
+      });
+    }
+  }
+
+  // Touch : long press → prepare → release → open
+  carousel.addEventListener("touchstart", (e) => {
+    if (animating || detailVisible) return;
+    const target = e.target.closest(".project-disc");
+    if (!target || !target.classList.contains("is-active")) return;
+    _holdTimer = setTimeout(() => discPrepareOpen(target), 200);
+  }, { passive: true });
+
+  carousel.addEventListener("touchend", (e) => {
+    if (_holdActive) {
+      e.preventDefault();
+      discOpenDetail();
+    } else {
+      // Tap court → ouvre directement
+      clearTimeout(_holdTimer);
+      const target = e.target.closest(".project-disc");
+      if (target && target.classList.contains("is-active") && !animating && !detailVisible) {
+        openDetail();
+      }
+    }
+  });
+
+  carousel.addEventListener("touchcancel", () => discRestore());
+
+  // Desktop : clic simple ouvre directement (le tilt 3D gere le hover)
   carousel.addEventListener("click", (e) => {
+    if (isTouchDevice) return;
     if (animating || detailVisible) return;
     const target = e.target.closest(".project-disc");
     if (target && target.classList.contains("is-active")) {
-      openDetail();
+      stopSpin();
+      gsap.to(target, {
+        scale: 1.08, rotation: 0, rotateX: 0, rotateY: 0,
+        duration: 0.3, ease: "power2.out",
+        onComplete: () => openDetail()
+      });
     }
   });
 
