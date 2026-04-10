@@ -1768,10 +1768,6 @@ body.eco-mode .eco-toggle {
 }
 
 /* Mobile : supprime le bruit SVG overlay (invisible de toute facon) */
-@media (max-width: 600px) {
-  body::after { display: none; }
-}
-
 /* Mode eco — applique quand l'utilisateur choisit eco */
 body.eco-mode .neural-host,
 body.eco-mode .water-host,
