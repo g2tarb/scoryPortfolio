@@ -627,10 +627,6 @@ html.lenis, html.lenis body { height: auto; }
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
-/* Pendant l'animation GSAP: garder le centrage CSS, GSAP ajoute x/y/scale par-dessus */
-.detail-panel.is-animating {
-  transform: translate(-50%, -50%);
-}
 .detail-panel.is-visible {
   pointer-events: auto;
 }
