@@ -850,7 +850,7 @@ async function main() {
       gsap.to(disc, {
         scale: 1, rotation: discSpinAngle,
         duration: 0.6, ease: "elastic.out(1, 0.5)",
-        onComplete: () => { if (!reduced) startSpin(); }
+        onComplete: () => { if (!reduced && !ecoMode) startSpin(); }
       });
     }
   }
@@ -950,11 +950,11 @@ async function main() {
     discSpinActive = false;
     cancelAnimationFrame(discSpinRaf);
   }
-  if (!reduced) startSpin();
+  if (!reduced && !ecoMode) startSpin();
 
   // Tilt 3D au survol (pause la rotation, ajoute le tilt)
   const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-  if (!isTouchDevice && !reduced) {
+  if (!isTouchDevice && !reduced && !ecoMode) {
     carousel.addEventListener("mouseenter", () => {
       stopSpin();
     });
@@ -1081,7 +1081,7 @@ async function main() {
 
   /* ---------- Teleportation sections (vide → mi-vide → rempli + rebond) ---------- */
   const teleportSections = document.querySelectorAll(".stats-section, .process-section, .about-section");
-  if (teleportSections.length > 0 && !reduced) {
+  if (teleportSections.length > 0 && !reduced && !ecoMode) {
     teleportSections.forEach((section) => {
       gsap.set(section, { opacity: 0, scale: 0.3, y: 60, filter: "blur(8px)" });
       const obs = new IntersectionObserver((entries) => {

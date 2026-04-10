@@ -1992,19 +1992,94 @@ body.eco-mode .eco-switch:active .eco-switch__knob {
 
 /* Mobile : supprime le bruit SVG overlay (invisible de toute facon) */
 /* Mode eco — applique quand l'utilisateur choisit eco */
+/* ===== ECO MODE — Perf minimum absolu ===== */
+
+/* Tuer TOUT le rendu GPU lourd */
 body.eco-mode .neural-host,
 body.eco-mode .water-host,
 body.eco-mode .particle-canvas,
 body.eco-mode .project-bg-host canvas,
 body.eco-mode .project-bg-host video,
-body.eco-mode .stage-vignette { display: none !important; }
-body.eco-mode .glass-panel { backdrop-filter: none; -webkit-backdrop-filter: none; background: linear-gradient(145deg, rgba(22,19,28,0.95), rgba(14,12,18,0.97)); }
-body.eco-mode .card-glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.06), rgba(12,10,18,0.92) 52%), linear-gradient(160deg, rgba(30,24,40,0.95), rgba(12,10,18,0.9)); }
-body.eco-mode .nav-arrow { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(22,19,28,0.92); }
-body.eco-mode .sound-toggle { backdrop-filter: none; -webkit-backdrop-filter: none; background: rgba(22,19,28,0.92); }
-body.eco-mode .chatbot-glow { display: none; }
+body.eco-mode .stage-vignette,
+body.eco-mode .chatbot-glow,
+body.eco-mode .chatbot-container::before,
+body.eco-mode .chatbot-container::after,
+body.eco-mode .chatbot-progress__shimmer,
+body.eco-mode .cursor-dot,
+body.eco-mode .cursor-ring,
+body.eco-mode .flaynn-orbit { display: none !important; }
+
+/* Zero backdrop-filter (le plus couteux GPU) */
+body.eco-mode .glass-panel,
+body.eco-mode .card-glass,
+body.eco-mode .nav-arrow,
+body.eco-mode .sound-toggle,
+body.eco-mode .lang-toggle,
+body.eco-mode .eco-pill__track,
+body.eco-mode .detail-panel,
+body.eco-mode .booking-overlay,
+body.eco-mode .chatbot-container {
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+
+/* Fonds solides au lieu de glass */
+body.eco-mode .glass-panel { background: linear-gradient(145deg, rgba(22,19,28,0.97), rgba(14,12,18,0.98)); }
+body.eco-mode .card-glass { background: linear-gradient(160deg, rgba(26,22,36,0.97), rgba(12,10,18,0.95)); }
+body.eco-mode .nav-arrow { background: rgba(22,19,28,0.95); }
+body.eco-mode .sound-toggle,
+body.eco-mode .lang-toggle { background: rgba(22,19,28,0.95); }
+body.eco-mode .detail-panel { background: rgba(16,14,22,0.98); }
+
+/* Zero animation — tout statique */
+body.eco-mode *,
+body.eco-mode *::before,
+body.eco-mode *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.15s !important;
+}
+
+/* Garder les transitions essentielles */
+body.eco-mode .detail-panel { transition-duration: 0.3s !important; }
+body.eco-mode .project-disc { transition-duration: 0.2s !important; }
+
+/* Zero box-shadow lourd */
+body.eco-mode .project-disc,
+body.eco-mode .chatbot-container,
+body.eco-mode .detail-panel {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+}
+
+/* Zero filter/blur */
 body.eco-mode body::after { display: none; }
-body.eco-mode .project-bg-host { background-size: cover; background-position: center; opacity: 0.25 !important; display: block !important; }
+body.eco-mode .gradient-text {
+  background: none; -webkit-background-clip: unset; background-clip: unset;
+  color: var(--accent-gold);
+}
+
+/* Image statique en fond — ultra leger */
+body.eco-mode .project-bg-host {
+  background-size: cover; background-position: center;
+  opacity: 0.2 !important; display: block !important;
+}
+
+/* Disque ne tourne pas en eco */
+body.eco-mode .project-disc { will-change: auto !important; }
+
+/* Simplifier les ombres partout */
+body.eco-mode .nav-arrow:hover { box-shadow: none; transform: scale(1.05); }
+body.eco-mode .project-disc:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.4); }
+body.eco-mode .project-disc.is-active { box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+
+/* content-visibility pour tout ce qui est hors ecran */
+body.eco-mode .stats-section,
+body.eco-mode .process-section,
+body.eco-mode .about-section,
+body.eco-mode .chatbot-section,
+body.eco-mode .contact-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 300px;
+}
 
 
 /* =============================================================================
