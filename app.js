@@ -631,7 +631,13 @@ async function main() {
       });
     });
 
-    // Phase 2: faire tourner la roue vers le nouveau disque (0.35s)
+    // Phase 2: faire tourner la roue + precharger en parallele
+    // Lancer le preload PENDANT l'animation (chargement cache)
+    activeIndex = nextIndex;
+    preloadNearby(activeIndex);
+    getProjectBg(nextIndex).catch(() => {}); // precharge le Canvas/video du prochain projet
+    const waterReady = ensureWater().catch(() => {}); // precharge le water shader
+
     await new Promise((resolve) => {
       const tl = gsap.timeline({ onComplete: resolve });
       d.forEach((disc, i) => {
@@ -647,8 +653,7 @@ async function main() {
       });
     });
 
-    // Phase 3: le disque selectionne grossit, les autres disparaissent
-    activeIndex = nextIndex;
+    // Phase 3: le disque grossit, les autres disparaissent, le fond est pret
     setActiveClasses(activeIndex);
     setLabel(activeIndex, true);
     updateDots();
@@ -684,11 +689,11 @@ async function main() {
         nextDisc.style.cssText = "";
         if (!reduced && !ecoMode) startSpin();
       },
-      }
-    );
+    });
 
     animating = false;
-    preloadNearby(activeIndex);
+    // Le fond se charge pendant la roue, on sync maintenant que c'est pret
+    await waterReady;
     void syncProjectWater();
   }
 
