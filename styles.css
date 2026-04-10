@@ -951,7 +951,7 @@ body.eco-mode .eco-pill:active .eco-pill__thumb {
   .eco-switch { display: block; }
 }
 
-/* ===== INTERRUPTEUR PHYSIQUE MOBILE ===== */
+/* ===== INTERRUPTEUR OVAL ON/OFF MOBILE ===== */
 .eco-switch {
   position: fixed;
   bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
@@ -961,66 +961,80 @@ body.eco-mode .eco-pill:active .eco-pill__thumb {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
-.eco-switch__body {
-  width: 36px; height: 56px;
-  border-radius: 10px;
-  background: linear-gradient(180deg, #1a1820 0%, #0e0c14 100%);
-  border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+.eco-switch__track {
+  width: 52px; height: 28px;
+  border-radius: 999px;
+  background: #000;
+  border: 2px solid rgba(255,255,255,0.15);
   position: relative;
-  overflow: hidden;
+  box-shadow:
+    inset 0 2px 6px rgba(0,0,0,0.8),
+    0 2px 10px rgba(0,0,0,0.5);
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
 }
-.eco-switch__lever {
+/* Knob — boule blanche qui glisse */
+.eco-switch__knob {
   position: absolute;
-  top: 6px; left: 6px;
-  width: 24px; height: 22px;
-  border-radius: 6px;
-  background: linear-gradient(180deg, #2a2835 0%, #1e1b28 100%);
-  border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
-  transition: top 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease;
-}
-/* Levier enfonce = eco */
-body.eco-mode .eco-switch__lever {
-  top: 28px;
-  background: linear-gradient(180deg, #1a2820 0%, #0e1410 100%);
-  border-color: rgba(16,185,129,0.2);
-  box-shadow: 0 -2px 6px rgba(0,0,0,0.5), inset 0 -1px 0 rgba(255,255,255,0.08);
-}
-.eco-switch__label {
-  position: absolute;
-  font-family: var(--font-mono);
-  font-size: 0.3rem;
-  letter-spacing: 0.12em;
-  text-align: center;
-  width: 100%;
-  color: rgba(245,242,255,0.2);
-  transition: color 0.3s ease;
-  user-select: none;
-}
-.eco-switch__label--on { top: 32px; }
-.eco-switch__label--off { bottom: 5px; }
-body.eco-mode .eco-switch__label--on { bottom: auto; top: 5px; color: rgba(245,242,255,0.15); }
-body.eco-mode .eco-switch__label--off { top: auto; bottom: 32px; }
-
-/* LED indicator */
-.eco-switch__led {
-  position: absolute;
-  top: 3px; right: 3px;
-  width: 4px; height: 4px;
+  top: 2px; left: 2px;
+  width: 20px; height: 20px;
   border-radius: 50%;
-  background: var(--accent-gold);
-  box-shadow: 0 0 6px var(--accent-gold), 0 0 12px var(--theme-glow);
-  transition: all 0.3s ease;
+  background: linear-gradient(145deg, #fff 0%, #d0d0d0 100%);
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(255,255,255,0.2) inset;
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s ease, box-shadow 0.35s ease;
+  display: grid; place-items: center;
 }
-body.eco-mode .eco-switch__led {
-  background: #10b981;
-  box-shadow: 0 0 6px #10b981, 0 0 12px rgba(16,185,129,0.4);
+.eco-switch__symbol {
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 900;
+  color: #000;
+  line-height: 1;
+  transition: color 0.3s ease;
 }
 
-/* Animation clic — vibration du levier */
-.eco-switch:active .eco-switch__lever {
-  transform: scaleY(0.85);
+/* ON state (full perf) — knob a gauche, symbole I */
+/* Default = full perf */
+
+/* OFF state (eco) — knob a droite, symbole O */
+body.eco-mode .eco-switch__track {
+  background: #000;
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.3);
+}
+body.eco-mode .eco-switch__knob {
+  left: calc(100% - 22px);
+  background: linear-gradient(145deg, #888 0%, #555 100%);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+body.eco-mode .eco-switch__symbol {
+  color: #222;
+}
+body.eco-mode .eco-switch__symbol::after {
+  content: "";
+}
+
+/* Glow subtil quand full perf */
+.eco-switch__track::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(255,255,255,0.08);
+  opacity: 1;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+body.eco-mode .eco-switch__track::after { opacity: 0; }
+
+/* Enfoncement au tap */
+.eco-switch:active .eco-switch__knob {
+  width: 26px;
+  transition: width 0.12s ease, left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+body.eco-mode .eco-switch:active .eco-switch__knob {
+  left: calc(100% - 28px);
 }
 
 /* ===== MESSAGE ECO CONTEXTUEL ===== */
