@@ -102,12 +102,26 @@ function applyEcoMode(eco) {
   }
 }
 
+function showEcoToast(msg) {
+  let toast = document.getElementById("eco-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "eco-toast";
+    toast.className = "toast-ephemere";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add("is-visible");
+  setTimeout(() => toast.classList.remove("is-visible"), 1800);
+}
+
 function toggleEcoMode() {
   const isEco = document.body.classList.contains("eco-mode");
   const newMode = isEco ? "full" : "eco";
   localStorage.setItem(PERF_KEY, newMode);
+  showEcoToast(isEco ? "\u2728 Full Performance" : "\uD83C\uDF3F Mode Eco");
   applyEcoMode(!isEco);
-  setTimeout(() => window.location.reload(), 100);
+  setTimeout(() => window.location.reload(), 1200);
 }
 
 // Bind via addEventListener (plus fiable que onclick sur mobile)
