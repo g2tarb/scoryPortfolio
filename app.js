@@ -1211,21 +1211,29 @@ async function main() {
   let _osAccum = 0;
   let _osCurrentStage = -1;
   let _osWon = false;
-  const OS_THRESHOLD = innerHeight / 3; // 1/3 de l'ecran pour gagner
+  let _osStageUnlockTime = 0;
+  const OS_THRESHOLD = innerHeight * 0.8; // presque tout l'ecran pour gagner
 
   function updateOverscrollStage(progress) {
-    // progress: 0 → 1 (1 = 1/3 ecran)
+    // progress: 0 → 1 (1 = 80% de l'ecran)
     const clamped = Math.min(1, Math.max(0, progress));
     if (osProgress) osProgress.style.setProperty("--os-progress", (clamped * 100) + "%");
 
+    const now = Date.now();
     let stage = -1;
-    if (clamped > 0.01) stage = 0; // yeux
-    if (clamped > 0.25) stage = 1; // insiste
-    if (clamped > 0.6) stage = 2;  // NOOON
-    if (clamped >= 0.98) stage = 3; // WIN
+    if (clamped > 0.01) stage = 0;  // yeux — debut
+    if (clamped > 0.35) stage = 1;  // insiste — un bon tiers
+    if (clamped > 0.70) stage = 2;  // NOOON — presque la
+    if (clamped >= 0.95) stage = 3;  // WIN — faut vraiment le vouloir
+
+    // Delai entre chaque stage (500ms minimum)
+    if (stage > _osCurrentStage && now - _osStageUnlockTime < 500) {
+      stage = _osCurrentStage;
+    }
 
     if (stage !== _osCurrentStage && stage >= 0) {
       _osCurrentStage = stage;
+      _osStageUnlockTime = now;
       osStages.forEach((s, i) => { if (s) s.style.display = i === stage ? "block" : "none"; });
     }
 
@@ -1290,7 +1298,7 @@ async function main() {
       _osAccum += e.deltaY;
       clearTimeout(_wheelTimer);
       _wheelTimer = setTimeout(() => { if (!_osWon) resetOverscroll(); }, 800);
-      updateOverscrollStage(_osAccum / (OS_THRESHOLD * 2));
+      updateOverscrollStage(_osAccum / (OS_THRESHOLD * 3));
     } else if (atTop && e.deltaY < 0) {
       _osAccum += Math.abs(e.deltaY);
       clearTimeout(_wheelTimer);
