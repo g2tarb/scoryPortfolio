@@ -644,10 +644,10 @@ async function main() {
       duration: 0.5, ease: "power2.in",
     }, 0);
 
-    // Phase 2: pause — moment de respiration (0.2s)
+    // Phase 2: pause — moment de respiration (0.5s)
     // Le fond neural pulse legerement pendant la pause
     if (!ecoMode) {
-      tl.to({}, { duration: 0.2,
+      tl.to({}, { duration: 0.5,
         onStart: () => {
           const p = { v: 0 };
           gsap.to(p, { v: 0.2, duration: 0.2, onUpdate: () => neural.setTransitionProgress(p.v) });
