@@ -834,45 +834,79 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
 .detail-panel__screenshot:hover { transform: scale(1.03); }
 
 /* ===== TOGGLE LANGUE ===== */
-.lang-toggle {
-  position: fixed; top: clamp(1rem, 3vw, 2rem); right: clamp(1rem, 3vw, 2rem);
-  z-index: 50; width: auto; height: 36px; padding: 0 0.75rem;
-  border-radius: 999px; border: 1px solid var(--glass-border);
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  color: rgba(245,242,255,0.7); cursor: pointer;
-  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
-  letter-spacing: 0.1em;
-  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+/* ===== BOUTONS FLOTTANTS — Style unifie glassmorphism ===== */
+.lang-toggle,
+.sound-toggle,
+.eco-toggle {
+  position: fixed;
+  z-index: 50;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(7,6,10,0.4);
+  backdrop-filter: blur(16px) saturate(1.3); -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  color: rgba(245,242,255,0.5);
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 40px; height: 40px;
 }
-.lang-toggle:hover {
-  background: rgba(255,255,255,0.12); color: var(--accent-gold);
-  border-color: var(--accent-gold);
-}
-@media (max-width: 600px) {
-  .lang-toggle { top: 0.5rem; right: 0.5rem; height: 32px; font-size: 0.65rem; padding: 0 0.6rem; }
+.lang-toggle:hover,
+.sound-toggle:hover,
+.eco-toggle:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--accent-gold);
+  border-color: rgba(255,255,255,0.2);
+  transform: scale(1.1);
+  box-shadow: 0 0 20px var(--theme-glow), 0 4px 20px rgba(0,0,0,0.3);
 }
 
-/* ===== SON AMBIANT ===== */
+/* Positions — groupe aligne en haut a droite */
+.lang-toggle {
+  top: clamp(0.75rem, 2.5vw, 1.5rem);
+  right: clamp(0.75rem, 2.5vw, 1.5rem);
+  font-family: var(--font-mono); font-size: 0.6rem; font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0; width: 40px; height: 40px;
+}
+.eco-toggle {
+  top: clamp(0.75rem, 2.5vw, 1.5rem);
+  right: calc(clamp(0.75rem, 2.5vw, 1.5rem) + 48px);
+  font-size: 0.85rem;
+}
 .sound-toggle {
-  position: fixed; bottom: clamp(1rem, 3vw, 2rem); right: clamp(1rem, 3vw, 2rem);
-  z-index: 50; width: 44px; height: 44px;
-  border-radius: 50%; border: 1px solid var(--glass-border);
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  color: rgba(245,242,255,0.6); cursor: pointer;
-  display: grid; place-items: center;
-  transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  bottom: clamp(0.75rem, 2.5vw, 1.5rem);
+  right: clamp(0.75rem, 2.5vw, 1.5rem);
 }
-.sound-toggle:hover {
-  background: rgba(255,255,255,0.12); color: #fff;
-  transform: scale(1.08);
-  box-shadow: 0 0 20px var(--theme-glow);
-}
+
+/* Etats actifs */
 .sound-toggle[aria-pressed="true"] {
   color: var(--accent-gold);
-  border-color: var(--accent-gold);
+  border-color: rgba(201,169,98,0.3);
   box-shadow: 0 0 15px var(--theme-glow);
+}
+body.eco-mode .eco-toggle {
+  color: #10b981;
+  border-color: rgba(16,185,129,0.3);
+  box-shadow: 0 0 12px rgba(16,185,129,0.2);
+}
+
+/* Mobile — repositionnement */
+@media (max-width: 600px) {
+  .lang-toggle {
+    top: max(0.5rem, env(safe-area-inset-top, 0px));
+    right: 0.5rem;
+    width: 36px; height: 36px; font-size: 0.55rem;
+  }
+  .eco-toggle {
+    top: max(0.5rem, env(safe-area-inset-top, 0px));
+    right: calc(0.5rem + 42px);
+    width: 36px; height: 36px; font-size: 0.75rem;
+  }
+  .sound-toggle {
+    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    right: 0.6rem;
+    width: 40px; height: 40px;
+  }
 }
 
 /* ===== EASTER EGG ===== */
@@ -1561,14 +1595,9 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
   .scroll-hint { padding: 0.75rem 0 0.4rem; }
   .scroll-hint__text { font-size: 0.8rem; }
 
-  /* Son — plus gros tap target + safe area */
-  .sound-toggle {
-    width: 44px; height: 44px;
-    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
-    right: 0.6rem;
-  }
+  /* Son — ajustements visualiseur mobile */
   .sound-toggle svg { width: 16px; height: 16px; }
-  .sound-viz__bar { width: 2px; height: 6px; top: -2px; left: calc(50% - 1px); transform-origin: 1px calc(22px + 2px); }
+  .sound-viz__bar { width: 2px; height: 6px; top: -2px; left: calc(50% - 1px); transform-origin: 1px calc(20px + 2px); }
   .sound-volume { width: 36px; right: 0.2rem; bottom: calc(3.2rem + env(safe-area-inset-bottom, 0px)); }
 
   /* Booking */
@@ -1716,39 +1745,10 @@ body.eco-mode .chatbot-glow { display: none; }
 body.eco-mode body::after { display: none; }
 body.eco-mode .project-bg-host { background-size: cover; background-position: center; opacity: 0.25 !important; display: block !important; }
 
-/* ============================================================================
-   BOUTON ECO MODE
-   ============================================================================ */
-.eco-toggle {
-  position: fixed;
-  top: 0.75rem;
-  right: 7.5rem;
-  z-index: 90;
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  border: 1px solid var(--glass-border);
-  background: rgba(7,6,10,0.5);
-  backdrop-filter: blur(var(--glass-blur)); -webkit-backdrop-filter: blur(var(--glass-blur));
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.9rem;
-  color: rgba(245,242,255,0.6);
-  transition: all 0.3s ease;
-}
-.eco-toggle:hover {
-  border-color: var(--accent-gold);
-  color: var(--accent-gold);
-  box-shadow: 0 0 15px var(--theme-glow);
-}
+/* Eco toggle icon states */
 .eco-icon--on { display: none; }
 body.eco-mode .eco-icon--off { display: none; }
 body.eco-mode .eco-icon--on { display: inline; }
-body.eco-mode .eco-toggle { border-color: #10b981; color: #10b981; }
-body.eco-mode .eco-toggle:hover { box-shadow: 0 0 15px rgba(16,185,129,0.3); }
-
-@media (max-width: 600px) {
-  .eco-toggle { top: auto; bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px)); right: auto; left: 0.6rem; width: 40px; height: 40px; }
-}
 
 /* =============================================================================
    ACCESSIBILITE — Reduced motion
