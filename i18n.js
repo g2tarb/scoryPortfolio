@@ -13,7 +13,7 @@ export const TRANSLATIONS = {
   "brand.sub": { fr: "Musee digital", en: "Digital museum" },
   // Discs
   "disc.0.title": { fr: "Portfolio Scory", en: "Scory Portfolio" },
-  "disc.0.meta": { fr: "Musee digital", en: "Digital museum" },
+  "disc.0.meta": { fr: "Creative Dev — Paris", en: "Creative Dev — Paris" },
   "disc.1.title": { fr: "4dayvelopment", en: "4dayvelopment" },
   "disc.1.meta": { fr: "Agence web", en: "Web agency" },
   "disc.2.title": { fr: "Clara Martinez", en: "Clara Martinez" },

@@ -16,6 +16,7 @@
  *   - data.js       → données projets, thèmes, flux chatbot
  */
 import gsap from "gsap";
+import Lenis from "lenis";
 import { PROJECTS as PROJECTS_ALL, THEMES, CHAT_FLOW as CHAT_FLOW_ALL } from "./data.js";
 import { getLang, setLang, t } from "./i18n.js";
 import { initCursor, initMagneticArrows } from "./cursor.js";
@@ -89,6 +90,61 @@ function yieldToBrowser() {
   return new Promise((r) => setTimeout(r, 0));
 }
 
+/** Scroll fiable vers un element — fonctionne sur Safari iOS + Lenis */
+function scrollToElement(el) {
+  if (!el) return;
+  const targetY = el.getBoundingClientRect().top + window.scrollY - innerHeight * 0.15;
+  try { window.scrollTo({ top: targetY, behavior: "smooth" }); } catch { window.scrollTo(0, targetY); }
+  // Double fallback Safari
+  setTimeout(() => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top > innerHeight * 0.5) {
+      try { el.scrollIntoView({ behavior: "smooth", block: "start" }); } catch { el.scrollIntoView(true); }
+    }
+  }, 600);
+}
+
+/* ---------- Mode eco toggle ---------- */
+const PERF_KEY = "scory_perf_mode";
+
+function applyEcoMode(eco) {
+  document.body.classList.toggle("eco-mode", eco);
+}
+
+function showEcoMessage(text, color) {
+  const msg = document.getElementById("eco-message");
+  if (!msg) return;
+  msg.innerHTML = `<span class="eco-message__dot" style="background:${color};box-shadow:0 0 6px ${color}"></span>${text}`;
+  msg.classList.add("is-visible");
+  setTimeout(() => msg.classList.remove("is-visible"), 2500);
+}
+
+function toggleEcoMode() {
+  const isEco = document.body.classList.contains("eco-mode");
+  const newMode = isEco ? "full" : "eco";
+  localStorage.setItem(PERF_KEY, newMode);
+
+  showEcoMessage(
+    isEco ? "Full Performance" : "Mode Eco",
+    isEco ? "#c9a962" : "#10b981"
+  );
+
+  applyEcoMode(!isEco);
+  setTimeout(() => window.location.reload(), 1500);
+}
+
+// Bind l'interrupteur eco (meme element desktop + mobile)
+const _ecoBtn = document.getElementById("eco-toggle");
+if (_ecoBtn) {
+  _ecoBtn.addEventListener("click", toggleEcoMode);
+  _ecoBtn.addEventListener("touchend", (e) => { e.preventDefault(); toggleEcoMode(); });
+}
+
+function initEcoMode() {
+  const saved = localStorage.getItem(PERF_KEY);
+  if (saved === "eco") applyEcoMode(true);
+}
+
 async function main() {
   const stage = document.getElementById("museum-stage");
   const neuralHost = document.getElementById("neural-host");
@@ -110,26 +166,15 @@ async function main() {
   if (!stage || !neuralHost || !carousel || !track) return;
 
   const reduced = prefersReducedMotion();
-  const isMobile = window.innerWidth <= 600;
-  const isLowEnd = navigator.hardwareConcurrency <= 2;
-  const skipNeural = isMobile || isLowEnd;
+  const ecoMode = document.body.classList.contains("eco-mode");
+  const skipNeural = ecoMode;
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
-  /* ===== PHASE 1 : Loader + carrousel sans Three.js ===== */
-  // Stub neural tant que Three.js n'est pas charge
-  let neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
-
-  /* ===== PHASE 2 : Neural skip sur mobile (lourd), fonds projets toujours actifs ===== */
-  const threeReady = skipNeural
-    ? Promise.resolve().then(() => { document.body.classList.add("no-webgl"); })
-    : import("./three-neural.js").then(({ FlaynnNeuralBackground }) => {
-        try {
-          neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
-        } catch {
-          document.body.classList.add("no-webgl");
-        }
-      }).catch(() => { document.body.classList.add("no-webgl"); });
+  /* ===== Neural supprime — stub permanent ===== */
+  const neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
+  if (neuralHost) neuralHost.style.display = "none";
+  const threeReady = Promise.resolve();
 
   /* ---------- Fonds projet (initialisés au premier usage) ---------- */
   const projectBgs = {};
@@ -140,6 +185,31 @@ async function main() {
     if (!projectBgHost) return null;
     try {
       switch (index) {
+        case 0: {
+          const video = document.createElement("video");
+          video.src = "./scoryModel.mp4";
+          video.autoplay = true;
+          video.loop = true;
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute("webkit-playsinline", "");
+          video.setAttribute("preload", "metadata");
+          video.className = "project-bg-canvas scory-bg-video";
+          video.style.display = "none";
+          projectBgHost.appendChild(video);
+          projectBgs[0] = {
+            canvas: video,
+            orb: null,
+            start() {
+              video.play().catch(() => {
+                const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
+                document.addEventListener("touchstart", playOnce, { once: true });
+              });
+            },
+            stop() { video.pause(); }
+          };
+          break;
+        }
         case 1: { const { UniverseBackground } = await import("./universe.js"); projectBgs[1] = new UniverseBackground(projectBgHost); break; }
         case 2: { const { AuroraBorealis } = await import("./aurora.js"); projectBgs[2] = new AuroraBorealis(projectBgHost); break; }
         case 3: { const { FlaynnNebula } = await import("./nebula-flaynn.js"); projectBgs[3] = new FlaynnNebula(projectBgHost); break; }
@@ -180,9 +250,7 @@ async function main() {
     if (projectBgHost) {
       projectBgHost.querySelectorAll(".project-bg-canvas, .flaynn-orbit").forEach((c) => { c.style.display = "none"; });
     }
-    if (index === 0 || !projectBgHost) {
-      projectBgHost.style.backgroundImage = "";
-      gsap.to(projectBgHost, { opacity: 0, duration: 1 });
+    if (!projectBgHost) {
       activeProjectBg = null;
       return;
     }
@@ -202,6 +270,11 @@ async function main() {
       // Canvas echoue : l'image CSS est deja la, on la montre
       gsap.to(projectBgHost, { opacity: 0.3, duration: 2, ease: "power2.inOut" });
       return;
+    }
+    // Desktop : supprimer l'image CSS pour laisser le Canvas seul
+    // Mobile : garder l'image en fond sous le Canvas (plus riche)
+    if (window.innerWidth > 600) {
+      projectBgHost.style.backgroundImage = "";
     }
     bg.canvas.style.display = "block";
     if (bg.orb) bg.orb.style.display = "block";
@@ -229,6 +302,24 @@ async function main() {
         .from(".scroll-hint", { opacity: 0, y: 15, duration: 0.5 }, 0.7);
     }
   }, LOADER_DELAY_MS);
+
+  // ===== LENIS SMOOTH SCROLL =====
+  if (!ecoMode) {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      touchMultiplier: 1.5,
+    });
+    function lenisRaf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(lenisRaf);
+    }
+    requestAnimationFrame(lenisRaf);
+    // Sync GSAP ScrollTrigger si present
+    lenis.on("scroll", () => { if (window.ScrollTrigger) window.ScrollTrigger.update(); });
+  }
+
   // Three.js lance le fond quand il est pret
   threeReady.then(() => void syncProjectWater());
 
@@ -429,14 +520,12 @@ async function main() {
   /* ---------- Fond eau / neural / projet ---------- */
   async function syncProjectWater() {
     if (!waterHost) {
-      // Pas de water host : afficher directement le fond projet
-      if (activeIndex !== SCORY_INDEX) showProjectBg(activeIndex);
+      showProjectBg(activeIndex);
       return;
     }
     await ensureWater();
     if (!water) {
-      // Water shader echoue (WebGL indisponible) : afficher directement le fond projet
-      if (activeIndex !== SCORY_INDEX) showProjectBg(activeIndex);
+      showProjectBg(activeIndex);
       return;
     }
 
@@ -444,11 +533,11 @@ async function main() {
     if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
     hideProjectBg();
 
-    // Disque Scory (index 0) → fond neural Three.js seul, pas d'image
+    // Disque Scory (index 0) → video scoryModel directement
     if (activeIndex === SCORY_INDEX) {
       if (waterSplashTween) waterSplashTween.kill();
-      gsap.to(neuralHost, { opacity: 1, duration: 0.8, ease: "power2.out" });
-      gsap.to(waterHost, { opacity: 0, duration: 0.8, ease: "power2.out" });
+      gsap.to(waterHost, { opacity: 0, duration: 0.5 });
+      showProjectBg(0);
       return;
     }
 
@@ -522,62 +611,109 @@ async function main() {
       return;
     }
 
-    // Stopper la rotation du disque AVANT la transition
-    stopSpin();
-
-    // Tuer toute animation GSAP residuelle sur les disques
-    d.forEach((disc) => gsap.killTweensOf(disc));
-
-    // Position du disque pour les particules
-    const rect = currentDisc.getBoundingClientRect();
-
-    // Masquer le disque courant
-    currentDisc.removeAttribute("style");
-    currentDisc.style.display = "none";
-
-    // Transition shader neural
-    const tProxy = { p: 0 };
-    gsap.to(tProxy, {
-      p: 1, duration: 1.2, ease: "power2.inOut",
-      onUpdate: () => neural.setTransitionProgress(tProxy.p),
-      onComplete: () => neural.setTransitionProgress(0),
-    });
-
-    // Transition particules
-    await particles.transition(rect, direction);
-
-    // Nettoyer TOUS les disques — display:none sauf le nouveau
-    d.forEach((disc) => {
-      gsap.killTweensOf(disc);
-      disc.removeAttribute("style");
-      disc.style.display = "none";
-    });
-
-    // Mettre a jour l'etat
-    activeIndex = nextIndex;
-    setActiveClasses(activeIndex);
-    setLabel(activeIndex, true);
-    updateDots();
-    applyTheme(activeIndex);
-
-    // Faire apparaitre le nouveau disque
-    const nextDisc = d[activeIndex];
-    nextDisc.style.display = "grid";
-    gsap.fromTo(nextDisc,
-      { opacity: 0, scale: 0.9 },
-      {
-        opacity: 1, scale: 1, duration: 0.35, ease: EASE_SPRING_HEAVY, overwrite: true,
+    // Mode eco: crossfade simple — zero rotation, zero static, zero GPU lourd
+    if (ecoMode) {
+      const nextDisc = d[nextIndex];
+      gsap.to(currentDisc, {
+        opacity: 0, duration: 0.3, ease: "power2.in",
         onComplete: () => {
-          // Garder display:grid, nettoyer le reste
-          nextDisc.style.cssText = "";
-          startSpin();
-        },
-      }
-    );
+          currentDisc.removeAttribute("style");
+          currentDisc.style.display = "none";
+        }
+      });
+      nextDisc.style.display = "grid";
+      gsap.fromTo(nextDisc,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, ease: "power2.out",
+          onComplete: () => {
+            nextDisc.style.cssText = "";
+            activeIndex = nextIndex;
+            setActiveClasses(activeIndex);
+            setLabel(activeIndex, true);
+            updateDots();
+            applyTheme(activeIndex);
+            animating = false;
+            void syncProjectWater();
+          }
+        }
+      );
+      return;
+    }
 
-    animating = false;
-    preloadNearby(activeIndex);
-    void syncProjectWater();
+    // Stopper la rotation
+    stopSpin();
+    gsap.killTweensOf(currentDisc);
+
+    // Precharger le fond du prochain projet pendant l'animation
+    getProjectBg(nextIndex).catch(() => {});
+    preloadNearby(nextIndex);
+
+    // ===== TRANSITION MULTIPLEX — changement de chaine =====
+    const nextDisc = d[nextIndex];
+
+    // Creer l'overlay static TV (si pas deja la)
+    let staticOverlay = document.getElementById("tv-static");
+    if (!staticOverlay) {
+      staticOverlay = document.createElement("div");
+      staticOverlay.id = "tv-static";
+      staticOverlay.className = "tv-static";
+      stage.appendChild(staticOverlay);
+    }
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        currentDisc.removeAttribute("style");
+        currentDisc.style.display = "none";
+        nextDisc.style.cssText = "";
+        activeIndex = nextIndex;
+        setActiveClasses(activeIndex);
+        setLabel(activeIndex, true);
+        updateDots();
+        applyTheme(activeIndex);
+        animating = false;
+        if (!reduced && !ecoMode) startSpin();
+        void syncProjectWater();
+      }
+    });
+
+    // Phase 1: le disque actuel tourne vite — visible tout du long, shrink a la fin (0.6s)
+    tl.to(currentDisc, {
+      rotation: discSpinAngle + direction * 540,
+      scale: 0.4,
+      duration: 0.6, ease: "power2.in",
+    }, 0);
+    // Opacity separee — reste visible 80% du temps, fade seulement a la fin
+    tl.to(currentDisc, {
+      opacity: 0,
+      duration: 0.2, ease: "power2.in",
+    }, 0.4);
+
+    // Static TV flash au moment de la coupure
+    tl.to(staticOverlay, { opacity: 0.15, duration: 0.08 }, 0.45);
+    tl.to(staticOverlay, { opacity: 0.25, duration: 0.05 }, 0.53);
+    tl.to(staticOverlay, { opacity: 0.1, duration: 0.04 }, 0.58);
+    tl.to(staticOverlay, { opacity: 0, duration: 0.15 }, 0.65);
+
+    // (Neural supprime — plus de flash fond)
+    if (projectBgHost) {
+      tl.to(projectBgHost, { opacity: 0, duration: 0.1 }, 0.5);
+    }
+
+    // Phase 2: le nouveau disque est DEJA visible, tourne vite, et ralentit pour se poser (0.7s)
+    nextDisc.style.display = "grid";
+    tl.fromTo(nextDisc,
+      { rotation: -direction * 360, scale: 0.4, opacity: 1 },
+      { rotation: 0, scale: 1, opacity: 1,
+        duration: 0.7, ease: "power2.out",
+        onStart: () => {
+          if (!ecoMode) {
+            const p = { v: 0.15 };
+            gsap.to(p, { v: 0, duration: 0.4, onUpdate: () => neural.setTransitionProgress(p.v) });
+          }
+        }
+      },
+      0.4 // le nouveau commence avant que l'ancien ait fini de disparaitre
+    );
   }
 
   /* ---------- Flèches ---------- */
@@ -628,9 +764,25 @@ async function main() {
         detailScreenshots.appendChild(img);
       });
     }
-    // Bouton CTA « Visiter le site »
+    // Bouton CTA
     detailCtaWrap.innerHTML = "";
-    if (p.url) {
+    if (!p.url && activeIndex === SCORY_INDEX) {
+      // Disque Scory → CTA vers le chatbot devis
+      const cta = document.createElement("button");
+      cta.type = "button";
+      cta.className = "detail-panel__cta";
+      cta.innerHTML = `Estimer mon projet <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>`;
+      cta.addEventListener("pointerup", (e) => e.stopPropagation());
+      cta.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeDetail();
+        setTimeout(() => {
+          const chatSection = document.getElementById("chatbot-section");
+          if (chatSection) scrollToElement(chatSection);
+        }, 400);
+      });
+      detailCtaWrap.appendChild(cta);
+    } else if (p.url) {
       const cta = document.createElement("a");
       cta.href = p.url;
       cta.target = "_blank";
@@ -657,20 +809,42 @@ async function main() {
       });
       detailCtaWrap.appendChild(cta);
     }
+    // ===== OUVERTURE SIMPLE — scale + fade, GPU only =====
+    const disc = _discsCache.find((d) => d.classList.contains("is-active"));
+    if (!disc) return;
+    stopSpin();
+
+    // Cacher le disque
+    gsap.to(disc, { opacity: 0, scale: 0.85, duration: 0.2 });
+
+    // Ouvrir le panel
     detailPanel.classList.add("is-visible");
     detailPanel.setAttribute("aria-hidden", "false");
     stage.setAttribute("aria-hidden", "true");
+    if (discHint) discHint.classList.remove("is-visible");
+
+    gsap.fromTo(detailPanel,
+      { scale: 0.5, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(1.4)" }
+    );
+
+    // Contenu stagger
+    const panelChildren = detailPanel.querySelectorAll(":scope > *");
+    gsap.fromTo(panelChildren,
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.25, stagger: 0.03, delay: 0.2, ease: "power2.out" }
+    );
+
     _detailPrevFocus = document.activeElement;
     requestAnimationFrame(() => { _detailFocusTrap = trapFocus(detailPanel); });
-    // Fermer au clic en dehors du panneau
+
+    // Fermer au clic en dehors
     _closeOnOutsideRef = (e) => {
-      if (!detailPanel.contains(e.target)) {
-        closeDetail();
-      }
+      if (detailPanel.contains(e.target)) return;
+      closeDetail();
     };
-    // Attendre que le long press soit fini (le prochain clic fermera)
     setTimeout(() => {
-      document.addEventListener("click", _closeOnOutsideRef, true);
+      document.addEventListener("pointerdown", _closeOnOutsideRef, true);
     }, CLOSE_OUTSIDE_DELAY_MS);
   }
 
@@ -681,27 +855,125 @@ async function main() {
   function closeDetail() {
     if (!detailVisible) return;
     detailVisible = false;
-    detailPanel.classList.remove("is-visible");
-    detailPanel.setAttribute("aria-hidden", "true");
     stage.removeAttribute("aria-hidden");
     if (_closeOnOutsideRef) {
-      document.removeEventListener("click", _closeOnOutsideRef, true);
+      document.removeEventListener("pointerdown", _closeOnOutsideRef, true);
       _closeOnOutsideRef = null;
     }
     if (_detailFocusTrap) { _detailFocusTrap(); _detailFocusTrap = null; }
+
+    const disc = _discsCache.find((d) => d.classList.contains("is-active"));
+
+    // Panel shrink + fade — simple et fluide
+    gsap.to(detailPanel, {
+      scale: 0.5, opacity: 0,
+      duration: 0.25, ease: "power2.in",
+      onComplete: () => {
+        detailPanel.classList.remove("is-visible");
+        detailPanel.setAttribute("aria-hidden", "true");
+        gsap.set(detailPanel, { clearProps: "scale,opacity" });
+
+        // Disque reapparait
+        if (disc) {
+          gsap.to(disc, {
+            opacity: 1, scale: 1, rotation: discSpinAngle,
+            duration: 0.35, ease: "back.out(1.5)",
+            onComplete: () => { if (!reduced && !ecoMode) startSpin(); }
+          });
+        } else if (!reduced && !ecoMode) {
+          startSpin();
+        }
+      }
+    });
+
     if (_detailPrevFocus) { _detailPrevFocus.focus(); _detailPrevFocus = null; }
+    _holdActive = false;
+    _holdDisc = null;
   }
 
   /* Bouton X ferme le detail */
   const detailCloseBtn = document.getElementById("detail-close");
-  if (detailCloseBtn) detailCloseBtn.addEventListener("click", (e) => { e.stopPropagation(); closeDetail(); });
+  if (detailCloseBtn) {
+    detailCloseBtn.addEventListener("click", (e) => { e.stopPropagation(); e.preventDefault(); closeDetail(); });
+    detailCloseBtn.addEventListener("touchend", (e) => { e.stopPropagation(); e.preventDefault(); closeDetail(); });
+  }
 
-  /* Clic sur le disque actif → ouvre les détails */
+  /* Clic / Long press sur le disque actif → animation + details */
+  let _holdTimer = null;
+  let _holdActive = false;
+  let _holdDisc = null;
+
+  function discPrepareOpen(disc) {
+    _holdActive = true;
+    _holdDisc = disc;
+    stopSpin();
+    // Le disque grossit et se redresse
+    gsap.to(disc, {
+      scale: 1.12, rotation: 0, rotateX: 0, rotateY: 0,
+      duration: 0.5, ease: "back.out(1.4)",
+      boxShadow: "0 0 60px var(--theme-glow-strong)",
+    });
+  }
+
+  function discOpenDetail() {
+    if (!_holdActive || detailVisible) return;
+    openDetail();
+  }
+
+  function discRestore() {
+    clearTimeout(_holdTimer);
+    _holdTimer = null;
+    if (!_holdDisc) return;
+    const disc = _holdDisc;
+    _holdActive = false;
+    _holdDisc = null;
+
+    if (!detailVisible) {
+      // Pas ouvert → retour direct
+      gsap.to(disc, {
+        scale: 1, rotation: discSpinAngle,
+        duration: 0.6, ease: "elastic.out(1, 0.5)",
+        onComplete: () => { if (!reduced && !ecoMode) startSpin(); }
+      });
+    }
+  }
+
+  // Touch : long press → prepare → release → open
+  carousel.addEventListener("touchstart", (e) => {
+    if (animating || detailVisible) return;
+    const target = e.target.closest(".project-disc");
+    if (!target || !target.classList.contains("is-active")) return;
+    _holdTimer = setTimeout(() => discPrepareOpen(target), 200);
+  }, { passive: true });
+
+  carousel.addEventListener("touchend", (e) => {
+    if (_holdActive) {
+      e.preventDefault();
+      discOpenDetail();
+    } else {
+      // Tap court → ouvre directement
+      clearTimeout(_holdTimer);
+      const target = e.target.closest(".project-disc");
+      if (target && target.classList.contains("is-active") && !animating && !detailVisible) {
+        openDetail();
+      }
+    }
+  });
+
+  carousel.addEventListener("touchcancel", () => discRestore());
+
+  // Desktop : clic simple ouvre directement (le tilt 3D gere le hover)
   carousel.addEventListener("click", (e) => {
+    if (isTouchDevice) return;
     if (animating || detailVisible) return;
     const target = e.target.closest(".project-disc");
     if (target && target.classList.contains("is-active")) {
-      openDetail();
+      stopSpin();
+      gsap.to(target, {
+        scale: 1.08, rotation: 0, rotateX: 0, rotateY: 0,
+        duration: 0.3, ease: "power2.out",
+        onComplete: () => openDetail()
+      });
     }
   });
 
@@ -761,11 +1033,11 @@ async function main() {
     discSpinActive = false;
     cancelAnimationFrame(discSpinRaf);
   }
-  if (!reduced) startSpin();
+  if (!reduced && !ecoMode) startSpin();
 
   // Tilt 3D au survol (pause la rotation, ajoute le tilt)
   const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-  if (!isTouchDevice && !reduced) {
+  if (!isTouchDevice && !reduced && !ecoMode) {
     carousel.addEventListener("mouseenter", () => {
       stopSpin();
     });
@@ -862,23 +1134,37 @@ async function main() {
 
   await yieldToBrowser(); // Liberer avant les observers scroll
 
-  /* ---------- Scroll Reveal ---------- */
+  /* ---------- Scroll Reveal (enhanced mobile) ---------- */
+  const isMobileView = window.innerWidth <= 600;
   const revealElements = document.querySelectorAll(".reveal");
   if (revealElements.length > 0) {
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add("is-revealed");
+          // Mobile: stagger les enfants pour un effet cascade
+          if (isMobileView && !reduced) {
+            const children = entry.target.querySelectorAll(".stat-card, .process-card, .about-value, .contact-card");
+            children.forEach((child, i) => {
+              child.style.opacity = "0";
+              child.style.transform = "translateY(20px)";
+              child.style.transition = `opacity 0.6s ease ${i * 0.1}s, transform 0.6s ease ${i * 0.1}s`;
+              requestAnimationFrame(() => {
+                child.style.opacity = "1";
+                child.style.transform = "translateY(0)";
+              });
+            });
+          }
           revealObserver.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+    }, { threshold: isMobileView ? 0.08 : 0.15, rootMargin: "0px 0px -40px 0px" });
     revealElements.forEach((el) => revealObserver.observe(el));
   }
 
   /* ---------- Teleportation sections (vide → mi-vide → rempli + rebond) ---------- */
   const teleportSections = document.querySelectorAll(".stats-section, .process-section, .about-section");
-  if (teleportSections.length > 0 && !reduced) {
+  if (teleportSections.length > 0 && !reduced && !ecoMode) {
     teleportSections.forEach((section) => {
       gsap.set(section, { opacity: 0, scale: 0.3, y: 60, filter: "blur(8px)" });
       const obs = new IntersectionObserver((entries) => {
@@ -909,13 +1195,186 @@ async function main() {
     });
   }
 
+  /* ---------- Overscroll elastique progressif ---------- */
+  const overscrollBottom = document.getElementById("overscroll-panel");
+  const overscrollTop = document.getElementById("overscroll-top");
+  const osProgress = document.getElementById("overscroll-progress");
+  const osStages = [
+    document.getElementById("os-stage-1"),
+    document.getElementById("os-stage-2"),
+    document.getElementById("os-stage-3"),
+    document.getElementById("os-stage-win"),
+  ];
+  let _overscrollCooldown = false;
+  let _osAccum = 0;
+  let _osCurrentStage = -1;
+  let _osWon = false;
+  let _osStageUnlockTime = 0;
+  const OS_THRESHOLD = innerHeight * 0.8; // presque tout l'ecran pour gagner
+
+  function updateOverscrollStage(progress) {
+    // progress: 0 → 1 (1 = 80% de l'ecran)
+    const clamped = Math.min(1, Math.max(0, progress));
+    if (osProgress) osProgress.style.setProperty("--os-progress", (clamped * 100) + "%");
+
+    const now = Date.now();
+    let stage = -1;
+    if (clamped > 0.01) stage = 0;  // yeux — debut
+    if (clamped > 0.35) stage = 1;  // insiste — un bon tiers
+    if (clamped > 0.70) stage = 2;  // NOOON — presque la
+    if (clamped >= 0.95) stage = 3;  // WIN — faut vraiment le vouloir
+
+    // Delai entre chaque stage (500ms minimum)
+    if (stage > _osCurrentStage && now - _osStageUnlockTime < 500) {
+      stage = _osCurrentStage;
+    }
+
+    if (stage !== _osCurrentStage && stage >= 0) {
+      _osCurrentStage = stage;
+      _osStageUnlockTime = now;
+      osStages.forEach((s, i) => { if (s) s.style.display = i === stage ? "block" : "none"; });
+    }
+
+    if (stage >= 0 && !overscrollBottom.classList.contains("is-visible")) {
+      overscrollBottom.classList.add("is-visible");
+    }
+
+    if (stage === 3 && !_osWon) {
+      _osWon = true;
+      _overscrollCooldown = true;
+      if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
+      // Sauvegarder le discount
+      localStorage.setItem("scory_discount", "SCROLL5");
+      // Apres 2s → fermer le panneau, scroll vers le chatbot, injecter message
+      setTimeout(() => {
+        overscrollBottom.classList.remove("is-visible");
+        _overscrollCooldown = true;
+        const chatSection = document.getElementById("chatbot-section");
+        if (chatSection) scrollToElement(chatSection);
+        setTimeout(() => injectDiscountMessage(), 1200);
+      }, 2000);
+    }
+  }
+
+  function resetOverscroll() {
+    if (_osWon) return; // garder le panneau win visible
+    _osAccum = 0;
+    _osCurrentStage = -1;
+    if (overscrollBottom) overscrollBottom.classList.remove("is-visible");
+    if (osProgress) osProgress.style.setProperty("--os-progress", "0%");
+    osStages.forEach((s, i) => { if (s) s.style.display = i === 0 ? "block" : "none"; });
+  }
+
+  // Touch: progressif + blocage pull-to-refresh natif
+  let _touchStartY = 0;
+  let _touchIsAtEdge = false;
+
+  document.addEventListener("touchstart", (e) => {
+    _touchStartY = e.touches[0].clientY;
+    if (!_osWon) _osAccum = 0;
+    // Detecter si on est au bord (haut ou bas) au debut du touch
+    const atTop = window.scrollY <= 0;
+    const atBottom = (innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
+    _touchIsAtEdge = atTop || atBottom;
+  }, { passive: true });
+
+  // Non-passive pour pouvoir preventDefault et bloquer le pull-to-refresh natif iOS
+  document.addEventListener("touchmove", (e) => {
+    if (_overscrollCooldown) return;
+    const currentY = e.touches[0].clientY;
+    const dy = _touchStartY - currentY; // positif = scroll down
+    const pullDown = currentY - _touchStartY; // positif = tire vers le bas
+    const atBottom = (innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
+    const atTop = window.scrollY <= 0;
+
+    // Bloquer le pull-to-refresh natif quand on est en haut et qu'on tire vers le bas
+    if (atTop && pullDown > 0 && _touchIsAtEdge) {
+      e.preventDefault(); // bloque le refresh natif Safari/Chrome
+    }
+
+    // Overscroll bas — panneau progressif
+    if (atBottom && dy > 10) {
+      e.preventDefault();
+      updateOverscrollStage(dy / OS_THRESHOLD);
+    }
+
+    // Pull-to-refresh custom haut
+    if (atTop && pullDown > 100 && overscrollTop) {
+      _overscrollCooldown = true;
+      overscrollTop.classList.add("is-visible");
+      setTimeout(() => { window.location.reload(); }, 1200);
+    }
+  }, { passive: false }); // NON-PASSIVE pour pouvoir preventDefault
+
+  document.addEventListener("touchend", () => {
+    if (!_osWon && !_overscrollCooldown) resetOverscroll();
+  }, { passive: true });
+
+  // Desktop: wheel progressif
+  let _wheelTimer = null;
+  window.addEventListener("wheel", (e) => {
+    if (_overscrollCooldown) return;
+    const atBottom = (innerHeight + window.scrollY) >= document.body.scrollHeight - 5;
+    const atTop = window.scrollY <= 0;
+
+    if (atBottom && e.deltaY > 0) {
+      _osAccum += e.deltaY;
+      clearTimeout(_wheelTimer);
+      _wheelTimer = setTimeout(() => { if (!_osWon) resetOverscroll(); }, 800);
+      updateOverscrollStage(_osAccum / (OS_THRESHOLD * 3));
+    } else if (atTop && e.deltaY < 0) {
+      _osAccum += Math.abs(e.deltaY);
+      clearTimeout(_wheelTimer);
+      _wheelTimer = setTimeout(() => { _osAccum = 0; }, 500);
+      if (_osAccum > 300 && overscrollTop) {
+        _overscrollCooldown = true;
+        overscrollTop.classList.add("is-visible");
+        setTimeout(() => { window.location.reload(); }, 1200);
+      }
+    } else {
+      if (!_osWon) { _osAccum = 0; resetOverscroll(); }
+    }
+  }, { passive: true });
+
+  /* ---------- Overscroll CTA → chatbot ---------- */
+  const overscrollCta = document.getElementById("overscroll-cta");
+  if (overscrollCta) {
+    overscrollCta.addEventListener("click", () => {
+      overscrollBottom.classList.remove("is-visible");
+      const cs = document.getElementById("chatbot-section");
+      if (cs) scrollToElement(cs);
+    });
+  }
+
+  /* ---------- Discount message injection ---------- */
+  function injectDiscountMessage() {
+    const msgContainer = document.getElementById("chatbot-messages");
+    if (!msgContainer) return;
+
+    const msg = document.createElement("div");
+    msg.className = "chat-msg chat-msg--bot chat-msg--discount";
+    msg.innerHTML = `
+      <span style="font-size:1.5rem;display:block;margin-bottom:0.4rem;">🎉🎉🎉</span>
+      <strong>FELICITATIONS !</strong> Vous avez decouvert le secret !<br><br>
+      Vous venez de debloquer <strong style="color:var(--accent-gold);">-5% de discount</strong> sur votre prochain projet.<br><br>
+      Code : <strong style="color:var(--accent-gold);letter-spacing:0.1em;">SCROLL5</strong><br><br>
+      Allez, estimez votre projet — le discount est deja applique ! 👇
+    `;
+    msg.style.opacity = "0";
+    msg.style.transform = "translateY(10px)";
+    msgContainer.appendChild(msg);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    gsap.to(msg, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
+  }
+
   /* ---------- Scroll hint click → chatbot ---------- */
   const scrollHint = document.querySelector(".scroll-hint");
   if (scrollHint) {
     scrollHint.style.cursor = "pointer";
     scrollHint.addEventListener("click", () => {
       const chatSection = document.getElementById("chatbot-section");
-      if (chatSection) chatSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (chatSection) scrollToElement(chatSection);
     });
   }
 
@@ -953,6 +1412,23 @@ async function main() {
       }
     }, { threshold: 0.15 });
     contactObserver.observe(contactGrid);
+  }
+
+  /* ---------- Disc hint mobile (swipe + tap) — flash toutes les 8s ---------- */
+  const discHint = document.getElementById("disc-hint");
+  let _discHintInterval = null;
+
+  if (discHint && "ontouchstart" in window) {
+    function flashHint() {
+      if (detailVisible || animating) return;
+      discHint.classList.remove("is-visible");
+      void discHint.offsetHeight; // force reflow pour relancer l'animation
+      discHint.classList.add("is-visible");
+    }
+
+    // Premier flash apres 2s, puis toutes les 8s
+    setTimeout(flashHint, 2000);
+    _discHintInterval = setInterval(flashHint, 8000);
   }
 
   /* ---------- Son ambiant (module audio.js) ---------- */
@@ -1003,6 +1479,9 @@ async function main() {
 }
 
 /* ---------- Boot ---------- */
+// Applique eco-mode si sauvegarde
+initEcoMode();
+
 try {
   main();
 } catch (err) {

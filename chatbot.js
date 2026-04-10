@@ -143,11 +143,24 @@ export function initChatbot({ isValidEmail, onComplete }) {
       if (stepId === "done") {
         const name = chatData.userName || "";
         const total = Math.round(chatData.baseCost * chatData.multiplier);
-        const low = Math.round(total * 0.85);
-        const high = Math.round(total * 1.15);
+        let low = Math.round(total * 0.85);
+        let high = Math.round(total * 1.15);
+
+        // Appliquer le discount secret si debloquer
+        const discount = localStorage.getItem("scory_discount");
+        let discountText = "";
+        if (discount === "SCROLL5") {
+          const reduction = 0.95; // -5%
+          low = Math.round(low * reduction);
+          high = Math.round(high * reduction);
+          discountText = getLang() === "fr"
+            ? `\n\n🎁 Code SCROLL5 applique : -5% ! Prix apres reduction :`
+            : `\n\n🎁 Code SCROLL5 applied: -5% off! Price after discount:`;
+        }
+
         botText = getLang() === "fr"
-          ? `Merci ${name} ! D'apres vos reponses, votre projet est estime entre ${formatPrice(low)} et ${formatPrice(high)} TTC (estimation non contractuelle). Scory vous recontacte sous 24h avec un devis detaille.`
-          : `Thanks ${name}! Based on your answers, your project is estimated between ${formatPrice(low)} and ${formatPrice(high)} (non-binding estimate). Scory will get back to you within 24h with a detailed quote.`;
+          ? `Merci ${name} ! D'apres vos reponses, votre projet est estime entre ${formatPrice(low)} et ${formatPrice(high)} TTC (estimation non contractuelle).${discountText ? discountText + ` ${formatPrice(low)} - ${formatPrice(high)}` : ""} Scory vous recontacte sous 24h avec un devis detaille.`
+          : `Thanks ${name}! Based on your answers, your project is estimated between ${formatPrice(low)} and ${formatPrice(high)} (non-binding estimate).${discountText ? discountText + ` ${formatPrice(low)} - ${formatPrice(high)}` : ""} Scory will get back to you within 24h with a detailed quote.`;
       }
 
       addMsg(botText, "chat-msg--bot");

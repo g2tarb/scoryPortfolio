@@ -13,17 +13,17 @@
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="googlebot" content="index, follow" />
     <meta property="og:title" content="SCORY — Agence Web Freelance | Sites Sur-Mesure & Experiences Immersives" />
-    <meta property="og:description" content="Creation de sites web sur-mesure, SaaS et experiences immersives Three.js. 17+ projets livres, 100% satisfaction. Devis gratuit en ligne." />
+    <meta property="og:description" content="Creation de sites web sur-mesure, SaaS et experiences immersives Three.js. 5+ projets livres, 100% satisfaction. Devis gratuit en ligne." />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="SCORY" />
-    <meta property="og:image" content="https://scory-portfolio.vercel.app/image/og-image.jpg" />
+    <meta property="og:image" content="https://scory-portfolio.vercel.app/image/mediascory.webp" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="SCORY — Portfolio interactif concu comme un musee digital" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="SCORY — Agence Web Freelance | Sites Sur-Mesure" />
     <meta name="twitter:description" content="Creation de sites web sur-mesure, SaaS et experiences immersives. Devis gratuit en ligne." />
-    <meta name="twitter:image" content="https://scory-portfolio.vercel.app/image/og-image.jpg" />
+    <meta name="twitter:image" content="https://scory-portfolio.vercel.app/image/mediascory.webp" />
     <meta name="twitter:image:alt" content="SCORY — Portfolio musee digital" />
     <link rel="canonical" href="https://scory-portfolio.vercel.app/" />
     <meta property="og:url" content="https://scory-portfolio.vercel.app/" />
@@ -70,7 +70,8 @@
       {
         "imports": {
           "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-          "gsap": "https://unpkg.com/gsap@3.12.5/index.js"
+          "gsap": "https://unpkg.com/gsap@3.12.5/index.js",
+          "lenis": "https://unpkg.com/lenis@1.1.18/dist/lenis.mjs"
         }
       }
     </script>
@@ -82,6 +83,18 @@
 
     <!-- Toggle langue -->
     <button id="lang-toggle" class="lang-toggle" aria-label="Switch language">FR</button>
+
+    <!-- Toggle eco — interrupteur oval -->
+    <div id="eco-toggle" class="eco-switch" aria-label="Mode performance">
+      <div class="eco-switch__track">
+        <div class="eco-switch__knob">
+          <span class="eco-switch__symbol">I</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Eco mode message -->
+    <div id="eco-message" class="eco-message"></div>
 
     <!-- Son ambiant -->
     <button id="sound-toggle" class="sound-toggle" aria-label="Activer le son ambiant" aria-pressed="false">
@@ -132,7 +145,7 @@
         tabindex="0"
       >
         <div class="project-track" id="project-track">
-          <article class="project-disc card-glass disc--meta" data-index="0" data-image="./image/fond4Day.jpg" tabindex="-1">
+          <article class="project-disc card-glass disc--meta" data-index="0" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title" data-i18n="disc.0.title">Portfolio Scory</span>
@@ -178,6 +191,18 @@
           <span class="nav-arrow__glow" aria-hidden="true"></span>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
         </button>
+        <!-- Hint mobile: swipe + tap — au-dessus du disque -->
+        <div class="disc-hint" id="disc-hint" aria-hidden="true">
+          <div class="disc-hint__row disc-hint__swipe">
+            <span class="disc-hint__chevron disc-hint__chevron--l">&lsaquo;</span>
+            <span class="disc-hint__label">swipez</span>
+            <span class="disc-hint__chevron disc-hint__chevron--r">&rsaquo;</span>
+          </div>
+          <div class="disc-hint__row disc-hint__tap">
+            <span class="disc-hint__dot"></span>
+            <span class="disc-hint__label">appuyez pour decouvrir</span>
+          </div>
+        </div>
         <div class="nav-dots" id="nav-dots" role="tablist" aria-label="Navigation projets"></div>
       </div>
 
@@ -212,7 +237,7 @@
     <!-- Stats -->
     <section class="stats-section" aria-label="Chiffres cles">
       <div class="stats-grid">
-        <div class="stat-card glass-panel" data-target="17" data-suffix="+">
+        <div class="stat-card glass-panel" data-target="5" data-suffix="+">
           <span class="stat-number">0</span>
           <span class="stat-label" data-i18n="stat.projects">Projets livres</span>
         </div>
@@ -276,6 +301,19 @@
     <!-- Chatbot -->
     <section id="chatbot-section" class="chatbot-section reveal">
       <div class="chatbot-glow" aria-hidden="true"></div>
+      <!-- Orbites circulaires autour du bot -->
+      <div class="chatbot-orbits" aria-hidden="true">
+        <div class="chatbot-orbit chatbot-orbit--1">
+          <div class="chatbot-orbit__dot"></div>
+        </div>
+        <div class="chatbot-orbit chatbot-orbit--2">
+          <div class="chatbot-orbit__dot"></div>
+          <div class="chatbot-orbit__dot chatbot-orbit__dot--b"></div>
+        </div>
+        <div class="chatbot-orbit chatbot-orbit--3">
+          <div class="chatbot-orbit__dot"></div>
+        </div>
+      </div>
       <div class="chatbot-container glass-panel">
         <div class="chatbot-progress" id="chatbot-progress">
           <div class="chatbot-progress__shimmer"></div>
@@ -284,12 +322,22 @@
           <div class="chatbot-avatar">
             <div class="chatbot-avatar__orb"></div>
             <div class="chatbot-avatar__ring"></div>
+            <div class="chatbot-avatar__ring chatbot-avatar__ring--outer"></div>
+            <div class="chatbot-avatar__particles">
+              <span></span><span></span><span></span><span></span>
+            </div>
           </div>
           <div class="chatbot-header__text">
-            <span class="chatbot-name">Scory Assistant</span>
-            <span class="chatbot-status"><span class="chatbot-status__dot"></span> <span id="chatbot-status-text">En ligne</span></span>
+            <span class="chatbot-name" data-i18n="chat.name">Scory Assistant</span>
+            <span class="chatbot-status">
+              <span class="chatbot-status__dot"></span>
+              <span id="chatbot-status-text" data-i18n="chat.status">Pret a estimer votre projet</span>
+            </span>
           </div>
-          <div class="chatbot-header__badge">IA</div>
+          <div class="chatbot-header__badge">
+            <span class="chatbot-badge__pulse"></span>
+            IA
+          </div>
         </div>
         <div class="chatbot-messages" id="chatbot-messages"></div>
         <div class="chatbot-input-area" id="chatbot-input-area">
@@ -297,6 +345,9 @@
           <div class="chatbot-typing" id="chatbot-typing" style="display:none">
             <span></span><span></span><span></span>
           </div>
+        </div>
+        <div class="chatbot-footer">
+          <span class="chatbot-footer__secure">&#128274; Estimation gratuite &middot; Sans engagement</span>
         </div>
       </div>
     </section>
@@ -429,7 +480,7 @@
       "numberOfItems": 5,
       "itemListElement": [
         {"@type": "ListItem", "position": 1, "item": {"@type": "WebSite", "name": "Portfolio Scory", "url": "https://scory-portfolio.vercel.app/", "description": "Portfolio interactif concu comme un musee digital avec Three.js, GSAP et shaders GLSL."}},
-        {"@type": "ListItem", "position": 2, "item": {"@type": "WebSite", "name": "4dayvelopment", "url": "https://4dayvelopment.fr/", "description": "Agence web — ecosystemes digitaux complets sur-mesure. 17+ projets livres."}},
+        {"@type": "ListItem", "position": 2, "item": {"@type": "WebSite", "name": "4dayvelopment", "url": "https://4dayvelopment.fr/", "description": "Agence web — ecosystemes digitaux complets sur-mesure. 5+ projets livres."}},
         {"@type": "ListItem", "position": 3, "item": {"@type": "WebSite", "name": "Clara Martinez", "url": "https://clara-martinez-project.vercel.app/", "description": "Site vitrine coaching premium avec aurora borealis interactive et glassmorphism."}},
         {"@type": "ListItem", "position": 4, "item": {"@type": "SoftwareApplication", "name": "Flaynn", "url": "https://flaynn.tech/", "applicationCategory": "BusinessApplication", "description": "SaaS B2B — scoring objectif et matching startups-investisseurs avec IA."}},
         {"@type": "ListItem", "position": 5, "item": {"@type": "WebApplication", "name": "ANIMUS", "url": "https://ange-g2tarbs-projects.vercel.app/", "applicationCategory": "GameApplication", "description": "Histoire interactive auto-generee par IA. Chaque decision ecrit la suite du recit."}}
@@ -478,7 +529,7 @@
       </article>
       <article>
         <h3>4dayvelopment — Agence Web Ecosystemes Digitaux</h3>
-        <p>4Dayvelopment concoit des ecosystemes digitaux complets : branding, site sur-mesure, automations n8n, funnel de conversion. Design dark luxury avec curseur magnetique, animations Three.js, mode sombre/clair. 17+ projets livres, 100% satisfaction. Technologies : Node.js, Express, Three.js, GSAP, n8n, Zod.</p>
+        <p>4Dayvelopment concoit des ecosystemes digitaux complets : branding, site sur-mesure, automations n8n, funnel de conversion. Design dark luxury avec curseur magnetique, animations Three.js, mode sombre/clair. 5+ projets livres, 100% satisfaction. Technologies : Node.js, Express, Three.js, GSAP, n8n, Zod.</p>
         <a href="https://4dayvelopment.fr/">Visiter 4dayvelopment</a>
       </article>
       <article>
@@ -499,7 +550,7 @@
 
       <h2>Pourquoi Choisir SCORY ?</h2>
       <ul>
-        <li>17+ projets livres avec 100% de satisfaction client</li>
+        <li>5+ projets livres avec 100% de satisfaction client</li>
         <li>Expertise Three.js, WebGL et animations immersives</li>
         <li>Design dark luxury et glassmorphism</li>
         <li>Developpement 100% vanilla JS — zero dependance framework</li>
@@ -512,6 +563,38 @@
       <p>Basee a Paris, France. Nous travaillons avec des clients dans toute la France et a l'international.</p>
     </div>
 
+    <!-- Panneau overscroll haut (pull to refresh) -->
+    <div id="overscroll-top" class="overscroll-top" aria-hidden="true">
+      <div class="overscroll-top__content">
+        <p class="overscroll-top__text"><span class="overscroll-top__spinner"></span>Rechargement...</p>
+      </div>
+    </div>
+
+    <!-- Panneau overscroll bas — elastique progressif -->
+    <div id="overscroll-panel" class="overscroll-panel" aria-hidden="true">
+      <div class="overscroll-panel__content">
+        <div class="overscroll-panel__progress" id="overscroll-progress"></div>
+        <div class="overscroll-panel__stage" id="os-stage-1">
+          <div class="overscroll-panel__emoji">&#128064;</div>
+          <p class="overscroll-panel__text">Hey, ou allez-vous comme ca ?</p>
+        </div>
+        <div class="overscroll-panel__stage" id="os-stage-2" style="display:none">
+          <p class="overscroll-panel__text">&#128587; Ah vous insistez...</p>
+          <p class="overscroll-panel__sub">Il n'y a plus rien en dessous, promis !</p>
+        </div>
+        <div class="overscroll-panel__stage" id="os-stage-3" style="display:none">
+          <p class="overscroll-panel__text" style="font-size:1.4rem">NOOOOOOOOON</p>
+        </div>
+        <div class="overscroll-panel__stage" id="os-stage-win" style="display:none">
+          <div class="overscroll-panel__emoji">&#127881;</div>
+          <p class="overscroll-panel__text">Felicitations !</p>
+          <p class="overscroll-panel__sub">Vous venez de gagner <strong style="color:var(--accent-gold)">5% de discount</strong> sur votre prochain projet.</p>
+          <button class="overscroll-panel__cta" id="overscroll-cta">
+            Utiliser mon code : SCROLL5
+          </button>
+        </div>
+      </div>
+    </div>
     <script type="module" src="./app.js"></script>
   </body>
 </html>
