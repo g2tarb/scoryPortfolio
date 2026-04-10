@@ -103,6 +103,27 @@
       </div>
     </div>
 
+    <!-- Popup performance -->
+    <div id="perf-popup" class="perf-popup" aria-hidden="true">
+      <div class="perf-popup__card glass-panel">
+        <div class="perf-popup__icon">&#9888;</div>
+        <h2 class="perf-popup__title">Experience visuelle</h2>
+        <p class="perf-popup__text">Votre appareil pourrait ne pas etre optimise pour les effets immersifs. Choisissez votre mode :</p>
+        <div class="perf-popup__buttons">
+          <button class="perf-popup__btn perf-popup__btn--full" onclick="choosePerfMode('full')">
+            <span class="perf-popup__btn-icon">&#10024;</span>
+            <span class="perf-popup__btn-label">Experience totale</span>
+            <span class="perf-popup__btn-desc">Three.js, reflets, particules, glassmorphism</span>
+          </button>
+          <button class="perf-popup__btn perf-popup__btn--eco" onclick="choosePerfMode('eco')">
+            <span class="perf-popup__btn-icon">&#127807;</span>
+            <span class="perf-popup__btn-label">Mode eco</span>
+            <span class="perf-popup__btn-desc">Fluide, economise la batterie</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <noscript>
       <div style="padding:3rem;text-align:center;color:#c9a962;font-family:serif;font-size:1.3rem;">
         SCORY requires JavaScript to work. / SCORY necessite JavaScript pour fonctionner.

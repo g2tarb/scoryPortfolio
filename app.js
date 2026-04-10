@@ -89,6 +89,57 @@ function yieldToBrowser() {
   return new Promise((r) => setTimeout(r, 0));
 }
 
+/* ---------- Performance mode detection + popup ---------- */
+const PERF_KEY = "scory_perf_mode";
+
+function isLowEndDevice() {
+  const cores = navigator.hardwareConcurrency || 4;
+  const mem = navigator.deviceMemory || 8; // Chrome only, fallback 8
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const isOldIOS = /iPhone OS (9|10|11|12|13|14)_/.test(navigator.userAgent);
+  const isOldAndroid = /Android (4|5|6|7|8)\./.test(navigator.userAgent);
+  return (isMobile && (cores <= 4 || mem <= 4)) || isOldIOS || isOldAndroid;
+}
+
+function getPerfMode() {
+  return localStorage.getItem(PERF_KEY) || null;
+}
+
+function choosePerfMode(mode) {
+  localStorage.setItem(PERF_KEY, mode);
+  const popup = document.getElementById("perf-popup");
+  if (popup) { popup.classList.remove("is-visible"); popup.setAttribute("aria-hidden", "true"); }
+  if (mode === "eco") {
+    document.body.classList.add("eco-mode");
+  } else {
+    document.body.classList.remove("eco-mode");
+  }
+  // Recharger pour appliquer proprement (Three.js doit etre init ou non)
+  window.location.reload();
+}
+
+// Expose au onclick du HTML
+window.choosePerfMode = choosePerfMode;
+
+function checkPerfPopup() {
+  const saved = getPerfMode();
+  if (saved === "eco") {
+    document.body.classList.add("eco-mode");
+    return true;
+  }
+  if (saved === "full") return false;
+  // Pas de choix sauvegarde + appareil low-end → afficher le popup
+  if (isLowEndDevice()) {
+    const popup = document.getElementById("perf-popup");
+    if (popup) {
+      popup.classList.add("is-visible");
+      popup.setAttribute("aria-hidden", "false");
+    }
+    return true; // bloque le chargement Three.js en attendant
+  }
+  return false;
+}
+
 async function main() {
   const stage = document.getElementById("museum-stage");
   const neuralHost = document.getElementById("neural-host");
@@ -110,8 +161,8 @@ async function main() {
   if (!stage || !neuralHost || !carousel || !track) return;
 
   const reduced = prefersReducedMotion();
-  const isLowEnd = navigator.hardwareConcurrency <= 2;
-  const skipNeural = isLowEnd;
+  const ecoMode = document.body.classList.contains("eco-mode");
+  const skipNeural = ecoMode;
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
@@ -1002,6 +1053,9 @@ async function main() {
 }
 
 /* ---------- Boot ---------- */
+// Check perf mode avant de lancer (applique eco-mode si sauvegarde)
+checkPerfPopup();
+
 try {
   main();
 } catch (err) {
