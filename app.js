@@ -613,64 +613,77 @@ async function main() {
 
     // Stopper la rotation du disque AVANT la transition
     stopSpin();
-
-    // Tuer toute animation GSAP residuelle sur les disques
     d.forEach((disc) => gsap.killTweensOf(disc));
 
-    // Slide horizontal — le disque sort, le nouveau entre
-    const slideDistance = innerWidth * 0.4;
-    const exitX = -direction * slideDistance;
-    const enterX = direction * slideDistance;
+    // ===== EFFET ROUE: tous les disques visibles en petit, rotation, puis zoom =====
+    const gap = Math.min(innerWidth * 0.18, 80);
+    const miniScale = 0.45;
 
-    // Disque courant sort en glissant
-    gsap.to(currentDisc, {
-      x: exitX, opacity: 0, scale: 0.85,
-      duration: 0.35, ease: "power2.in",
-      onComplete: () => {
-        currentDisc.removeAttribute("style");
-        currentDisc.style.display = "none";
-      }
-    });
-
-    // Transition shader neural (subtile)
-    if (!ecoMode) {
-      const tProxy = { p: 0 };
-      gsap.to(tProxy, {
-        p: 0.5, duration: 0.5, ease: "power2.inOut",
-        onUpdate: () => neural.setTransitionProgress(tProxy.p),
-        onComplete: () => gsap.to(tProxy, { p: 0, duration: 0.3, onUpdate: () => neural.setTransitionProgress(tProxy.p) }),
+    // Phase 1: montrer tous les disques en petit, alignes horizontalement
+    d.forEach((disc, i) => {
+      disc.style.display = "grid";
+      const offset = (i - activeIndex) * gap;
+      gsap.set(disc, {
+        x: offset,
+        scale: i === activeIndex ? 0.7 : miniScale,
+        opacity: i === activeIndex ? 1 : 0.4,
+        zIndex: i === activeIndex ? 2 : 1,
       });
-    }
-
-    // Attendre la sortie
-    await new Promise(r => setTimeout(r, 250));
-
-    // Nettoyer TOUS les disques
-    d.forEach((disc) => {
-      gsap.killTweensOf(disc);
-      disc.removeAttribute("style");
-      disc.style.display = "none";
     });
 
-    // Mettre a jour l'etat
+    // Phase 2: faire tourner la roue vers le nouveau disque (0.35s)
+    await new Promise((resolve) => {
+      const tl = gsap.timeline({ onComplete: resolve });
+      d.forEach((disc, i) => {
+        const targetOffset = (i - nextIndex) * gap;
+        tl.to(disc, {
+          x: targetOffset,
+          scale: i === nextIndex ? 0.7 : miniScale,
+          opacity: i === nextIndex ? 1 : (Math.abs(i - nextIndex) <= 1 ? 0.4 : 0.15),
+          zIndex: i === nextIndex ? 2 : 1,
+          duration: 0.35,
+          ease: "power2.inOut",
+        }, 0);
+      });
+    });
+
+    // Phase 3: le disque selectionne grossit, les autres disparaissent
     activeIndex = nextIndex;
     setActiveClasses(activeIndex);
     setLabel(activeIndex, true);
     updateDots();
     applyTheme(activeIndex);
 
-    // Nouveau disque entre en glissant depuis l'autre cote
+    // Neural shader subtil
+    if (!ecoMode) {
+      const tProxy = { p: 0 };
+      gsap.to(tProxy, {
+        p: 0.3, duration: 0.3, ease: "power2.inOut",
+        onUpdate: () => neural.setTransitionProgress(tProxy.p),
+        onComplete: () => gsap.to(tProxy, { p: 0, duration: 0.3, onUpdate: () => neural.setTransitionProgress(tProxy.p) }),
+      });
+    }
+
     const nextDisc = d[activeIndex];
-    nextDisc.style.display = "grid";
-    gsap.fromTo(nextDisc,
-      { x: enterX, opacity: 0, scale: 0.85 },
-      {
-        x: 0, opacity: 1, scale: 1, duration: 0.4, ease: "power2.out", overwrite: true,
-        onComplete: () => {
-          // Garder display:grid, nettoyer le reste
-          nextDisc.style.cssText = "";
-          startSpin();
-        },
+    // Les autres disparaissent
+    d.forEach((disc, i) => {
+      if (i !== activeIndex) {
+        gsap.to(disc, {
+          opacity: 0, scale: miniScale * 0.7,
+          duration: 0.25, ease: "power2.in",
+          onComplete: () => { disc.removeAttribute("style"); disc.style.display = "none"; }
+        });
+      }
+    });
+
+    // Le disque actif grossit vers sa taille normale
+    gsap.to(nextDisc, {
+      x: 0, scale: 1, opacity: 1, zIndex: 2,
+      duration: 0.35, ease: "back.out(1.3)",
+      onComplete: () => {
+        nextDisc.style.cssText = "";
+        if (!reduced && !ecoMode) startSpin();
+      },
       }
     );
 
