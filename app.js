@@ -611,6 +611,35 @@ async function main() {
       return;
     }
 
+    // Mode eco: crossfade simple — zero rotation, zero static, zero GPU lourd
+    if (ecoMode) {
+      const nextDisc = d[nextIndex];
+      gsap.to(currentDisc, {
+        opacity: 0, duration: 0.3, ease: "power2.in",
+        onComplete: () => {
+          currentDisc.removeAttribute("style");
+          currentDisc.style.display = "none";
+        }
+      });
+      nextDisc.style.display = "grid";
+      gsap.fromTo(nextDisc,
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3, ease: "power2.out",
+          onComplete: () => {
+            nextDisc.style.cssText = "";
+            activeIndex = nextIndex;
+            setActiveClasses(activeIndex);
+            setLabel(activeIndex, true);
+            updateDots();
+            applyTheme(activeIndex);
+            animating = false;
+            void syncProjectWater();
+          }
+        }
+      );
+      return;
+    }
+
     // Stopper la rotation
     stopSpin();
     gsap.killTweensOf(currentDisc);
