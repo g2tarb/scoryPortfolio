@@ -514,72 +514,74 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
 .nav-arrow--left { left: clamp(0.75rem, 4vw, 2.5rem); }
 .nav-arrow--right { right: clamp(0.75rem, 4vw, 2.5rem); }
 
-/* ===== SWIPE HINT MOBILE ===== */
-.swipe-hint {
+/* ===== DISC HINT MOBILE (au-dessus du disque) ===== */
+.disc-hint {
   display: none;
   position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 4;
-  align-items: center;
-  gap: 12px;
+  bottom: calc(50% + clamp(90px, 22vw, 150px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
   pointer-events: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   opacity: 0;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.5s ease;
 }
-.swipe-hint.is-visible { opacity: 1; }
-.swipe-hint.is-faded { opacity: 0.15; transition: opacity 1.5s ease; }
-
-.swipe-hint__hand {
-  color: var(--accent-gold);
-  animation: swipeHandMove 2s ease-in-out infinite;
-  filter: drop-shadow(0 0 6px var(--theme-glow));
+.disc-hint.is-visible {
+  opacity: 1;
+  animation: hintFlash 1.2s ease forwards;
 }
-@keyframes swipeHandMove {
-  0%, 100% { transform: translateX(0); }
-  30% { transform: translateX(-14px); }
-  70% { transform: translateX(14px); }
+@keyframes hintFlash {
+  0% { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-4px); }
 }
-
-.swipe-hint__text {
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: rgba(245,242,255,0.4);
-}
-
-.swipe-hint__arrows {
+.disc-hint__row {
   display: flex;
-  gap: 24px;
+  align-items: center;
+  gap: 6px;
 }
-.swipe-hint__arrow {
-  font-size: 1.2rem;
+.disc-hint__label {
+  font-family: var(--font-mono);
+  font-size: 0.45rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245,242,255,0.5);
+}
+.disc-hint__chevron {
+  font-size: 0.9rem;
   color: var(--accent-gold);
-  opacity: 0.4;
-  animation: swipeArrowPulse 2s ease-in-out infinite;
+  opacity: 0.6;
 }
-.swipe-hint__arrow--left { animation-delay: 0s; }
-.swipe-hint__arrow--right { animation-delay: 0.3s; }
-@keyframes swipeArrowPulse {
-  0%, 100% { opacity: 0.2; transform: translateX(0); }
-  50% { opacity: 0.6; }
+.disc-hint__chevron--l { animation: chevL 1.2s ease infinite; }
+.disc-hint__chevron--r { animation: chevR 1.2s ease infinite; }
+@keyframes chevL {
+  0%, 100% { transform: translateX(0); opacity: 0.3; }
+  50% { transform: translateX(-3px); opacity: 0.7; }
 }
-.swipe-hint__arrow--left { animation-name: swipeArrowLeft; }
-.swipe-hint__arrow--right { animation-name: swipeArrowRight; }
-@keyframes swipeArrowLeft {
-  0%, 100% { opacity: 0.2; transform: translateX(0); }
-  50% { opacity: 0.6; transform: translateX(-4px); }
+@keyframes chevR {
+  0%, 100% { transform: translateX(0); opacity: 0.3; }
+  50% { transform: translateX(3px); opacity: 0.7; }
 }
-@keyframes swipeArrowRight {
-  0%, 100% { opacity: 0.2; transform: translateX(0); }
-  50% { opacity: 0.6; transform: translateX(4px); }
+.disc-hint__dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  box-shadow: 0 0 6px var(--theme-glow);
+  animation: dotPulse 1.2s ease infinite;
+}
+@keyframes dotPulse {
+  0%, 100% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.4); opacity: 0.8; }
 }
 
 /* Mobile: afficher hint, cacher fleches */
 @media (max-width: 600px) {
   .nav-arrow { display: none !important; }
-  .swipe-hint { display: flex; }
+  .disc-hint { display: flex; }
 }
 /* Glow statique (pas d'animation continue = meilleur FPS) */
 
