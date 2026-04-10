@@ -951,7 +951,7 @@ body.eco-mode .eco-pill:active .eco-pill__thumb {
   .eco-switch { display: block; }
 }
 
-/* ===== INTERRUPTEUR OVAL ON/OFF MOBILE ===== */
+/* ===== INTERRUPTEUR OVAL MOBILE — couleurs du site ===== */
 .eco-switch {
   position: fixed;
   bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
@@ -964,69 +964,73 @@ body.eco-mode .eco-pill:active .eco-pill__thumb {
 .eco-switch__track {
   width: 52px; height: 28px;
   border-radius: 999px;
-  background: #000;
-  border: 2px solid rgba(255,255,255,0.15);
+  background: linear-gradient(135deg, var(--surface-deep), var(--surface-void));
+  border: 1px solid var(--accent-gold);
   position: relative;
   box-shadow:
-    inset 0 2px 6px rgba(0,0,0,0.8),
-    0 2px 10px rgba(0,0,0,0.5);
-  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    inset 0 2px 8px rgba(0,0,0,0.7),
+    0 0 15px var(--theme-glow),
+    0 2px 10px rgba(0,0,0,0.4);
+  transition: border-color 0.5s ease, box-shadow 0.5s ease, background 0.5s ease;
 }
-/* Knob — boule blanche qui glisse */
 .eco-switch__knob {
   position: absolute;
-  top: 2px; left: 2px;
+  top: 3px; left: 3px;
   width: 20px; height: 20px;
   border-radius: 50%;
-  background: linear-gradient(145deg, #fff 0%, #d0d0d0 100%);
+  background: linear-gradient(145deg, var(--accent-gold), var(--accent-amber));
   box-shadow:
-    0 2px 8px rgba(0,0,0,0.6),
-    0 0 0 1px rgba(255,255,255,0.2) inset;
-  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s ease, box-shadow 0.35s ease;
+    0 2px 10px rgba(0,0,0,0.5),
+    0 0 12px var(--theme-glow);
+  transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.5s ease, box-shadow 0.5s ease;
   display: grid; place-items: center;
 }
 .eco-switch__symbol {
   font-family: var(--font-mono);
-  font-size: 0.5rem;
+  font-size: 0.45rem;
   font-weight: 900;
-  color: #000;
+  color: var(--surface-void);
   line-height: 1;
   transition: color 0.3s ease;
 }
 
-/* ON state (full perf) — knob a gauche, symbole I */
-/* Default = full perf */
-
-/* OFF state (eco) — knob a droite, symbole O */
-body.eco-mode .eco-switch__track {
-  background: #000;
-  border-color: rgba(255,255,255,0.08);
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.3);
-}
-body.eco-mode .eco-switch__knob {
-  left: calc(100% - 22px);
-  background: linear-gradient(145deg, #888 0%, #555 100%);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-}
-body.eco-mode .eco-switch__symbol {
-  color: #222;
-}
-body.eco-mode .eco-switch__symbol::after {
-  content: "";
-}
-
-/* Glow subtil quand full perf */
+/* Glow pulse quand ON */
 .eco-switch__track::after {
   content: "";
   position: absolute;
-  inset: -4px;
+  inset: -5px;
   border-radius: 999px;
-  box-shadow: 0 0 12px rgba(255,255,255,0.08);
-  opacity: 1;
-  transition: opacity 0.4s ease;
+  box-shadow: 0 0 18px var(--theme-glow), 0 0 30px var(--theme-glow);
+  opacity: 0.6;
+  transition: opacity 0.5s ease;
   pointer-events: none;
+  animation: switchPulse 3s ease-in-out infinite;
 }
-body.eco-mode .eco-switch__track::after { opacity: 0; }
+@keyframes switchPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+/* ── ECO MODE (OFF) — variante sombre eteinte ── */
+body.eco-mode .eco-switch__track {
+  background: linear-gradient(135deg, #08070c, #050408);
+  border-color: rgba(255,255,255,0.06);
+  box-shadow:
+    inset 0 2px 8px rgba(0,0,0,0.9),
+    0 1px 4px rgba(0,0,0,0.3);
+}
+body.eco-mode .eco-switch__knob {
+  left: calc(100% - 23px);
+  background: linear-gradient(145deg, #2a2830, #18161e);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+body.eco-mode .eco-switch__symbol {
+  color: rgba(255,255,255,0.15);
+}
+body.eco-mode .eco-switch__track::after {
+  opacity: 0;
+  animation: none;
+}
 
 /* Enfoncement au tap */
 .eco-switch:active .eco-switch__knob {
@@ -1034,7 +1038,7 @@ body.eco-mode .eco-switch__track::after { opacity: 0; }
   transition: width 0.12s ease, left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 body.eco-mode .eco-switch:active .eco-switch__knob {
-  left: calc(100% - 28px);
+  left: calc(100% - 29px);
 }
 
 /* ===== MESSAGE ECO CONTEXTUEL ===== */
