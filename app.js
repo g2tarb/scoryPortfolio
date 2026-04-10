@@ -762,64 +762,66 @@ async function main() {
       });
       detailCtaWrap.appendChild(cta);
     }
-    // ===== FLIP ANIMATION — GPU only (transform + opacity) =====
+    // ===== FLIP GPU — symetrique, centre, 0.33s =====
     const disc = _discsCache.find((d) => d.classList.contains("is-active"));
     if (!disc) return;
     stopSpin();
 
-    // FIRST: position du disque
     const first = disc.getBoundingClientRect();
+    const panelChildren = detailPanel.querySelectorAll(":scope > *");
+    panelChildren.forEach(el => { el.style.opacity = "0"; el.style.transform = "translateY(8px)"; });
 
-    // Preparer le panel en position finale (invisible)
-    const panelChildren = detailPanel.querySelectorAll(".detail-panel__icon, .detail-panel__title, .detail-panel__text, .detail-panel__screenshots, .detail-panel__stack, .detail-panel__cta-wrap, .detail-panel__hint, .detail-panel__close");
-    panelChildren.forEach(el => { el.style.opacity = "0"; });
-    detailPanel.style.willChange = "transform, opacity, border-radius";
-    detailPanel.classList.add("is-visible");
+    // Passer en mode GSAP (top:0 left:0, pas de translate CSS)
+    detailPanel.classList.add("is-visible", "is-animating");
     detailPanel.setAttribute("aria-hidden", "false");
     stage.setAttribute("aria-hidden", "true");
 
-    // LAST: position finale du panel
+    // Positionner le panel au centre manuellement
+    const pw = detailPanel.offsetWidth;
+    const ph = detailPanel.offsetHeight;
+    const finalX = (innerWidth - pw) / 2;
+    const finalY = (innerHeight - ph) / 2;
+    gsap.set(detailPanel, { left: finalX, top: finalY });
+
+    // Mesurer la position finale
     const last = detailPanel.getBoundingClientRect();
 
-    // INVERT: calculer le transform inverse pour que le panel apparaisse a la position du disque
-    const dx = first.left + first.width / 2 - (last.left + last.width / 2);
-    const dy = first.top + first.height / 2 - (last.top + last.height / 2);
-    const sx = first.width / last.width;
-    const sy = first.height / last.height;
+    // Scale uniforme (le plus grand ratio) pour garder le cercle
+    const s = Math.max(first.width / last.width, first.height / last.height);
+    const dx = (first.left + first.width / 2) - (last.left + last.width / 2);
+    const dy = (first.top + first.height / 2) - (last.top + last.height / 2);
 
-    // Cacher le disque
-    gsap.to(disc, { opacity: 0, scale: 0.85, duration: 0.25, ease: "power2.in" });
+    // Disque fade
+    gsap.to(disc, { opacity: 0, scale: 0.9, duration: 0.2 });
 
-    // Placer le panel a la position du disque (via transform)
+    // Panel part du disque
     gsap.set(detailPanel, {
-      transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
+      x: dx, y: dy, scale: s,
       borderRadius: "50%",
-      opacity: 0.8,
-      transformOrigin: "center center",
+      opacity: 1,
     });
 
-    // PLAY: animer vers la position finale (transform → identity)
+    // Anime vers le centre — 0.33s
     gsap.to(detailPanel, {
-      transform: "translate(0, 0) scale(1, 1)",
-      borderRadius: "var(--radius-panel)",
-      opacity: 1,
-      duration: 0.55,
-      ease: "power3.out",
+      x: 0, y: 0, scale: 1,
+      borderRadius: 20,
+      duration: 0.33,
+      ease: "power2.out",
       onComplete: () => {
-        detailPanel.style.willChange = "";
-        // Reveal contenu en stagger
-        gsap.to(panelChildren, { opacity: 1, y: 0, duration: 0.35, stagger: 0.04, ease: "power2.out" });
+        detailPanel.classList.remove("is-animating");
+        gsap.to(panelChildren, { opacity: 1, y: 0, duration: 0.25, stagger: 0.03, ease: "power2.out" });
         _detailPrevFocus = document.activeElement;
         requestAnimationFrame(() => { _detailFocusTrap = trapFocus(detailPanel); });
       }
     });
 
-    // Fermer au clic en dehors
+    // Fermer au clic en dehors (mais pas sur le panel ni ses enfants)
     _closeOnOutsideRef = (e) => {
-      if (!detailPanel.contains(e.target)) closeDetail();
+      if (detailPanel.contains(e.target)) return;
+      closeDetail();
     };
     setTimeout(() => {
-      document.addEventListener("click", _closeOnOutsideRef, true);
+      document.addEventListener("pointerdown", _closeOnOutsideRef, true);
     }, CLOSE_OUTSIDE_DELAY_MS);
   }
 
@@ -832,43 +834,40 @@ async function main() {
     detailVisible = false;
     stage.removeAttribute("aria-hidden");
     if (_closeOnOutsideRef) {
-      document.removeEventListener("click", _closeOnOutsideRef, true);
+      document.removeEventListener("pointerdown", _closeOnOutsideRef, true);
       _closeOnOutsideRef = null;
     }
     if (_detailFocusTrap) { _detailFocusTrap(); _detailFocusTrap = null; }
 
     const disc = _discsCache.find((d) => d.classList.contains("is-active"));
-    const discRect = disc ? disc.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 200, height: 200 };
-    const panelRect = detailPanel.getBoundingClientRect();
 
     // Fade contenu
-    const panelChildren = detailPanel.querySelectorAll(".detail-panel__icon, .detail-panel__title, .detail-panel__text, .detail-panel__screenshots, .detail-panel__stack, .detail-panel__cta-wrap, .detail-panel__hint, .detail-panel__close");
-    gsap.to(panelChildren, { opacity: 0, duration: 0.15 });
+    const panelChildren = detailPanel.querySelectorAll(":scope > *");
+    gsap.to(panelChildren, { opacity: 0, y: -5, duration: 0.12 });
 
-    // FLIP inverse: panel → position du disque
-    const dx = discRect.left + discRect.width / 2 - (panelRect.left + panelRect.width / 2);
-    const dy = discRect.top + discRect.height / 2 - (panelRect.top + panelRect.height / 2);
-    const sx = discRect.width / panelRect.width;
-    const sy = discRect.height / panelRect.height;
+    // Recalculer la position du disque (peut avoir bouge si scroll)
+    const discRect = disc ? disc.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 200, height: 200 };
+    const panelRect = detailPanel.getBoundingClientRect();
+    const s = Math.max(discRect.width / panelRect.width, discRect.height / panelRect.height);
+    const dx = (discRect.left + discRect.width / 2) - (panelRect.left + panelRect.width / 2);
+    const dy = (discRect.top + discRect.height / 2) - (panelRect.top + panelRect.height / 2);
 
-    detailPanel.style.willChange = "transform, opacity, border-radius";
+    detailPanel.classList.add("is-animating");
     gsap.to(detailPanel, {
-      transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
+      x: dx, y: dy, scale: s,
       borderRadius: "50%",
       opacity: 0,
-      duration: 0.45,
-      ease: "power3.in",
+      duration: 0.33,
+      ease: "power2.in",
       onComplete: () => {
-        detailPanel.classList.remove("is-visible");
+        detailPanel.classList.remove("is-visible", "is-animating");
         detailPanel.setAttribute("aria-hidden", "true");
-        detailPanel.style.willChange = "";
-        gsap.set(detailPanel, { clearProps: "transform,borderRadius,opacity" });
+        gsap.set(detailPanel, { clearProps: "x,y,scale,borderRadius,opacity" });
 
-        // Disque reapparait avec rebond
         if (disc) {
           gsap.to(disc, {
             opacity: 1, scale: 1, rotation: discSpinAngle,
-            duration: 0.5, ease: "back.out(1.7)",
+            duration: 0.4, ease: "back.out(1.5)",
             onComplete: () => { if (!reduced && !ecoMode) startSpin(); }
           });
         } else if (!reduced && !ecoMode) {
@@ -884,7 +883,10 @@ async function main() {
 
   /* Bouton X ferme le detail */
   const detailCloseBtn = document.getElementById("detail-close");
-  if (detailCloseBtn) detailCloseBtn.addEventListener("click", (e) => { e.stopPropagation(); closeDetail(); });
+  if (detailCloseBtn) {
+    detailCloseBtn.addEventListener("click", (e) => { e.stopPropagation(); e.preventDefault(); closeDetail(); });
+    detailCloseBtn.addEventListener("touchend", (e) => { e.stopPropagation(); e.preventDefault(); closeDetail(); });
+  }
 
   /* Clic / Long press sur le disque actif → animation + details */
   let _holdTimer = null;

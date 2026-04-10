@@ -552,10 +552,14 @@ html.lenis, html.lenis body { height: auto; }
   box-shadow: var(--glass-shadow), 0 0 50px var(--theme-glow-strong);
   border-color: var(--theme-tint-c);
   transform-origin: center center;
-  /* GPU layer promotion */
   will-change: transform, opacity;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+}
+/* Pendant l'animation GSAP: positionnement absolu, GSAP controle x/y/scale */
+.detail-panel.is-animating {
+  top: 0; left: 0;
+  transform: none;
 }
 .detail-panel.is-visible {
   pointer-events: auto;
