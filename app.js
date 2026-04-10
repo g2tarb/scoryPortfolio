@@ -171,20 +171,10 @@ async function main() {
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
-  /* ===== PHASE 1 : Loader + carrousel sans Three.js ===== */
-  // Stub neural tant que Three.js n'est pas charge
-  let neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
-
-  /* ===== PHASE 2 : Neural skip sur mobile (lourd), fonds projets toujours actifs ===== */
-  const threeReady = skipNeural
-    ? Promise.resolve().then(() => { document.body.classList.add("no-webgl"); })
-    : import("./three-neural.js").then(({ FlaynnNeuralBackground }) => {
-        try {
-          neural = new FlaynnNeuralBackground(neuralHost, { timeScale: reduced ? 0.22 : 1 });
-        } catch {
-          document.body.classList.add("no-webgl");
-        }
-      }).catch(() => { document.body.classList.add("no-webgl"); });
+  /* ===== Neural supprime — stub permanent ===== */
+  const neural = { resize() {}, setTransitionProgress() {}, setRotationInfluence() {} };
+  if (neuralHost) neuralHost.style.display = "none";
+  const threeReady = Promise.resolve();
 
   /* ---------- Fonds projet (initialisés au premier usage) ---------- */
   const projectBgs = {};
@@ -543,15 +533,11 @@ async function main() {
     if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
     hideProjectBg();
 
-    // Disque Scory (index 0) → video scoryModel apres un bref neural
+    // Disque Scory (index 0) → video scoryModel directement
     if (activeIndex === SCORY_INDEX) {
       if (waterSplashTween) waterSplashTween.kill();
-      gsap.to(neuralHost, { opacity: 0.5, duration: 1, ease: "power2.out" });
-      gsap.to(waterHost, { opacity: 0, duration: 0.8, ease: "power2.out" });
-      waterFadeTimer = setTimeout(() => {
-        gsap.to(neuralHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
-        showProjectBg(0);
-      }, 2000);
+      gsap.to(waterHost, { opacity: 0, duration: 0.5 });
+      showProjectBg(0);
       return;
     }
 
@@ -708,12 +694,7 @@ async function main() {
     tl.to(staticOverlay, { opacity: 0.1, duration: 0.04 }, 0.58);
     tl.to(staticOverlay, { opacity: 0, duration: 0.15 }, 0.65);
 
-    // Neural flash
-    if (!ecoMode) {
-      tl.to(neuralHost, { opacity: 0, duration: 0.1, ease: "none" }, 0.5);
-      tl.to(neuralHost, { opacity: 0.6, duration: 0.15, ease: "none" }, 0.6);
-      tl.to(neuralHost, { opacity: 1, duration: 0.3, ease: "power2.out" }, 0.75);
-    }
+    // (Neural supprime — plus de flash fond)
     if (projectBgHost) {
       tl.to(projectBgHost, { opacity: 0, duration: 0.1 }, 0.5);
     }

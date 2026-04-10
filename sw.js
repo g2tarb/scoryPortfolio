@@ -14,7 +14,6 @@ const STATIC_ASSETS = [
   "./chatbot.js",
   "./booking.js",
   "./particles.js",
-  "./three-neural.js",
   "./three-water.js",
   "./aurora.js",
   "./universe.js",
