@@ -662,9 +662,9 @@ async function main() {
 
     const tl = gsap.timeline({
       onComplete: () => {
-        currentDisc.removeAttribute("style");
+        gsap.set(currentDisc, { clearProps: "all" });
+        gsap.set(nextDisc, { clearProps: "all" });
         currentDisc.style.display = "none";
-        nextDisc.style.cssText = "";
         activeIndex = nextIndex;
         setActiveClasses(activeIndex);
         setLabel(activeIndex, true);
@@ -676,9 +676,10 @@ async function main() {
       }
     });
 
-    // Phase 1: le disque actuel tourne vite — visible tout du long, shrink a la fin (0.6s)
+    // Phase 1: le disque actuel tourne vite + glisse vers l'exterieur (0.6s)
     tl.to(currentDisc, {
       rotation: discSpinAngle + direction * 540,
+      x: direction * window.innerWidth * 0.45,
       scale: 0.4,
       duration: 0.6, ease: "power2.in",
     }, 0);
@@ -699,11 +700,11 @@ async function main() {
       tl.to(projectBgHost, { opacity: 0, duration: 0.1 }, 0.5);
     }
 
-    // Phase 2: le nouveau disque est DEJA visible, tourne vite, et ralentit pour se poser (0.7s)
+    // Phase 2: le nouveau disque glisse depuis l'exterieur + tourne et ralentit pour se poser (0.7s)
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      { rotation: -direction * 360, scale: 0.4, opacity: 1 },
-      { rotation: 0, scale: 1, opacity: 1,
+      { rotation: -direction * 360, x: -direction * window.innerWidth * 0.45, scale: 0.4, opacity: 1 },
+      { rotation: 0, x: 0, scale: 1, opacity: 1,
         duration: 0.7, ease: "power2.out",
         onStart: () => {
           if (!ecoMode) {
