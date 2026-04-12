@@ -1367,6 +1367,7 @@ async function main() {
         gsap.to(counter, {
           val: target, duration: 2, ease: "power2.out",
           onUpdate: () => { numEl.textContent = Math.round(counter.val) + suffix; },
+          onComplete: () => { numEl.classList.add("is-glowing"); },
         });
         statsObserver.unobserve(card);
       });
@@ -1434,6 +1435,78 @@ async function main() {
       }
     } else { konamiIdx = 0; }
   });
+
+  /* ---------- Process timeline — draw on scroll ---------- */
+  const processLineFill = document.getElementById("process-line-fill");
+  const processSection = document.querySelector(".process-section");
+  if (processLineFill && processSection && !reduced) {
+    const processObs = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) return;
+      processObs.disconnect();
+      const lineLen = processLineFill.getTotalLength?.() || 1000;
+      processLineFill.style.strokeDasharray = lineLen;
+      processLineFill.style.strokeDashoffset = lineLen;
+      gsap.to(processLineFill, {
+        strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut",
+      });
+      // Dots apparaissent en stagger
+      const dots = processSection.querySelectorAll(".process-dot");
+      dots.forEach((dot, i) => {
+        setTimeout(() => dot.closest(".process-card")?.classList.add("is-dot-visible"), 500 + i * 500);
+      });
+    }, { threshold: 0.2 });
+    processObs.observe(processSection);
+  }
+
+  /* ---------- About avatar canvas — "S" generatif ---------- */
+  const avatarCanvas = document.getElementById("about-avatar");
+  if (avatarCanvas) {
+    const ctx = avatarCanvas.getContext("2d");
+    const s = avatarCanvas.width;
+    let hue = 0;
+    function drawAvatar() {
+      ctx.clearRect(0, 0, s, s);
+      // Fond radial
+      const grad = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+      grad.addColorStop(0, "rgba(201,169,98,0.12)");
+      grad.addColorStop(1, "transparent");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, s, s);
+      // Lettre "S"
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent-gold").trim() || "#c9a962";
+      ctx.font = `600 ${s * 0.5}px ${getComputedStyle(document.documentElement).getPropertyValue("--font-display").trim() || "serif"}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.globalAlpha = 0.9;
+      ctx.fillText("S", s / 2, s / 2 + 2);
+      ctx.globalAlpha = 1;
+      // Anneau rotatif
+      hue += 0.3;
+      ctx.strokeStyle = `hsla(${40 + Math.sin(hue * 0.02) * 10}, 60%, 55%, 0.2)`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(s / 2, s / 2, s / 2 - 4, hue * 0.01, hue * 0.01 + Math.PI * 1.2);
+      ctx.stroke();
+    }
+    drawAvatar();
+    // Rotation lente
+    const aboutObs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) { avatarRaf = requestAnimationFrame(tickAvatar); }
+      else { cancelAnimationFrame(avatarRaf); }
+    }, { threshold: 0.1 });
+    let avatarRaf = 0;
+    function tickAvatar() { drawAvatar(); avatarRaf = requestAnimationFrame(tickAvatar); }
+    aboutObs.observe(avatarCanvas);
+  }
+
+  /* ---------- Fond ambient post-hero ---------- */
+  const ambientBg = document.getElementById("ambient-bg");
+  if (ambientBg) {
+    const ambientObs = new IntersectionObserver((entries) => {
+      ambientBg.classList.toggle("is-visible", !entries[0].isIntersecting);
+    }, { threshold: 0.5 });
+    ambientObs.observe(stage);
+  }
 
   /* ---------- Chatbot + Booking (sequentiel) ---------- */
   let chatStateRef = { completed: false };

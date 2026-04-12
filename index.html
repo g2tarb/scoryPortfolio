@@ -233,6 +233,9 @@
       </div>
     </main>
 
+    <!-- Fond ambient post-hero -->
+    <div class="ambient-bg" id="ambient-bg" aria-hidden="true"></div>
+
     <!-- Scroll hint -->
     <div class="scroll-hint" aria-hidden="true">
       <p class="scroll-hint__text" data-i18n="scroll.text">Estimez votre projet</p>
@@ -289,30 +292,37 @@
     <!-- Processus -->
     <section class="process-section" aria-label="Notre processus">
       <h2 class="section-title gradient-text" data-i18n="process.title">Notre processus</h2>
-      <div class="process-grid">
-        <div class="process-card glass-panel">
-          <span class="process-step">01</span>
-          <span class="process-icon">📞</span>
-          <h3 class="process-name" data-i18n="process.1.name">Contact</h3>
-          <p class="process-desc" data-i18n="process.1.desc">Echange sur votre vision, vos objectifs et votre budget. Devis gratuit sous 24h.</p>
-        </div>
-        <div class="process-card glass-panel">
-          <span class="process-step">02</span>
-          <span class="process-icon">🎨</span>
-          <h3 class="process-name" data-i18n="process.2.name">Maquette</h3>
-          <p class="process-desc" data-i18n="process.2.desc">Direction artistique sur-mesure, wireframes et prototypes interactifs valides avec vous.</p>
-        </div>
-        <div class="process-card glass-panel">
-          <span class="process-step">03</span>
-          <span class="process-icon">⚡</span>
-          <h3 class="process-name" data-i18n="process.3.name">Developpement</h3>
-          <p class="process-desc" data-i18n="process.3.desc">Code artisanal, animations GSAP, Three.js, responsive pixel-perfect. Zero template.</p>
-        </div>
-        <div class="process-card glass-panel">
-          <span class="process-step">04</span>
-          <span class="process-icon">🚀</span>
-          <h3 class="process-name" data-i18n="process.4.name">Livraison</h3>
-          <p class="process-desc" data-i18n="process.4.desc">Deploiement, formation et support inclus. Votre site en ligne, pret a performer.</p>
+      <div class="process-timeline">
+        <svg class="process-line" aria-hidden="true" preserveAspectRatio="none"><line class="process-line__track" x1="0" y1="50%" x2="100%" y2="50%"/><line class="process-line__fill" id="process-line-fill" x1="0" y1="50%" x2="100%" y2="50%"/></svg>
+        <div class="process-grid">
+          <div class="process-card glass-panel">
+            <span class="process-dot" aria-hidden="true"></span>
+            <span class="process-step">01</span>
+            <span class="process-icon">📞</span>
+            <h3 class="process-name" data-i18n="process.1.name">Contact</h3>
+            <p class="process-desc" data-i18n="process.1.desc">Echange sur votre vision, vos objectifs et votre budget. Devis gratuit sous 24h.</p>
+          </div>
+          <div class="process-card glass-panel">
+            <span class="process-dot" aria-hidden="true"></span>
+            <span class="process-step">02</span>
+            <span class="process-icon">🎨</span>
+            <h3 class="process-name" data-i18n="process.2.name">Maquette</h3>
+            <p class="process-desc" data-i18n="process.2.desc">Direction artistique sur-mesure, wireframes et prototypes interactifs valides avec vous.</p>
+          </div>
+          <div class="process-card glass-panel">
+            <span class="process-dot" aria-hidden="true"></span>
+            <span class="process-step">03</span>
+            <span class="process-icon">⚡</span>
+            <h3 class="process-name" data-i18n="process.3.name">Developpement</h3>
+            <p class="process-desc" data-i18n="process.3.desc">Code artisanal, animations GSAP, Three.js, responsive pixel-perfect. Zero template.</p>
+          </div>
+          <div class="process-card glass-panel">
+            <span class="process-dot" aria-hidden="true"></span>
+            <span class="process-step">04</span>
+            <span class="process-icon">🚀</span>
+            <h3 class="process-name" data-i18n="process.4.name">Livraison</h3>
+            <p class="process-desc" data-i18n="process.4.desc">Deploiement, formation et support inclus. Votre site en ligne, pret a performer.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -320,6 +330,9 @@
     <!-- About -->
     <section class="about-section" aria-label="A propos de Scory">
       <div class="about-container glass-panel">
+        <div class="about-visual" aria-hidden="true">
+          <canvas id="about-avatar" class="about-avatar" width="120" height="120"></canvas>
+        </div>
         <h2 class="section-title gradient-text" data-i18n="about.title">Qui est Scory ?</h2>
         <p class="about-mission" data-i18n="about.mission">Scory concoit des experiences web immersives qui transforment votre vision en realite digitale.</p>
         <p class="about-philosophy" data-i18n="about.philosophy">Chaque projet est une oeuvre sur-mesure. Design premium, code artisanal. Pas de templates. Pas de compromis. Juste votre univers, sublime.</p>
