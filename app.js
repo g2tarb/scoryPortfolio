@@ -70,26 +70,30 @@ function glitchType(el, text, opts = {}) {
   const color = opts.color ?? "var(--accent-gold)";
   let cancelled = false;
   el.innerHTML = "";
-  const spans = [];
-  for (let i = 0; i < text.length; i++) {
-    const s = document.createElement("span");
-    s.style.opacity = "0";
-    spans.push(s);
-    el.appendChild(s);
-  }
+  // Decouper en mots pour permettre le word-wrap naturel
+  const words = text.split(" ");
+  const charNodes = []; // { span, final }
+  words.forEach((word, wi) => {
+    const wordWrap = document.createElement("span");
+    wordWrap.style.whiteSpace = "nowrap";
+    wordWrap.style.display = "inline";
+    for (let ci = 0; ci < word.length; ci++) {
+      const s = document.createElement("span");
+      s.style.opacity = "0";
+      charNodes.push({ span: s, final: word[ci] });
+      wordWrap.appendChild(s);
+    }
+    el.appendChild(wordWrap);
+    // Espace normal entre les mots (permet le line-break)
+    if (wi < words.length - 1) {
+      el.appendChild(document.createTextNode(" "));
+    }
+  });
   const done = new Promise((resolve) => {
     let i = 0;
     function nextChar() {
-      if (cancelled || i >= text.length) { resolve(); return; }
-      const idx = i++;
-      const span = spans[idx];
-      const final = text[idx];
-      if (final === " ") {
-        span.textContent = "\u00A0";
-        span.style.opacity = "1";
-        setTimeout(nextChar, charDelay * 0.3);
-        return;
-      }
+      if (cancelled || i >= charNodes.length) { resolve(); return; }
+      const { span, final } = charNodes[i++];
       span.style.opacity = "1";
       span.style.color = color;
       span.classList.add("glitch-char");
