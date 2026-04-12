@@ -430,7 +430,7 @@ async function main() {
     // Titre de page dynamique + hash routing
     const project = PROJECTS()[index];
     document.title = index === SCORY_INDEX
-      ? "SCORY — Agence Web Freelance"
+      ? "SCORY — Developpeur Freelance"
       : `${project?.title || ""} — SCORY`;
     const slug = project?.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-$/, "") || "";
     const hash = index === SCORY_INDEX ? "" : slug;

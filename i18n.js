@@ -57,20 +57,20 @@ export const TRANSLATIONS = {
   // CTA flottant
   "cta.floating": { fr: "Devis gratuit", en: "Free quote" },
   // Process
-  "process.title": { fr: "Notre processus", en: "Our process" },
+  "process.title": { fr: "Mon processus", en: "My process" },
   "process.1.name": { fr: "Contact", en: "Contact" },
-  "process.1.desc": { fr: "Echange sur votre vision, vos objectifs et votre budget. Devis gratuit sous 24h.", en: "Discussion about your vision, goals and budget. Free quote within 24h." },
+  "process.1.desc": { fr: "On echange sur votre vision, vos objectifs et votre budget. Devis gratuit sous 24h.", en: "We discuss your vision, goals and budget. Free quote within 24h." },
   "process.2.name": { fr: "Maquette", en: "Mockup" },
-  "process.2.desc": { fr: "Direction artistique sur-mesure, wireframes et prototypes interactifs valides avec vous.", en: "Custom art direction, wireframes and interactive prototypes validated with you." },
+  "process.2.desc": { fr: "Je cree la direction artistique, wireframes et prototypes interactifs — valides avec vous.", en: "I create the art direction, wireframes and interactive prototypes — validated with you." },
   "process.3.name": { fr: "Developpement", en: "Development" },
   "process.3.desc": { fr: "Code artisanal, animations GSAP, Three.js, responsive pixel-perfect. Zero template.", en: "Handcrafted code, GSAP animations, Three.js, pixel-perfect responsive. Zero templates." },
   "process.4.name": { fr: "Livraison", en: "Delivery" },
-  "process.4.desc": { fr: "Deploiement, formation et support inclus. Votre site en ligne, pret a performer.", en: "Deployment, training and support included. Your site live, ready to perform." },
+  "process.4.desc": { fr: "Deploiement, formation et support inclus. Votre site en ligne, pret a convertir.", en: "Deployment, training and support included. Your site live, ready to convert." },
   // About
-  "about.title": { fr: "Qui est Scory ?", en: "Who is Scory?" },
+  "about.title": { fr: "Qui suis-je ?", en: "Who am I?" },
   "about.mission": {
-    fr: "Scory concoit des experiences web immersives qui transforment votre vision en realite digitale.",
-    en: "Scory creates immersive web experiences that turn your vision into digital reality.",
+    fr: "Je concois des experiences web immersives qui transforment votre vision en realite digitale.",
+    en: "I create immersive web experiences that turn your vision into digital reality.",
   },
   "about.philosophy": {
     fr: "Chaque projet est une oeuvre sur-mesure. Design premium, code artisanal. Pas de templates. Pas de compromis. Juste votre univers, sublime.",
@@ -84,7 +84,7 @@ export const TRANSLATIONS = {
   "chat.name": { fr: "Scory Assistant", en: "Scory Assistant" },
   "chat.status": { fr: "En ligne", en: "Online" },
   // Contact
-  "contact.title": { fr: "Contactez-nous", en: "Contact us" },
+  "contact.title": { fr: "Me contacter", en: "Get in touch" },
   "contact.rdv": { fr: "Prendre rendez-vous", en: "Book a meeting" },
   // Booking
   "booking.title": { fr: "Prendre rendez-vous", en: "Book a meeting" },
@@ -101,10 +101,10 @@ export const TRANSLATIONS = {
   "booking.outside": { fr: "Cliquez en dehors pour fermer", en: "Click outside to close" },
   // Footer
   "footer.signature": {
-    fr: "Avec Scory, seule votre imagination est la limite.",
-    en: "With Scory, only your imagination is the limit.",
+    fr: "Votre vision, mon code. Sans limites.",
+    en: "Your vision, my code. No limits.",
   },
-  "footer.copy": { fr: "Scory — Musee Digital. Tous droits reserves.", en: "Scory — Digital Museum. All rights reserved." },
+  "footer.copy": { fr: "Scory — Scory Yana. Tous droits reserves.", en: "Scory — Scory Yana. All rights reserved." },
   "footer.legal": { fr: "Mentions legales", en: "Legal notice" },
   // Skip link
   "skip": { fr: "Aller au musee", en: "Go to museum" },
