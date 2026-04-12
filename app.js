@@ -30,7 +30,6 @@ function CHAT_FLOW() { return CHAT_FLOW_ALL[getLang()] || CHAT_FLOW_ALL.fr; }
 const EASE_SPRING_HEAVY = "back.out(1.32)";
 const LOADER_DELAY_MS = 1500;
 const CLOSE_OUTSIDE_DELAY_MS = 600;
-const WATER_FADE_DELAY_MS = 5000;
 const DISC_SPIN_SPEED = 0.06;
 const RESIZE_DEBOUNCE_MS = 100;
 const SWIPE_VELOCITY_MIN = 0.3;
@@ -39,14 +38,6 @@ const SWIPE_DISTANCE_SLOW = 60;
 const SCORY_INDEX = 0;
 const CONTACT_EMAIL = "gdbyana@gmail.com";
 
-/** @param {string[]} urls - URLs des images a precharger */
-function preloadImages(urls) {
-  urls.forEach((url) => {
-    if (!url) return;
-    const img = new Image();
-    img.src = url;
-  });
-}
 
 /** @param {string} email @returns {boolean} */
 function isValidEmail(email) {
@@ -61,6 +52,70 @@ function hexToRgba(hex, a) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
+
+const GLITCH_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!?/<>{}[]~^";
+
+/**
+ * Typewriter + glitch : chaque caractere cycle a travers des glyphs aleatoires
+ * colores avec la couleur du theme avant de se fixer.
+ * @param {HTMLElement} el
+ * @param {string} text
+ * @param {{ charDelay?: number, glitchRounds?: number, glitchSpeed?: number, color?: string }} opts
+ * @returns {{ cancel: () => void, done: Promise<void> }}
+ */
+function glitchType(el, text, opts = {}) {
+  const charDelay = opts.charDelay ?? 18;
+  const glitchRounds = opts.glitchRounds ?? 3;
+  const glitchSpeed = opts.glitchSpeed ?? 30;
+  const color = opts.color ?? "var(--accent-gold)";
+  let cancelled = false;
+  el.innerHTML = "";
+  // Decouper en mots pour permettre le word-wrap naturel
+  const words = text.split(" ");
+  const charNodes = []; // { span, final }
+  words.forEach((word, wi) => {
+    const wordWrap = document.createElement("span");
+    wordWrap.style.whiteSpace = "nowrap";
+    wordWrap.style.display = "inline";
+    for (let ci = 0; ci < word.length; ci++) {
+      const s = document.createElement("span");
+      s.style.opacity = "0";
+      charNodes.push({ span: s, final: word[ci] });
+      wordWrap.appendChild(s);
+    }
+    el.appendChild(wordWrap);
+    // Espace normal entre les mots (permet le line-break)
+    if (wi < words.length - 1) {
+      el.appendChild(document.createTextNode(" "));
+    }
+  });
+  const done = new Promise((resolve) => {
+    let i = 0;
+    function nextChar() {
+      if (cancelled || i >= charNodes.length) { resolve(); return; }
+      const { span, final } = charNodes[i++];
+      span.style.opacity = "1";
+      span.style.color = color;
+      span.classList.add("glitch-char");
+      let round = 0;
+      const tick = setInterval(() => {
+        if (cancelled) { clearInterval(tick); resolve(); return; }
+        if (round < glitchRounds) {
+          span.textContent = GLITCH_CHARS[Math.random() * GLITCH_CHARS.length | 0];
+          round++;
+        } else {
+          clearInterval(tick);
+          span.textContent = final;
+          span.style.color = "";
+          span.classList.remove("glitch-char");
+        }
+      }, glitchSpeed);
+      setTimeout(nextChar, charDelay);
+    }
+    nextChar();
+  });
+  return { cancel: () => { cancelled = true; }, done };
+}
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -148,7 +203,6 @@ function initEcoMode() {
 async function main() {
   const stage = document.getElementById("museum-stage");
   const neuralHost = document.getElementById("neural-host");
-  const waterHost = document.getElementById("water-host");
   const carousel = document.getElementById("project-carousel");
   const track = document.getElementById("project-track");
   const labelNum = document.getElementById("label-num");
@@ -255,27 +309,8 @@ async function main() {
       return;
     }
 
-    // Toujours mettre l'image en CSS background (filet de securite)
-    const el = discs()[index];
-    const isMob = window.innerWidth <= 600;
-    const url = (isMob && el?.dataset?.imageMobile) || el?.dataset?.image;
-    if (url) {
-      projectBgHost.style.backgroundImage = `url(${url})`;
-      projectBgHost.style.backgroundSize = "cover";
-      projectBgHost.style.backgroundPosition = "center";
-    }
-
     const bg = await getProjectBg(index);
-    if (!bg) {
-      // Canvas echoue : l'image CSS est deja la, on la montre
-      gsap.to(projectBgHost, { opacity: 0.3, duration: 2, ease: "power2.inOut" });
-      return;
-    }
-    // Desktop : supprimer l'image CSS pour laisser le Canvas seul
-    // Mobile : garder l'image en fond sous le Canvas (plus riche)
-    if (window.innerWidth > 600) {
-      projectBgHost.style.backgroundImage = "";
-    }
+    if (!bg) return;
     bg.canvas.style.display = "block";
     if (bg.orb) bg.orb.style.display = "block";
     bg.start();
@@ -321,7 +356,7 @@ async function main() {
   }
 
   // Three.js lance le fond quand il est pret
-  threeReady.then(() => void syncProjectWater());
+  threeReady.then(() => showProjectBg(activeIndex));
 
   // Appliquer la langue sauvegardee au demarrage
   setLang(getLang());
@@ -358,20 +393,6 @@ async function main() {
     });
   }
 
-  let water = null;
-  let waterSplashTween = null;
-  let waterFadeTimer = null;
-  let WaterReflectionLayer = null;
-  async function ensureWater() {
-    if (!water && waterHost) {
-      if (!WaterReflectionLayer) {
-        const mod = await import("./three-water.js");
-        WaterReflectionLayer = mod.WaterReflectionLayer;
-      }
-      water = new WaterReflectionLayer(waterHost, { timeScale: reduced ? 0.22 : 1 });
-    }
-  }
-  if (waterHost) gsap.set(waterHost, { opacity: 0 });
   gsap.set(neuralHost, { opacity: 1 });
 
   /* ---------- Particules (lazy) ---------- */
@@ -409,7 +430,7 @@ async function main() {
     // Titre de page dynamique + hash routing
     const project = PROJECTS()[index];
     document.title = index === SCORY_INDEX
-      ? "SCORY — Agence Web Freelance"
+      ? "SCORY — Developpeur Freelance"
       : `${project?.title || ""} — SCORY`;
     const slug = project?.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-$/, "") || "";
     const hash = index === SCORY_INDEX ? "" : slug;
@@ -517,74 +538,6 @@ async function main() {
     });
   }
 
-  /* ---------- Fond eau / neural / projet ---------- */
-  async function syncProjectWater() {
-    if (!waterHost) {
-      showProjectBg(activeIndex);
-      return;
-    }
-    await ensureWater();
-    if (!water) {
-      showProjectBg(activeIndex);
-      return;
-    }
-
-    // Annuler tout timer de crossfade précédent
-    if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
-    hideProjectBg();
-
-    // Disque Scory (index 0) → video scoryModel directement
-    if (activeIndex === SCORY_INDEX) {
-      if (waterSplashTween) waterSplashTween.kill();
-      gsap.to(waterHost, { opacity: 0, duration: 0.5 });
-      showProjectBg(0);
-      return;
-    }
-
-    const el = discs()[activeIndex];
-    const isMobile = window.innerWidth <= 600;
-    const url = (isMobile && el?.dataset?.imageMobile) || el?.dataset?.image;
-    if (!url) return;
-    try {
-      await water.loadTexture(url);
-      runWaterSplash();
-    } catch {
-      // Water echoue : montrer le fond projet directement
-      gsap.to(neuralHost, { opacity: 0, duration: 1 });
-      gsap.to(waterHost, { opacity: 0, duration: 0.5 });
-      showProjectBg(activeIndex);
-    }
-  }
-
-  function runWaterSplash() {
-    if (!water || !waterHost) return;
-    if (waterSplashTween) waterSplashTween.kill();
-    if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
-
-    if (reduced) {
-      water.setProgress(0.12);
-      gsap.set(neuralHost, { opacity: 0.2 });
-      gsap.set(waterHost, { opacity: 1 });
-      return;
-    }
-
-    water.setProgress(1);
-    const proxy = { p: 1 };
-    waterSplashTween = gsap.timeline()
-      .to(neuralHost, { opacity: 0.14, duration: 1.15, ease: "power2.out" }, 0)
-      .to(waterHost, { opacity: 1, duration: 1.05, ease: "power2.out" }, 0)
-      .to(proxy, {
-        p: 0.1, duration: 2.45, ease: "power3.out",
-        onUpdate: () => water.setProgress(proxy.p),
-      }, 0);
-
-    // Après gel image (3s) + 2s pause → crossfade vers le vrai fond du projet
-    waterFadeTimer = setTimeout(() => { // image gelee + pause
-      gsap.to(waterHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
-      gsap.to(neuralHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
-      showProjectBg(activeIndex);
-    }, WATER_FADE_DELAY_MS);
-  }
 
   /* ---------- Navigation avec transition particules ---------- */
   async function goTo(nextIndex) {
@@ -607,7 +560,7 @@ async function main() {
       updateDots();
       applyTheme(activeIndex);
       animating = false;
-      void syncProjectWater();
+      showProjectBg(activeIndex);
       return;
     }
 
@@ -633,7 +586,7 @@ async function main() {
             updateDots();
             applyTheme(activeIndex);
             animating = false;
-            void syncProjectWater();
+            showProjectBg(activeIndex);
           }
         }
       );
@@ -646,7 +599,6 @@ async function main() {
 
     // Precharger le fond du prochain projet pendant l'animation
     getProjectBg(nextIndex).catch(() => {});
-    preloadNearby(nextIndex);
 
     // ===== TRANSITION MULTIPLEX — changement de chaine =====
     const nextDisc = d[nextIndex];
@@ -662,9 +614,9 @@ async function main() {
 
     const tl = gsap.timeline({
       onComplete: () => {
-        currentDisc.removeAttribute("style");
+        gsap.set(currentDisc, { clearProps: "all" });
+        gsap.set(nextDisc, { clearProps: "all" });
         currentDisc.style.display = "none";
-        nextDisc.style.cssText = "";
         activeIndex = nextIndex;
         setActiveClasses(activeIndex);
         setLabel(activeIndex, true);
@@ -672,13 +624,14 @@ async function main() {
         applyTheme(activeIndex);
         animating = false;
         if (!reduced && !ecoMode) startSpin();
-        void syncProjectWater();
+        showProjectBg(activeIndex);
       }
     });
 
-    // Phase 1: le disque actuel tourne vite — visible tout du long, shrink a la fin (0.6s)
+    // Phase 1: le disque actuel tourne vite + glisse vers l'exterieur (0.6s)
     tl.to(currentDisc, {
       rotation: discSpinAngle + direction * 540,
+      x: direction * window.innerWidth * 0.45,
       scale: 0.4,
       duration: 0.6, ease: "power2.in",
     }, 0);
@@ -699,11 +652,11 @@ async function main() {
       tl.to(projectBgHost, { opacity: 0, duration: 0.1 }, 0.5);
     }
 
-    // Phase 2: le nouveau disque est DEJA visible, tourne vite, et ralentit pour se poser (0.7s)
+    // Phase 2: le nouveau disque glisse depuis l'exterieur + tourne et ralentit pour se poser (0.7s)
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      { rotation: -direction * 360, scale: 0.4, opacity: 1 },
-      { rotation: 0, scale: 1, opacity: 1,
+      { rotation: -direction * 360, x: -direction * window.innerWidth * 0.45, scale: 0.4, opacity: 1 },
+      { rotation: 0, x: 0, scale: 1, opacity: 1,
         duration: 0.7, ease: "power2.out",
         onStart: () => {
           if (!ecoMode) {
@@ -732,15 +685,35 @@ async function main() {
   /* ---------- Clic → panneau détails ---------- */
   const detailStack = document.getElementById("detail-stack");
   const detailCtaWrap = document.getElementById("detail-cta-wrap");
-  const detailScreenshots = document.getElementById("detail-screenshots");
+
+  let _glitchTitle = null;
+  let _glitchText = null;
 
   function openDetail() {
     if (detailVisible) return;
     detailVisible = true;
     const p = PROJECTS()[activeIndex];
     if (!p) return;
-    detailTitle.textContent = p.title;
-    detailText.textContent = p.detail;
+    // Annuler les glitch precedents
+    if (_glitchTitle) _glitchTitle.cancel();
+    if (_glitchText) _glitchText.cancel();
+    const t = THEMES[activeIndex];
+    if (reduced) {
+      detailTitle.textContent = p.title;
+      detailText.textContent = p.detail;
+    } else {
+      detailTitle.innerHTML = "";
+      detailText.innerHTML = "";
+      _glitchTitle = glitchType(detailTitle, p.title, {
+        charDelay: 35, glitchRounds: 4, glitchSpeed: 28, color: t?.gold ?? "var(--accent-gold)",
+      });
+      // Lancer le texte apres un petit delai
+      setTimeout(() => {
+        _glitchText = glitchType(detailText, p.detail, {
+          charDelay: 8, glitchRounds: 2, glitchSpeed: 20, color: t?.magenta ?? "var(--accent-magenta)",
+        });
+      }, 250);
+    }
     detailStack.innerHTML = "";
     if (p.stack) {
       p.stack.forEach((tag) => {
@@ -748,20 +721,6 @@ async function main() {
         chip.className = "label-chip";
         chip.textContent = tag;
         detailStack.appendChild(chip);
-      });
-    }
-    // Screenshots
-    detailScreenshots.innerHTML = "";
-    if (p.screenshots && p.screenshots.length > 0) {
-      p.screenshots.forEach((src) => {
-        const img = document.createElement("img");
-        img.src = src;
-        img.alt = `Capture de ${p.title}`;
-        img.className = "detail-panel__screenshot";
-        img.decoding = "async";
-        img.loading = "lazy";
-        img.onerror = () => img.remove();
-        detailScreenshots.appendChild(img);
       });
     }
     // Bouton CTA
@@ -855,6 +814,8 @@ async function main() {
   function closeDetail() {
     if (!detailVisible) return;
     detailVisible = false;
+    if (_glitchTitle) { _glitchTitle.cancel(); _glitchTitle = null; }
+    if (_glitchText) { _glitchText.cancel(); _glitchText = null; }
     stage.removeAttribute("aria-hidden");
     if (_closeOnOutsideRef) {
       document.removeEventListener("pointerdown", _closeOnOutsideRef, true);
@@ -1002,7 +963,6 @@ async function main() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       neural.resize();
-      if (water) water.resize();
       particles.resize();
     }, RESIZE_DEBOUNCE_MS);
   }, { passive: true });
@@ -1089,17 +1049,6 @@ async function main() {
   buildDots();
   applyTheme(startIndex);
 
-  // Preload seulement les 2 prochaines images (pas tout d'un coup)
-  function preloadNearby(index) {
-    const d = discs();
-    const isMobile = innerWidth <= 600;
-    for (let offset = 0; offset <= 1; offset++) {
-      const el = d[(index + offset) % d.length];
-      const url = (isMobile && el?.dataset?.imageMobile) || el?.dataset?.image;
-      if (url) preloadImages([url]);
-    }
-  }
-  preloadNearby(0);
 
   if (reduced) {
     neural.setRotationInfluence(0);
@@ -1144,7 +1093,7 @@ async function main() {
           entry.target.classList.add("is-revealed");
           // Mobile: stagger les enfants pour un effet cascade
           if (isMobileView && !reduced) {
-            const children = entry.target.querySelectorAll(".stat-card, .process-card, .about-value, .contact-card");
+            const children = entry.target.querySelectorAll(".stat-item, .process-card, .about-value, .contact-card, .service-row, .testimonial");
             children.forEach((child, i) => {
               child.style.opacity = "0";
               child.style.transform = "translateY(20px)";
@@ -1163,7 +1112,7 @@ async function main() {
   }
 
   /* ---------- Teleportation sections (vide → mi-vide → rempli + rebond) ---------- */
-  const teleportSections = document.querySelectorAll(".stats-section, .process-section, .about-section");
+  const teleportSections = document.querySelectorAll(".stats-section, .services-section, .process-section, .about-section, .testimonials-section");
   if (teleportSections.length > 0 && !reduced && !ecoMode) {
     teleportSections.forEach((section) => {
       gsap.set(section, { opacity: 0, scale: 0.3, y: 60, filter: "blur(8px)" });
@@ -1183,7 +1132,7 @@ async function main() {
           onComplete: () => gsap.set(section, { clearProps: "all" }),
         });
         // Stagger enfants (cartes) pour un effet cascade
-        const cards = section.querySelectorAll(".glass-panel, .section-title, .about-mission, .about-philosophy, .about-values");
+        const cards = section.querySelectorAll(".glass-panel, .section-title, .about-mission, .about-philosophy, .about-values, .stat-item, .service-row, .service-divider, .testimonial");
         if (cards.length > 0) {
           gsap.fromTo(cards,
             { opacity: 0, y: 30, scale: 0.8 },
@@ -1193,6 +1142,31 @@ async function main() {
       }, { threshold: 0.08 });
       obs.observe(section);
     });
+  }
+
+  /* ---------- CTA flottant — auto-hide quand chatbot visible ---------- */
+  const floatingCta = document.getElementById("floating-cta");
+  if (floatingCta) {
+    floatingCta.addEventListener("click", () => {
+      const chatSection = document.getElementById("chatbot-section");
+      if (chatSection) scrollToElement(chatSection);
+    });
+    const chatSection = document.getElementById("chatbot-section");
+    if (chatSection) {
+      const ctaObs = new IntersectionObserver((entries) => {
+        floatingCta.classList.toggle("is-hidden", entries[0].isIntersecting);
+      }, { threshold: 0.15 });
+      ctaObs.observe(chatSection);
+    }
+  }
+
+  /* ---------- Auto-open detail panel apres 3s sur le premier disque ---------- */
+  if (!reduced && startIndex === SCORY_INDEX) {
+    setTimeout(() => {
+      if (!detailVisible && activeIndex === SCORY_INDEX && !animating) {
+        openDetail();
+      }
+    }, 3500);
   }
 
   /* ---------- Overscroll elastique progressif ---------- */
@@ -1379,19 +1353,21 @@ async function main() {
   }
 
   /* ---------- Stats animation (compteurs) ---------- */
-  const statCards = document.querySelectorAll(".stat-card");
+  const statCards = document.querySelectorAll(".stat-item");
   if (statCards.length > 0) {
     const statsObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
         const card = entry.target;
         const numEl = card.querySelector(".stat-number");
+        if (card.dataset.text) { statsObserver.unobserve(card); return; }
         const target = parseInt(card.dataset.target, 10);
         const suffix = card.dataset.suffix || "";
         const counter = { val: 0 };
         gsap.to(counter, {
           val: target, duration: 2, ease: "power2.out",
           onUpdate: () => { numEl.textContent = Math.round(counter.val) + suffix; },
+          onComplete: () => { numEl.classList.add("is-glowing"); },
         });
         statsObserver.unobserve(card);
       });
@@ -1459,6 +1435,78 @@ async function main() {
       }
     } else { konamiIdx = 0; }
   });
+
+  /* ---------- Process timeline — draw on scroll ---------- */
+  const processLineFill = document.getElementById("process-line-fill");
+  const processSection = document.querySelector(".process-section");
+  if (processLineFill && processSection && !reduced) {
+    const processObs = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) return;
+      processObs.disconnect();
+      const lineLen = processLineFill.getTotalLength?.() || 1000;
+      processLineFill.style.strokeDasharray = lineLen;
+      processLineFill.style.strokeDashoffset = lineLen;
+      gsap.to(processLineFill, {
+        strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut",
+      });
+      // Dots apparaissent en stagger
+      const dots = processSection.querySelectorAll(".process-dot");
+      dots.forEach((dot, i) => {
+        setTimeout(() => dot.closest(".process-card")?.classList.add("is-dot-visible"), 500 + i * 500);
+      });
+    }, { threshold: 0.2 });
+    processObs.observe(processSection);
+  }
+
+  /* ---------- About avatar canvas — "S" generatif ---------- */
+  const avatarCanvas = document.getElementById("about-avatar");
+  if (avatarCanvas) {
+    const ctx = avatarCanvas.getContext("2d");
+    const s = avatarCanvas.width;
+    let hue = 0;
+    function drawAvatar() {
+      ctx.clearRect(0, 0, s, s);
+      // Fond radial
+      const grad = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+      grad.addColorStop(0, "rgba(201,169,98,0.12)");
+      grad.addColorStop(1, "transparent");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, s, s);
+      // Lettre "S"
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--accent-gold").trim() || "#c9a962";
+      ctx.font = `600 ${s * 0.5}px ${getComputedStyle(document.documentElement).getPropertyValue("--font-display").trim() || "serif"}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.globalAlpha = 0.9;
+      ctx.fillText("S", s / 2, s / 2 + 2);
+      ctx.globalAlpha = 1;
+      // Anneau rotatif
+      hue += 0.3;
+      ctx.strokeStyle = `hsla(${40 + Math.sin(hue * 0.02) * 10}, 60%, 55%, 0.2)`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(s / 2, s / 2, s / 2 - 4, hue * 0.01, hue * 0.01 + Math.PI * 1.2);
+      ctx.stroke();
+    }
+    drawAvatar();
+    // Rotation lente
+    const aboutObs = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) { avatarRaf = requestAnimationFrame(tickAvatar); }
+      else { cancelAnimationFrame(avatarRaf); }
+    }, { threshold: 0.1 });
+    let avatarRaf = 0;
+    function tickAvatar() { drawAvatar(); avatarRaf = requestAnimationFrame(tickAvatar); }
+    aboutObs.observe(avatarCanvas);
+  }
+
+  /* ---------- Fond ambient post-hero ---------- */
+  const ambientBg = document.getElementById("ambient-bg");
+  if (ambientBg) {
+    const ambientObs = new IntersectionObserver((entries) => {
+      ambientBg.classList.toggle("is-visible", !entries[0].isIntersecting);
+    }, { threshold: 0.5 });
+    ambientObs.observe(stage);
+  }
 
   /* ---------- Chatbot + Booking (sequentiel) ---------- */
   let chatStateRef = { completed: false };

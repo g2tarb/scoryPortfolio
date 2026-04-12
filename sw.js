@@ -2,7 +2,7 @@
  * SCORY — Service Worker v8
  * Cache les assets statiques + CDN critiques pour resilience totale.
  */
-const CACHE_NAME = "scory-v8";
+const CACHE_NAME = "scory-v10";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
@@ -14,21 +14,11 @@ const STATIC_ASSETS = [
   "./chatbot.js",
   "./booking.js",
   "./particles.js",
-  "./three-water.js",
   "./aurora.js",
   "./universe.js",
   "./nebula-flaynn.js",
   "./cursor.js",
   "./audio.js",
-  "./image/fond4Day.jpg",
-  "./image/fondClara.jpg",
-  "./image/fondFlaynn.jpg",
-  "./image/fondAnimus.jpg",
-  "./image/4dayMobile.jpg",
-  "./image/claramartinezMobile.jpg",
-  "./image/flaynnMobile.jpg",
-  "./image/animusMobile.jpeg",
-  "./image/og-image.jpg",
   "./manifest.json",
 ];
 
