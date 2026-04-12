@@ -1089,7 +1089,7 @@ async function main() {
           entry.target.classList.add("is-revealed");
           // Mobile: stagger les enfants pour un effet cascade
           if (isMobileView && !reduced) {
-            const children = entry.target.querySelectorAll(".stat-card, .process-card, .about-value, .contact-card");
+            const children = entry.target.querySelectorAll(".stat-card, .process-card, .about-value, .contact-card, .service-card, .testimonial");
             children.forEach((child, i) => {
               child.style.opacity = "0";
               child.style.transform = "translateY(20px)";
@@ -1108,7 +1108,7 @@ async function main() {
   }
 
   /* ---------- Teleportation sections (vide → mi-vide → rempli + rebond) ---------- */
-  const teleportSections = document.querySelectorAll(".stats-section, .process-section, .about-section");
+  const teleportSections = document.querySelectorAll(".stats-section, .services-section, .process-section, .about-section, .testimonials-section");
   if (teleportSections.length > 0 && !reduced && !ecoMode) {
     teleportSections.forEach((section) => {
       gsap.set(section, { opacity: 0, scale: 0.3, y: 60, filter: "blur(8px)" });
@@ -1138,6 +1138,31 @@ async function main() {
       }, { threshold: 0.08 });
       obs.observe(section);
     });
+  }
+
+  /* ---------- CTA flottant — auto-hide quand chatbot visible ---------- */
+  const floatingCta = document.getElementById("floating-cta");
+  if (floatingCta) {
+    floatingCta.addEventListener("click", () => {
+      const chatSection = document.getElementById("chatbot-section");
+      if (chatSection) scrollToElement(chatSection);
+    });
+    const chatSection = document.getElementById("chatbot-section");
+    if (chatSection) {
+      const ctaObs = new IntersectionObserver((entries) => {
+        floatingCta.classList.toggle("is-hidden", entries[0].isIntersecting);
+      }, { threshold: 0.15 });
+      ctaObs.observe(chatSection);
+    }
+  }
+
+  /* ---------- Auto-open detail panel apres 3s sur le premier disque ---------- */
+  if (!reduced && startIndex === SCORY_INDEX) {
+    setTimeout(() => {
+      if (!detailVisible && activeIndex === SCORY_INDEX && !animating) {
+        openDetail();
+      }
+    }, 3500);
   }
 
   /* ---------- Overscroll elastique progressif ---------- */
@@ -1331,6 +1356,7 @@ async function main() {
         if (!entry.isIntersecting) return;
         const card = entry.target;
         const numEl = card.querySelector(".stat-number");
+        if (card.dataset.text) { statsObserver.unobserve(card); return; }
         const target = parseInt(card.dataset.target, 10);
         const suffix = card.dataset.suffix || "";
         const counter = { val: 0 };

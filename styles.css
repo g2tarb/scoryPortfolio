@@ -254,9 +254,10 @@ body {
   transition: color 0.8s ease;
 }
 .floating-sub {
-  margin: 0.1rem 0 0;
-  font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
-  color: rgba(245,242,255,0.08);
+  margin: 0.15rem 0 0;
+  font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(245,242,255,0.18);
+  max-width: 320px;
 }
 
 /* ===== GLASS PANEL ===== */
@@ -884,6 +885,97 @@ html.lenis, html.lenis body { height: auto; }
 .process-desc {
   margin: 0; font-size: 0.82rem; line-height: 1.55;
   color: rgba(245,242,255,0.6);
+}
+
+/* ===== SERVICES ===== */
+.services-section {
+  position: relative; z-index: 2;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem);
+  max-width: 1000px; margin: 0 auto;
+}
+.services-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+}
+.service-card {
+  text-align: center; padding: 2rem 1.25rem;
+  transition: transform 0.3s var(--ease-spring-soft), box-shadow 0.3s ease;
+}
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--glass-shadow), 0 0 30px var(--theme-glow);
+}
+.service-icon {
+  display: block; font-size: 1.2rem; color: var(--accent-gold);
+  margin-bottom: 0.75rem; opacity: 0.6;
+}
+.service-name {
+  margin: 0 0 0.5rem; font-family: var(--font-display);
+  font-size: 1.05rem; font-weight: 600; color: var(--accent-gold);
+  transition: color 0.6s ease;
+}
+.service-price {
+  margin: 0 0 0.75rem; font-family: var(--font-mono);
+  font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 700;
+  color: rgba(245,242,255,0.9); letter-spacing: 0.02em;
+}
+.service-desc {
+  margin: 0; font-size: 0.82rem; line-height: 1.55;
+  color: rgba(245,242,255,0.6);
+}
+
+/* ===== TESTIMONIALS ===== */
+.testimonials-section {
+  position: relative; z-index: 2;
+  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem);
+  max-width: 1000px; margin: 0 auto;
+}
+.testimonials-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+}
+.testimonial {
+  padding: 1.75rem 1.25rem; text-align: left;
+  border-left: 2px solid var(--accent-gold);
+  transition: transform 0.3s var(--ease-spring-soft), box-shadow 0.3s ease;
+}
+.testimonial:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--glass-shadow), 0 0 20px var(--theme-glow);
+}
+.testimonial__text {
+  margin: 0 0 1rem; font-size: 0.88rem; line-height: 1.65;
+  color: rgba(245,242,255,0.75); font-style: italic;
+}
+.testimonial__author {
+  display: flex; flex-direction: column; gap: 0.15rem;
+}
+.testimonial__name {
+  font-size: 0.82rem; font-weight: 600; color: var(--accent-gold);
+  transition: color 0.6s ease;
+}
+.testimonial__role {
+  font-size: 0.72rem; color: rgba(245,242,255,0.4);
+  letter-spacing: 0.04em;
+}
+
+/* ===== CTA FLOTTANT ===== */
+.floating-cta {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 90;
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.75rem 1.5rem; border: none; border-radius: 999px;
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-amber));
+  color: #07060a; font-family: var(--font-sans); font-weight: 600;
+  font-size: 0.82rem; letter-spacing: 0.04em;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(201,169,98,0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.4s ease;
+}
+.floating-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(201,169,98,0.5);
+}
+.floating-cta:active { transform: translateY(0); }
+.floating-cta.is-hidden {
+  opacity: 0; pointer-events: none; transform: translateY(10px);
 }
 
 /* ===== ABOUT ===== */
@@ -2046,12 +2138,16 @@ body.eco-mode .chatbot-orbits { display: none; }
     padding-bottom: 2.4rem;
   }
   .process-grid { grid-template-columns: repeat(2, 1fr); }
+  .services-grid { grid-template-columns: repeat(3, 1fr); }
+  .testimonials-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* =============================================================================
    RESPONSIVE — Tablette (768px)
    ============================================================================= */
 @media (max-width: 768px) {
+  .services-grid { grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  .testimonials-grid { grid-template-columns: 1fr; gap: 1rem; }
   .project-disc { width: clamp(180px, 36vmin, 260px); }
   .nav-arrow { width: 54px; height: 54px; }
   .museum-label { padding: 1rem 1.15rem; }
@@ -2081,7 +2177,7 @@ body.eco-mode .chatbot-orbits { display: none; }
   .nav-arrow--right { right: 0.25rem; }
   .floating-brand { top: max(0.5rem, env(safe-area-inset-top)); left: 0.5rem; }
   .floating-title { font-size: 0.85rem; }
-  .floating-sub { font-size: 0.5rem; }
+  .floating-sub { font-size: 0.45rem; max-width: 200px; letter-spacing: 0.06em; }
 
   /* Cartel */
   .museum-label { padding: 0.65rem 0.75rem; margin-bottom: 0.4rem; border-radius: 12px; }
@@ -2110,7 +2206,16 @@ body.eco-mode .chatbot-orbits { display: none; }
 
   /* Sections contenu */
   .section-title { margin-bottom: 1.25rem; font-size: clamp(1rem, 4vw, 1.3rem); }
-  .stats-section, .process-section, .about-section, .contact-section { padding: 1.25rem 0.6rem; }
+  .stats-section, .process-section, .about-section, .contact-section, .services-section, .testimonials-section { padding: 1.25rem 0.6rem; }
+  .services-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .service-card { padding: 1.25rem 1rem; }
+  .service-name { font-size: 0.9rem; }
+  .service-price { font-size: 1.1rem; }
+  .service-desc { font-size: 0.75rem; }
+  .testimonials-grid { grid-template-columns: 1fr; gap: 0.75rem; }
+  .testimonial { padding: 1.25rem 1rem; }
+  .testimonial__text { font-size: 0.8rem; }
+  .floating-cta { bottom: 1rem; right: 1rem; font-size: 0.78rem; padding: 0.65rem 1.2rem; }
   .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
   .stat-card { padding: 0.85rem 0.4rem; }
   .stat-number { font-size: clamp(1.4rem, 5.5vw, 1.8rem); }

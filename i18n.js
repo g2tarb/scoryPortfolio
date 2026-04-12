@@ -10,7 +10,7 @@ export const TRANSLATIONS = {
     en: "The only limit is your imagination",
   },
   // Floating brand
-  "brand.sub": { fr: "Musee digital", en: "Digital museum" },
+  "brand.sub": { fr: "Developpeur freelance — sites sur-mesure & experiences immersives", en: "Freelance developer — bespoke websites & immersive experiences" },
   // Discs
   "disc.0.title": { fr: "Portfolio Scory", en: "Scory Portfolio" },
   "disc.0.meta": { fr: "Creative Dev — Paris", en: "Creative Dev — Paris" },
@@ -29,9 +29,33 @@ export const TRANSLATIONS = {
   // Scroll hint
   "scroll.text": { fr: "Estimez votre projet", en: "Estimate your project" },
   // Stats
-  "stat.projects": { fr: "Projets livres", en: "Projects delivered" },
+  "stat.custom": { fr: "Sur-mesure", en: "Fully custom" },
   "stat.satisfaction": { fr: "Satisfaction client", en: "Client satisfaction" },
-  "stat.support": { fr: "Support disponible", en: "Support available" },
+  "stat.template": { fr: "Template utilise", en: "Template used" },
+  // Services
+  "services.title": { fr: "Ce que je fais", en: "What I do" },
+  "service.1.name": { fr: "Site vitrine premium", en: "Premium showcase site" },
+  "service.1.price": { fr: "A partir de 800 \u20ac", en: "From \u20ac800" },
+  "service.1.desc": { fr: "Design sur-mesure, responsive, animations, SEO. Votre image, sublimee.", en: "Bespoke design, responsive, animations, SEO. Your brand, elevated." },
+  "service.2.name": { fr: "Application SaaS", en: "SaaS application" },
+  "service.2.price": { fr: "A partir de 5 000 \u20ac", en: "From \u20ac5,000" },
+  "service.2.desc": { fr: "Full-stack, dashboard, auth, API. De l'idee au produit, cle en main.", en: "Full-stack, dashboard, auth, API. From idea to product, turnkey." },
+  "service.3.name": { fr: "Experience immersive", en: "Immersive experience" },
+  "service.3.price": { fr: "Sur devis", en: "Custom quote" },
+  "service.3.desc": { fr: "Three.js, shaders GLSL, WebGL. Des experiences que vos visiteurs n'oublieront pas.", en: "Three.js, GLSL shaders, WebGL. Experiences your visitors won't forget." },
+  // Testimonials
+  "testimonials.title": { fr: "Ils m'ont fait confiance", en: "They trusted me" },
+  "testimonial.1.text": { fr: "\"Scory a su transformer notre vision en un site qui depasse tout ce qu'on imaginait. Livraison rapide, design irreprochable, communication au top.\"", en: "\"Scory turned our vision into a website that exceeded everything we imagined. Fast delivery, flawless design, top-notch communication.\"" },
+  "testimonial.1.author": { fr: "Clara M.", en: "Clara M." },
+  "testimonial.1.role": { fr: "Coach Business, Paris", en: "Business Coach, Paris" },
+  "testimonial.2.text": { fr: "\"Un vrai artisan du web. Chaque detail est soigne, les animations sont fluides, et le site performe. On recommande a 100%.\"", en: "\"A true web artisan. Every detail is polished, animations are smooth, and the site performs. 100% recommended.\"" },
+  "testimonial.2.author": { fr: "Equipe 4dayvelopment", en: "4dayvelopment Team" },
+  "testimonial.2.role": { fr: "Agence digitale", en: "Digital agency" },
+  "testimonial.3.text": { fr: "\"Le dashboard Flaynn est exactement ce qu'on cherchait : rapide, intuitif, beau. Scory a livre au-dela du brief initial.\"", en: "\"The Flaynn dashboard is exactly what we needed: fast, intuitive, beautiful. Scory delivered beyond the initial brief.\"" },
+  "testimonial.3.author": { fr: "Fondateur Flaynn", en: "Flaynn Founder" },
+  "testimonial.3.role": { fr: "SaaS B2B", en: "B2B SaaS" },
+  // CTA flottant
+  "cta.floating": { fr: "Devis gratuit", en: "Free quote" },
   // Process
   "process.title": { fr: "Notre processus", en: "Our process" },
   "process.1.name": { fr: "Contact", en: "Contact" },
