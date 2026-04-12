@@ -905,7 +905,6 @@ async function main() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       neural.resize();
-      if (water) water.resize();
       particles.resize();
     }, RESIZE_DEBOUNCE_MS);
   }, { passive: true });
