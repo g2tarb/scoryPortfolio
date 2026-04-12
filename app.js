@@ -1093,7 +1093,7 @@ async function main() {
           entry.target.classList.add("is-revealed");
           // Mobile: stagger les enfants pour un effet cascade
           if (isMobileView && !reduced) {
-            const children = entry.target.querySelectorAll(".stat-card, .process-card, .about-value, .contact-card, .service-card, .testimonial");
+            const children = entry.target.querySelectorAll(".stat-item, .process-card, .about-value, .contact-card, .service-row, .testimonial");
             children.forEach((child, i) => {
               child.style.opacity = "0";
               child.style.transform = "translateY(20px)";
@@ -1132,7 +1132,7 @@ async function main() {
           onComplete: () => gsap.set(section, { clearProps: "all" }),
         });
         // Stagger enfants (cartes) pour un effet cascade
-        const cards = section.querySelectorAll(".glass-panel, .section-title, .about-mission, .about-philosophy, .about-values");
+        const cards = section.querySelectorAll(".glass-panel, .section-title, .about-mission, .about-philosophy, .about-values, .stat-item, .service-row, .service-divider, .testimonial");
         if (cards.length > 0) {
           gsap.fromTo(cards,
             { opacity: 0, y: 30, scale: 0.8 },
@@ -1353,7 +1353,7 @@ async function main() {
   }
 
   /* ---------- Stats animation (compteurs) ---------- */
-  const statCards = document.querySelectorAll(".stat-card");
+  const statCards = document.querySelectorAll(".stat-item");
   if (statCards.length > 0) {
     const statsObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {

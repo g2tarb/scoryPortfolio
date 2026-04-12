@@ -44,7 +44,7 @@ export const TRANSLATIONS = {
   "service.3.price": { fr: "Sur devis", en: "Custom quote" },
   "service.3.desc": { fr: "Three.js, shaders GLSL, WebGL. Des experiences que vos visiteurs n'oublieront pas.", en: "Three.js, GLSL shaders, WebGL. Experiences your visitors won't forget." },
   // Testimonials
-  "testimonials.title": { fr: "Ils m'ont fait confiance", en: "They trusted me" },
+  "testimonials.title": { fr: "Clara Martinez \u00b7 4dayvelopment \u00b7 Flaynn", en: "Clara Martinez \u00b7 4dayvelopment \u00b7 Flaynn" },
   "testimonial.1.text": { fr: "\"Scory a su transformer notre vision en un site qui depasse tout ce qu'on imaginait. Livraison rapide, design irreprochable, communication au top.\"", en: "\"Scory turned our vision into a website that exceeded everything we imagined. Fast delivery, flawless design, top-notch communication.\"" },
   "testimonial.1.author": { fr: "Clara M.", en: "Clara M." },
   "testimonial.1.role": { fr: "Coach Business, Paris", en: "Business Coach, Paris" },

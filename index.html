@@ -239,46 +239,50 @@
       <svg class="scroll-hint__arrow" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
 
-    <!-- Stats -->
+    <!-- Stats — inline, pas de cards -->
     <section class="stats-section" aria-label="Chiffres cles">
-      <div class="stats-grid">
-        <div class="stat-card glass-panel" data-target="100" data-suffix="%">
+      <div class="stats-inline">
+        <div class="stat-item" data-target="100" data-suffix="%">
           <span class="stat-number">0</span>
           <span class="stat-label" data-i18n="stat.custom">Sur-mesure</span>
         </div>
-        <div class="stat-card glass-panel" data-target="100" data-suffix="%">
+        <span class="stat-separator" aria-hidden="true">/</span>
+        <div class="stat-item" data-target="100" data-suffix="%">
           <span class="stat-number">0</span>
-          <span class="stat-label" data-i18n="stat.satisfaction">Satisfaction client</span>
+          <span class="stat-label" data-i18n="stat.satisfaction">Satisfaction</span>
         </div>
-        <div class="stat-card glass-panel" data-target="0" data-suffix="" data-text="Zero">
+        <span class="stat-separator" aria-hidden="true">/</span>
+        <div class="stat-item" data-target="0" data-suffix="" data-text="Zero">
           <span class="stat-number">Zero</span>
-          <span class="stat-label" data-i18n="stat.template">Template utilise</span>
+          <span class="stat-label" data-i18n="stat.template">Template</span>
         </div>
       </div>
     </section>
 
-    <!-- Services / Tarifs -->
+    <!-- Services / Tarifs — layout horizontal flow -->
     <section class="services-section reveal" aria-label="Services">
-      <h2 class="section-title gradient-text" data-i18n="services.title">Ce que je fais</h2>
-      <div class="services-grid">
-        <div class="service-card glass-panel">
-          <span class="service-icon">&#9670;</span>
+      <div class="service-row">
+        <div class="service-left">
           <h3 class="service-name" data-i18n="service.1.name">Site vitrine premium</h3>
-          <p class="service-price" data-i18n="service.1.price">A partir de 800 &euro;</p>
           <p class="service-desc" data-i18n="service.1.desc">Design sur-mesure, responsive, animations, SEO. Votre image, sublimee.</p>
         </div>
-        <div class="service-card glass-panel">
-          <span class="service-icon">&#9670;</span>
+        <span class="service-price" data-i18n="service.1.price">A partir de 800 &euro;</span>
+      </div>
+      <div class="service-divider" aria-hidden="true"></div>
+      <div class="service-row">
+        <div class="service-left">
           <h3 class="service-name" data-i18n="service.2.name">Application SaaS</h3>
-          <p class="service-price" data-i18n="service.2.price">A partir de 5 000 &euro;</p>
           <p class="service-desc" data-i18n="service.2.desc">Full-stack, dashboard, auth, API. De l'idee au produit, cle en main.</p>
         </div>
-        <div class="service-card glass-panel">
-          <span class="service-icon">&#9670;</span>
+        <span class="service-price" data-i18n="service.2.price">A partir de 5 000 &euro;</span>
+      </div>
+      <div class="service-divider" aria-hidden="true"></div>
+      <div class="service-row">
+        <div class="service-left">
           <h3 class="service-name" data-i18n="service.3.name">Experience immersive</h3>
-          <p class="service-price" data-i18n="service.3.price">Sur devis</p>
           <p class="service-desc" data-i18n="service.3.desc">Three.js, shaders GLSL, WebGL. Des experiences que vos visiteurs n'oublieront pas.</p>
         </div>
+        <span class="service-price" data-i18n="service.3.price">Sur devis</span>
       </div>
     </section>
 
@@ -330,7 +334,7 @@
 
     <!-- Temoignages -->
     <section class="testimonials-section reveal" aria-label="Temoignages">
-      <h2 class="section-title gradient-text" data-i18n="testimonials.title">Ils m'ont fait confiance</h2>
+      <h2 class="section-title gradient-text testimonials-title" data-i18n="testimonials.title">Clara Martinez · 4dayvelopment · Flaynn</h2>
       <div class="testimonials-grid">
         <blockquote class="testimonial glass-panel">
           <p class="testimonial__text" data-i18n="testimonial.1.text">"Scory a su transformer notre vision en un site qui depasse tout ce qu'on imaginait. Livraison rapide, design irreprochable, communication au top."</p>

@@ -824,33 +824,31 @@ html.lenis, html.lenis body { height: auto; }
   font-size: clamp(1.3rem, 3vw, 1.8rem);
 }
 
-/* ===== STATS ===== */
+/* ===== STATS — inline, no cards ===== */
 .stats-section {
   position: relative; z-index: 2;
-  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem);
+  padding: clamp(3rem, 7vw, 5rem) clamp(1rem, 4vw, 3rem);
   max-width: 1000px; margin: 0 auto;
 }
-.stats-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+.stats-inline {
+  display: flex; justify-content: center; align-items: baseline;
+  gap: clamp(1.5rem, 4vw, 3rem); flex-wrap: wrap;
 }
-.stat-card {
-  text-align: center; padding: 1.75rem 1rem;
-  transition: transform 0.3s var(--ease-spring-soft), box-shadow 0.3s ease;
-}
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--glass-shadow), 0 0 30px var(--theme-glow);
+.stat-item { text-align: center; }
+.stat-separator {
+  font-family: var(--font-display); font-size: 1.5rem;
+  color: rgba(245,242,255,0.1); font-weight: 300;
 }
 .stat-number {
   display: block; font-family: var(--font-mono);
-  font-size: clamp(2rem, 5vw, 3rem); font-weight: 700;
+  font-size: clamp(2.2rem, 6vw, 3.5rem); font-weight: 700;
   color: var(--accent-gold); line-height: 1;
   transition: color 0.6s ease;
 }
 .stat-label {
-  display: block; margin-top: 0.5rem;
-  font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
-  color: rgba(245,242,255,0.5);
+  display: block; margin-top: 0.35rem;
+  font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(245,242,255,0.35);
 }
 
 /* ===== PROCESSUS ===== */
@@ -887,43 +885,53 @@ html.lenis, html.lenis body { height: auto; }
   color: rgba(245,242,255,0.6);
 }
 
-/* ===== SERVICES ===== */
+/* ===== SERVICES — horizontal rows ===== */
 .services-section {
   position: relative; z-index: 2;
-  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem);
-  max-width: 1000px; margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 4vw, 3rem);
+  max-width: 700px; margin: 0 auto;
 }
-.services-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+.service-row {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 1.5rem; padding: clamp(1rem, 2.5vw, 1.5rem) 0;
+  transition: opacity 0.3s ease;
 }
-.service-card {
-  text-align: center; padding: 2rem 1.25rem;
-  transition: transform 0.3s var(--ease-spring-soft), box-shadow 0.3s ease;
-}
-.service-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--glass-shadow), 0 0 30px var(--theme-glow);
-}
-.service-icon {
-  display: block; font-size: 1.2rem; color: var(--accent-gold);
-  margin-bottom: 0.75rem; opacity: 0.6;
-}
+.service-row:hover { opacity: 0.85; }
+.service-left { flex: 1; min-width: 0; }
 .service-name {
-  margin: 0 0 0.5rem; font-family: var(--font-display);
-  font-size: 1.05rem; font-weight: 600; color: var(--accent-gold);
+  margin: 0 0 0.3rem; font-family: var(--font-display);
+  font-size: clamp(1rem, 2.5vw, 1.2rem); font-weight: 600; color: var(--accent-gold);
   transition: color 0.6s ease;
 }
 .service-price {
-  margin: 0 0 0.75rem; font-family: var(--font-mono);
-  font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 700;
-  color: rgba(245,242,255,0.9); letter-spacing: 0.02em;
+  font-family: var(--font-mono);
+  font-size: clamp(0.9rem, 2vw, 1.1rem); font-weight: 700;
+  color: rgba(245,242,255,0.85); white-space: nowrap;
+  flex-shrink: 0;
 }
 .service-desc {
-  margin: 0; font-size: 0.82rem; line-height: 1.55;
-  color: rgba(245,242,255,0.6);
+  margin: 0; font-size: 0.78rem; line-height: 1.5;
+  color: rgba(245,242,255,0.45);
+}
+.service-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--theme-tint-c), transparent);
+}
+
+/* ===== SECTION DIVIDERS ===== */
+.stats-section::after,
+.services-section::after,
+.process-section::after,
+.about-section::after,
+.testimonials-section::after {
+  content: ""; display: block;
+  width: min(120px, 25%); height: 1px; margin: clamp(2rem, 4vw, 3.5rem) auto 0;
+  background: linear-gradient(90deg, transparent, var(--theme-tint-c), transparent);
+  opacity: 0.6;
 }
 
 /* ===== TESTIMONIALS ===== */
+.testimonials-title { letter-spacing: 0.06em; }
 .testimonials-section {
   position: relative; z-index: 2;
   padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem);
@@ -2138,7 +2146,6 @@ body.eco-mode .chatbot-orbits { display: none; }
     padding-bottom: 2.4rem;
   }
   .process-grid { grid-template-columns: repeat(2, 1fr); }
-  .services-grid { grid-template-columns: repeat(3, 1fr); }
   .testimonials-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
@@ -2146,7 +2153,6 @@ body.eco-mode .chatbot-orbits { display: none; }
    RESPONSIVE — Tablette (768px)
    ============================================================================= */
 @media (max-width: 768px) {
-  .services-grid { grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
   .testimonials-grid { grid-template-columns: 1fr; gap: 1rem; }
   .project-disc { width: clamp(180px, 36vmin, 260px); }
   .nav-arrow { width: 54px; height: 54px; }
@@ -2154,7 +2160,6 @@ body.eco-mode .chatbot-orbits { display: none; }
   .chatbot-messages { max-height: 400px; padding: 1rem; }
   .detail-panel { width: min(92vw, 440px); padding: 1.75rem; max-height: 80vh; }
   .detail-panel__title { font-size: 1.35rem; }
-  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   .process-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
   .contact-grid { gap: 0.75rem; }
   .section-title { margin-bottom: 2rem; }
@@ -2207,19 +2212,18 @@ body.eco-mode .chatbot-orbits { display: none; }
   /* Sections contenu */
   .section-title { margin-bottom: 1.25rem; font-size: clamp(1rem, 4vw, 1.3rem); }
   .stats-section, .process-section, .about-section, .contact-section, .services-section, .testimonials-section { padding: 1.25rem 0.6rem; }
-  .services-grid { grid-template-columns: 1fr; gap: 0.75rem; }
-  .service-card { padding: 1.25rem 1rem; }
-  .service-name { font-size: 0.9rem; }
-  .service-price { font-size: 1.1rem; }
-  .service-desc { font-size: 0.75rem; }
+  .service-row { flex-direction: column; gap: 0.3rem; align-items: flex-start; padding: 0.8rem 0; }
+  .service-name { font-size: 0.88rem; }
+  .service-price { font-size: 0.85rem; }
+  .service-desc { font-size: 0.72rem; }
   .testimonials-grid { grid-template-columns: 1fr; gap: 0.75rem; }
   .testimonial { padding: 1.25rem 1rem; }
   .testimonial__text { font-size: 0.8rem; }
   .floating-cta { bottom: 1rem; right: 1rem; font-size: 0.78rem; padding: 0.65rem 1.2rem; }
-  .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-  .stat-card { padding: 0.85rem 0.4rem; }
+  .stats-inline { gap: 1rem; }
+  .stat-separator { font-size: 1rem; }
   .stat-number { font-size: clamp(1.4rem, 5.5vw, 1.8rem); }
-  .stat-label { font-size: 0.65rem; letter-spacing: 0.06em; }
+  .stat-label { font-size: 0.6rem; letter-spacing: 0.06em; }
   .process-grid { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
   .process-card { padding: 0.9rem 0.6rem; }
   .process-icon { font-size: 1.3rem; margin-bottom: 0.4rem; }
@@ -2311,9 +2315,8 @@ body.eco-mode .chatbot-orbits { display: none; }
   .nav-arrow--left { left: 0.25rem; }
   .nav-arrow--right { right: 0.25rem; }
 
-  .stat-card { padding: 0.7rem 0.3rem; }
   .stat-number { font-size: clamp(1.2rem, 5vw, 1.5rem); }
-  .stat-label { font-size: 0.65rem; }
+  .stat-label { font-size: 0.6rem; }
 
   .process-card { padding: 0.75rem 0.4rem; }
   .process-name { font-size: 0.78rem; }
@@ -2535,7 +2538,6 @@ body.eco-mode .contact-section {
   .detail-panel__close:hover,
   .detail-panel__cta:hover,
   .label-chip:hover,
-  .stat-card:hover,
   .process-card:hover,
   .contact-card:hover,
   .detail-panel__screenshot:hover,
