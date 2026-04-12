@@ -30,7 +30,6 @@ function CHAT_FLOW() { return CHAT_FLOW_ALL[getLang()] || CHAT_FLOW_ALL.fr; }
 const EASE_SPRING_HEAVY = "back.out(1.32)";
 const LOADER_DELAY_MS = 1500;
 const CLOSE_OUTSIDE_DELAY_MS = 600;
-const WATER_FADE_DELAY_MS = 5000;
 const DISC_SPIN_SPEED = 0.06;
 const RESIZE_DEBOUNCE_MS = 100;
 const SWIPE_VELOCITY_MIN = 0.3;
@@ -39,14 +38,6 @@ const SWIPE_DISTANCE_SLOW = 60;
 const SCORY_INDEX = 0;
 const CONTACT_EMAIL = "gdbyana@gmail.com";
 
-/** @param {string[]} urls - URLs des images a precharger */
-function preloadImages(urls) {
-  urls.forEach((url) => {
-    if (!url) return;
-    const img = new Image();
-    img.src = url;
-  });
-}
 
 /** @param {string} email @returns {boolean} */
 function isValidEmail(email) {
@@ -61,6 +52,66 @@ function hexToRgba(hex, a) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
+
+const GLITCH_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%&*!?/<>{}[]~^";
+
+/**
+ * Typewriter + glitch : chaque caractere cycle a travers des glyphs aleatoires
+ * colores avec la couleur du theme avant de se fixer.
+ * @param {HTMLElement} el
+ * @param {string} text
+ * @param {{ charDelay?: number, glitchRounds?: number, glitchSpeed?: number, color?: string }} opts
+ * @returns {{ cancel: () => void, done: Promise<void> }}
+ */
+function glitchType(el, text, opts = {}) {
+  const charDelay = opts.charDelay ?? 18;
+  const glitchRounds = opts.glitchRounds ?? 3;
+  const glitchSpeed = opts.glitchSpeed ?? 30;
+  const color = opts.color ?? "var(--accent-gold)";
+  let cancelled = false;
+  el.innerHTML = "";
+  const spans = [];
+  for (let i = 0; i < text.length; i++) {
+    const s = document.createElement("span");
+    s.style.opacity = "0";
+    spans.push(s);
+    el.appendChild(s);
+  }
+  const done = new Promise((resolve) => {
+    let i = 0;
+    function nextChar() {
+      if (cancelled || i >= text.length) { resolve(); return; }
+      const idx = i++;
+      const span = spans[idx];
+      const final = text[idx];
+      if (final === " ") {
+        span.textContent = "\u00A0";
+        span.style.opacity = "1";
+        setTimeout(nextChar, charDelay * 0.3);
+        return;
+      }
+      span.style.opacity = "1";
+      span.style.color = color;
+      span.classList.add("glitch-char");
+      let round = 0;
+      const tick = setInterval(() => {
+        if (cancelled) { clearInterval(tick); resolve(); return; }
+        if (round < glitchRounds) {
+          span.textContent = GLITCH_CHARS[Math.random() * GLITCH_CHARS.length | 0];
+          round++;
+        } else {
+          clearInterval(tick);
+          span.textContent = final;
+          span.style.color = "";
+          span.classList.remove("glitch-char");
+        }
+      }, glitchSpeed);
+      setTimeout(nextChar, charDelay);
+    }
+    nextChar();
+  });
+  return { cancel: () => { cancelled = true; }, done };
+}
 
 function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -544,7 +595,6 @@ async function main() {
 
     // Precharger le fond du prochain projet pendant l'animation
     getProjectBg(nextIndex).catch(() => {});
-    preloadNearby(nextIndex);
 
     // ===== TRANSITION MULTIPLEX — changement de chaine =====
     const nextDisc = d[nextIndex];
@@ -631,15 +681,35 @@ async function main() {
   /* ---------- Clic → panneau détails ---------- */
   const detailStack = document.getElementById("detail-stack");
   const detailCtaWrap = document.getElementById("detail-cta-wrap");
-  const detailScreenshots = document.getElementById("detail-screenshots");
+
+  let _glitchTitle = null;
+  let _glitchText = null;
 
   function openDetail() {
     if (detailVisible) return;
     detailVisible = true;
     const p = PROJECTS()[activeIndex];
     if (!p) return;
-    detailTitle.textContent = p.title;
-    detailText.textContent = p.detail;
+    // Annuler les glitch precedents
+    if (_glitchTitle) _glitchTitle.cancel();
+    if (_glitchText) _glitchText.cancel();
+    const t = THEMES[activeIndex];
+    if (reduced) {
+      detailTitle.textContent = p.title;
+      detailText.textContent = p.detail;
+    } else {
+      detailTitle.innerHTML = "";
+      detailText.innerHTML = "";
+      _glitchTitle = glitchType(detailTitle, p.title, {
+        charDelay: 35, glitchRounds: 4, glitchSpeed: 28, color: t?.gold ?? "var(--accent-gold)",
+      });
+      // Lancer le texte apres un petit delai
+      setTimeout(() => {
+        _glitchText = glitchType(detailText, p.detail, {
+          charDelay: 8, glitchRounds: 2, glitchSpeed: 20, color: t?.magenta ?? "var(--accent-magenta)",
+        });
+      }, 250);
+    }
     detailStack.innerHTML = "";
     if (p.stack) {
       p.stack.forEach((tag) => {
@@ -647,24 +717,6 @@ async function main() {
         chip.className = "label-chip";
         chip.textContent = tag;
         detailStack.appendChild(chip);
-      });
-    }
-    // Screenshots
-    detailScreenshots.innerHTML = "";
-    if (p.screenshots && p.screenshots.length > 0) {
-      p.screenshots.forEach((src) => {
-        const img = document.createElement("img");
-        const webpSrc = src.replace(/\.(jpe?g|png)$/i, ".webp");
-        img.src = webpSrc;
-        img.alt = `Capture de ${p.title}`;
-        img.className = "detail-panel__screenshot";
-        img.decoding = "async";
-        img.loading = "lazy";
-        img.onerror = () => {
-          if (img.src !== src) { img.src = src; } // fallback JPG
-          else img.remove();
-        };
-        detailScreenshots.appendChild(img);
       });
     }
     // Bouton CTA
@@ -758,6 +810,8 @@ async function main() {
   function closeDetail() {
     if (!detailVisible) return;
     detailVisible = false;
+    if (_glitchTitle) { _glitchTitle.cancel(); _glitchTitle = null; }
+    if (_glitchText) { _glitchText.cancel(); _glitchText = null; }
     stage.removeAttribute("aria-hidden");
     if (_closeOnOutsideRef) {
       document.removeEventListener("pointerdown", _closeOnOutsideRef, true);
@@ -991,18 +1045,6 @@ async function main() {
   buildDots();
   applyTheme(startIndex);
 
-  // Preload seulement les 2 prochaines images (pas tout d'un coup)
-  function preloadNearby(index) {
-    const d = discs();
-    const isMobile = innerWidth <= 600;
-    for (let offset = 0; offset <= 1; offset++) {
-      const el = d[(index + offset) % d.length];
-      const url = (isMobile && (el?.dataset?.imageMobile || el?.dataset?.imageMobileFallback))
-                || el?.dataset?.image || el?.dataset?.imageFallback;
-      if (url) preloadImages([url]);
-    }
-  }
-  preloadNearby(0);
 
   if (reduced) {
     neural.setRotationInfluence(0);

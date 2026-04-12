@@ -132,14 +132,13 @@
 
     <main id="museum-stage" aria-label="Scene principale SCORY">
       <div id="neural-host" class="neural-host" aria-hidden="true"></div>
-      <div id="water-host" class="water-host" aria-hidden="true"></div>
       <div id="project-bg-host" class="project-bg-host" aria-hidden="true"></div>
       <canvas id="particle-canvas" class="particle-canvas" aria-hidden="true"></canvas>
       <div class="stage-vignette" aria-hidden="true"></div>
 
       <div class="floating-brand">
         <h1 class="floating-title">SCORY</h1>
-        <p class="floating-sub" data-i18n="brand.sub">Musee digital</p>
+        <p class="floating-sub" data-i18n="brand.sub">Developpeur freelance — sites sur-mesure & experiences immersives</p>
       </div>
 
       <!-- Carrousel -->
@@ -159,28 +158,28 @@
               <span class="disc-meta" data-i18n="disc.0.meta">Musee digital</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="1" data-image="./image/fond4Day.webp" data-image-fallback="./image/fond4Day.jpg" data-image-mobile="./image/4dayMobile.webp" data-image-mobile-fallback="./image/4dayMobile.jpg" tabindex="-1">
+          <article class="project-disc card-glass" data-index="1" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title" data-i18n="disc.1.title">4dayvelopment</span>
               <span class="disc-meta" data-i18n="disc.1.meta">Agence web</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="2" data-image="./image/fondClara.webp" data-image-fallback="./image/fondClara.jpg" data-image-mobile="./image/claramartinezMobile.webp" data-image-mobile-fallback="./image/claramartinezMobile.jpg" tabindex="-1">
+          <article class="project-disc card-glass" data-index="2" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title" data-i18n="disc.2.title">Clara Martinez</span>
               <span class="disc-meta" data-i18n="disc.2.meta">Coaching premium</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="3" data-image="./image/fondFlaynn.webp" data-image-fallback="./image/fondFlaynn.jpg" data-image-mobile="./image/flaynnMobile.webp" data-image-mobile-fallback="./image/flaynnMobile.jpg" tabindex="-1">
+          <article class="project-disc card-glass" data-index="3" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title" data-i18n="disc.3.title">Flaynn</span>
               <span class="disc-meta" data-i18n="disc.3.meta">SaaS B2B</span>
             </div>
           </article>
-          <article class="project-disc card-glass" data-index="4" data-image="./image/fondAnimus.webp" data-image-fallback="./image/fondAnimus.jpg" data-image-mobile="./image/animusMobile.webp" data-image-mobile-fallback="./image/animusMobile.jpeg" tabindex="-1">
+          <article class="project-disc card-glass" data-index="4" tabindex="-1">
             <div class="disc-groove" aria-hidden="true"></div>
             <div class="disc-label">
               <span class="disc-title" data-i18n="disc.4.title">ANIMUS</span>
@@ -228,7 +227,6 @@
         <div class="detail-panel__icon">🔍</div>
         <h3 class="detail-panel__title" id="detail-title"></h3>
         <p class="detail-panel__text" id="detail-text"></p>
-        <div class="detail-panel__screenshots" id="detail-screenshots"></div>
         <div class="detail-panel__stack" id="detail-stack"></div>
         <div class="detail-panel__cta-wrap" id="detail-cta-wrap"></div>
         <p class="detail-panel__hint" data-i18n="detail.hint">Cliquez en dehors pour fermer</p>
@@ -244,17 +242,42 @@
     <!-- Stats -->
     <section class="stats-section" aria-label="Chiffres cles">
       <div class="stats-grid">
-        <div class="stat-card glass-panel" data-target="5" data-suffix="+">
+        <div class="stat-card glass-panel" data-target="100" data-suffix="%">
           <span class="stat-number">0</span>
-          <span class="stat-label" data-i18n="stat.projects">Projets livres</span>
+          <span class="stat-label" data-i18n="stat.custom">Sur-mesure</span>
         </div>
         <div class="stat-card glass-panel" data-target="100" data-suffix="%">
           <span class="stat-number">0</span>
           <span class="stat-label" data-i18n="stat.satisfaction">Satisfaction client</span>
         </div>
-        <div class="stat-card glass-panel" data-target="24" data-suffix="h/24">
-          <span class="stat-number">0</span>
-          <span class="stat-label" data-i18n="stat.support">Support disponible</span>
+        <div class="stat-card glass-panel" data-target="0" data-suffix="" data-text="Zero">
+          <span class="stat-number">Zero</span>
+          <span class="stat-label" data-i18n="stat.template">Template utilise</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services / Tarifs -->
+    <section class="services-section" aria-label="Services">
+      <h2 class="section-title gradient-text" data-i18n="services.title">Ce que je fais</h2>
+      <div class="services-grid">
+        <div class="service-card glass-panel">
+          <span class="service-icon">&#9670;</span>
+          <h3 class="service-name" data-i18n="service.1.name">Site vitrine premium</h3>
+          <p class="service-price" data-i18n="service.1.price">A partir de 800 &euro;</p>
+          <p class="service-desc" data-i18n="service.1.desc">Design sur-mesure, responsive, animations, SEO. Votre image, sublimee.</p>
+        </div>
+        <div class="service-card glass-panel">
+          <span class="service-icon">&#9670;</span>
+          <h3 class="service-name" data-i18n="service.2.name">Application SaaS</h3>
+          <p class="service-price" data-i18n="service.2.price">A partir de 5 000 &euro;</p>
+          <p class="service-desc" data-i18n="service.2.desc">Full-stack, dashboard, auth, API. De l'idee au produit, cle en main.</p>
+        </div>
+        <div class="service-card glass-panel">
+          <span class="service-icon">&#9670;</span>
+          <h3 class="service-name" data-i18n="service.3.name">Experience immersive</h3>
+          <p class="service-price" data-i18n="service.3.price">Sur devis</p>
+          <p class="service-desc" data-i18n="service.3.desc">Three.js, shaders GLSL, WebGL. Des experiences que vos visiteurs n'oublieront pas.</p>
         </div>
       </div>
     </section>
@@ -302,6 +325,25 @@
           <div class="about-value"><span class="about-value-icon">✦</span> <span data-i18n="about.v3">Immersif & interactif</span></div>
           <div class="about-value"><span class="about-value-icon">✦</span> <span data-i18n="about.v4">Support 24h/24</span></div>
         </div>
+      </div>
+    </section>
+
+    <!-- Temoignages -->
+    <section class="testimonials-section reveal" aria-label="Temoignages">
+      <h2 class="section-title gradient-text" data-i18n="testimonials.title">Ils m'ont fait confiance</h2>
+      <div class="testimonials-grid">
+        <blockquote class="testimonial glass-panel">
+          <p class="testimonial__text" data-i18n="testimonial.1.text">"Scory a su transformer notre vision en un site qui depasse tout ce qu'on imaginait. Livraison rapide, design irreprochable, communication au top."</p>
+          <footer class="testimonial__author"><span class="testimonial__name" data-i18n="testimonial.1.author">Clara M.</span> <span class="testimonial__role" data-i18n="testimonial.1.role">Coach Business, Paris</span></footer>
+        </blockquote>
+        <blockquote class="testimonial glass-panel">
+          <p class="testimonial__text" data-i18n="testimonial.2.text">"Un vrai artisan du web. Chaque detail est soigne, les animations sont fluides, et le site performe. On recommande a 100%."</p>
+          <footer class="testimonial__author"><span class="testimonial__name" data-i18n="testimonial.2.author">Equipe 4dayvelopment</span> <span class="testimonial__role" data-i18n="testimonial.2.role">Agence digitale</span></footer>
+        </blockquote>
+        <blockquote class="testimonial glass-panel">
+          <p class="testimonial__text" data-i18n="testimonial.3.text">"Le dashboard Flaynn est exactement ce qu'on cherchait : rapide, intuitif, beau. Scory a livre au-dela du brief initial."</p>
+          <footer class="testimonial__author"><span class="testimonial__name" data-i18n="testimonial.3.author">Fondateur Flaynn</span> <span class="testimonial__role" data-i18n="testimonial.3.role">SaaS B2B</span></footer>
+        </blockquote>
       </div>
     </section>
 
@@ -367,7 +409,7 @@
           <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
           <span class="contact-label">contact@scory.fr</span>
         </a>
-        <a href="https://linkedin.com/" target="_blank" rel="noopener noreferrer" class="contact-card glass-panel" aria-label="Voir le profil LinkedIn">
+        <a href="https://www.linkedin.com/in/erwin-yana" target="_blank" rel="noopener noreferrer" class="contact-card glass-panel" aria-label="Voir le profil LinkedIn">
           <svg class="contact-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
           <span class="contact-label">LinkedIn</span>
         </a>
@@ -428,6 +470,12 @@
         </div>
       </div>
     </div>
+
+    <!-- CTA flottant -->
+    <button class="floating-cta" id="floating-cta" aria-label="Devis gratuit">
+      <span data-i18n="cta.floating">Devis gratuit</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
 
     <footer class="museum-footer reveal">
       <p class="gradient-text museum-signature" data-i18n="footer.signature">
