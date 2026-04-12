@@ -148,7 +148,6 @@ function initEcoMode() {
 async function main() {
   const stage = document.getElementById("museum-stage");
   const neuralHost = document.getElementById("neural-host");
-  const waterHost = document.getElementById("water-host");
   const carousel = document.getElementById("project-carousel");
   const track = document.getElementById("project-track");
   const labelNum = document.getElementById("label-num");
@@ -255,27 +254,8 @@ async function main() {
       return;
     }
 
-    // Toujours mettre l'image en CSS background (filet de securite)
-    const el = discs()[index];
-    const isMob = window.innerWidth <= 600;
-    const url = (isMob && el?.dataset?.imageMobile) || el?.dataset?.image;
-    if (url) {
-      projectBgHost.style.backgroundImage = `url(${url})`;
-      projectBgHost.style.backgroundSize = "cover";
-      projectBgHost.style.backgroundPosition = "center";
-    }
-
     const bg = await getProjectBg(index);
-    if (!bg) {
-      // Canvas echoue : l'image CSS est deja la, on la montre
-      gsap.to(projectBgHost, { opacity: 0.3, duration: 2, ease: "power2.inOut" });
-      return;
-    }
-    // Desktop : supprimer l'image CSS pour laisser le Canvas seul
-    // Mobile : garder l'image en fond sous le Canvas (plus riche)
-    if (window.innerWidth > 600) {
-      projectBgHost.style.backgroundImage = "";
-    }
+    if (!bg) return;
     bg.canvas.style.display = "block";
     if (bg.orb) bg.orb.style.display = "block";
     bg.start();
@@ -321,7 +301,7 @@ async function main() {
   }
 
   // Three.js lance le fond quand il est pret
-  threeReady.then(() => void syncProjectWater());
+  threeReady.then(() => showProjectBg(activeIndex));
 
   // Appliquer la langue sauvegardee au demarrage
   setLang(getLang());
@@ -358,20 +338,6 @@ async function main() {
     });
   }
 
-  let water = null;
-  let waterSplashTween = null;
-  let waterFadeTimer = null;
-  let WaterReflectionLayer = null;
-  async function ensureWater() {
-    if (!water && waterHost) {
-      if (!WaterReflectionLayer) {
-        const mod = await import("./three-water.js");
-        WaterReflectionLayer = mod.WaterReflectionLayer;
-      }
-      water = new WaterReflectionLayer(waterHost, { timeScale: reduced ? 0.22 : 1 });
-    }
-  }
-  if (waterHost) gsap.set(waterHost, { opacity: 0 });
   gsap.set(neuralHost, { opacity: 1 });
 
   /* ---------- Particules (lazy) ---------- */
@@ -517,74 +483,6 @@ async function main() {
     });
   }
 
-  /* ---------- Fond eau / neural / projet ---------- */
-  async function syncProjectWater() {
-    if (!waterHost) {
-      showProjectBg(activeIndex);
-      return;
-    }
-    await ensureWater();
-    if (!water) {
-      showProjectBg(activeIndex);
-      return;
-    }
-
-    // Annuler tout timer de crossfade précédent
-    if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
-    hideProjectBg();
-
-    // Disque Scory (index 0) → video scoryModel directement
-    if (activeIndex === SCORY_INDEX) {
-      if (waterSplashTween) waterSplashTween.kill();
-      gsap.to(waterHost, { opacity: 0, duration: 0.5 });
-      showProjectBg(0);
-      return;
-    }
-
-    const el = discs()[activeIndex];
-    const isMobile = window.innerWidth <= 600;
-    const url = (isMobile && el?.dataset?.imageMobile) || el?.dataset?.image;
-    if (!url) return;
-    try {
-      await water.loadTexture(url);
-      runWaterSplash();
-    } catch {
-      // Water echoue : montrer le fond projet directement
-      gsap.to(neuralHost, { opacity: 0, duration: 1 });
-      gsap.to(waterHost, { opacity: 0, duration: 0.5 });
-      showProjectBg(activeIndex);
-    }
-  }
-
-  function runWaterSplash() {
-    if (!water || !waterHost) return;
-    if (waterSplashTween) waterSplashTween.kill();
-    if (waterFadeTimer) { clearTimeout(waterFadeTimer); waterFadeTimer = null; }
-
-    if (reduced) {
-      water.setProgress(0.12);
-      gsap.set(neuralHost, { opacity: 0.2 });
-      gsap.set(waterHost, { opacity: 1 });
-      return;
-    }
-
-    water.setProgress(1);
-    const proxy = { p: 1 };
-    waterSplashTween = gsap.timeline()
-      .to(neuralHost, { opacity: 0.14, duration: 1.15, ease: "power2.out" }, 0)
-      .to(waterHost, { opacity: 1, duration: 1.05, ease: "power2.out" }, 0)
-      .to(proxy, {
-        p: 0.1, duration: 2.45, ease: "power3.out",
-        onUpdate: () => water.setProgress(proxy.p),
-      }, 0);
-
-    // Après gel image (3s) + 2s pause → crossfade vers le vrai fond du projet
-    waterFadeTimer = setTimeout(() => { // image gelee + pause
-      gsap.to(waterHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
-      gsap.to(neuralHost, { opacity: 0, duration: 2, ease: "power2.inOut" });
-      showProjectBg(activeIndex);
-    }, WATER_FADE_DELAY_MS);
-  }
 
   /* ---------- Navigation avec transition particules ---------- */
   async function goTo(nextIndex) {
@@ -607,7 +505,7 @@ async function main() {
       updateDots();
       applyTheme(activeIndex);
       animating = false;
-      void syncProjectWater();
+      showProjectBg(activeIndex);
       return;
     }
 
@@ -633,7 +531,7 @@ async function main() {
             updateDots();
             applyTheme(activeIndex);
             animating = false;
-            void syncProjectWater();
+            showProjectBg(activeIndex);
           }
         }
       );
@@ -672,7 +570,7 @@ async function main() {
         applyTheme(activeIndex);
         animating = false;
         if (!reduced && !ecoMode) startSpin();
-        void syncProjectWater();
+        showProjectBg(activeIndex);
       }
     });
 
@@ -756,12 +654,16 @@ async function main() {
     if (p.screenshots && p.screenshots.length > 0) {
       p.screenshots.forEach((src) => {
         const img = document.createElement("img");
-        img.src = src;
+        const webpSrc = src.replace(/\.(jpe?g|png)$/i, ".webp");
+        img.src = webpSrc;
         img.alt = `Capture de ${p.title}`;
         img.className = "detail-panel__screenshot";
         img.decoding = "async";
         img.loading = "lazy";
-        img.onerror = () => img.remove();
+        img.onerror = () => {
+          if (img.src !== src) { img.src = src; } // fallback JPG
+          else img.remove();
+        };
         detailScreenshots.appendChild(img);
       });
     }
@@ -1096,7 +998,8 @@ async function main() {
     const isMobile = innerWidth <= 600;
     for (let offset = 0; offset <= 1; offset++) {
       const el = d[(index + offset) % d.length];
-      const url = (isMobile && el?.dataset?.imageMobile) || el?.dataset?.image;
+      const url = (isMobile && (el?.dataset?.imageMobile || el?.dataset?.imageMobileFallback))
+                || el?.dataset?.image || el?.dataset?.imageFallback;
       if (url) preloadImages([url]);
     }
   }
