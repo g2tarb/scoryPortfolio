@@ -10,6 +10,41 @@ function CHAT_FLOW() { return CHAT_FLOW_ALL[getLang()] || CHAT_FLOW_ALL.fr; }
 const STEP_ORDER = ["name","rate","q1","q2","q3","q4","q5","q6","q7","q8","q9","q10","contact","done"];
 
 /**
+ * SECURITY: Input sanitization for all user-provided text.
+ * Prevents XSS via innerHTML injection, strips dangerous characters,
+ * and enforces a maximum length to mitigate abuse.
+ *
+ * NOTE: Server-side validation (prepared statements, parameterized queries,
+ * rate limiting, CSRF tokens) would also be needed if this data were sent
+ * to a backend. This site is frontend-only / static, so those measures
+ * are not applicable here. If a backend is added later (e.g. Node.js/Express),
+ * also implement:
+ *   - express-rate-limit for API throttling
+ *   - helmet.js for HTTP header hardening
+ *   - csurf or double-submit cookie for CSRF protection
+ *   - Parameterized SQL queries (never string concatenation)
+ *   - bcrypt for any password hashing
+ *   - JWT with short expiry + refresh tokens + server-side blacklist
+ */
+function sanitizeInput(raw) {
+  if (typeof raw !== "string") return "";
+  // Strip HTML tags to prevent XSS
+  let clean = raw.replace(/<[^>]*>/g, "");
+  // Trim whitespace
+  clean = clean.trim();
+  // Limit length to 200 characters
+  clean = clean.slice(0, 200);
+  // Escape special characters that could be used in injection attacks
+  clean = clean
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+  return clean;
+}
+
+/**
  * CONFIGURATION EMAIL
  * Option 1 : Formspree (recommande) — gratuit, va sur https://formspree.io, cree un formulaire, colle l'ID ici
  * Option 2 : Web3Forms — va sur https://web3forms.com, recupere ton access_key, colle-le ici
@@ -199,10 +234,16 @@ export function initChatbot({ isValidEmail, onComplete }) {
         send.className = "chat-pill";
         send.textContent = "Envoyer";
         const submit = () => {
-          const val = input.value.trim();
-          if (!val) return;
-          if (stepId === "contact" && !isValidEmail(val)) { input.style.borderColor = "#f87171"; return; }
+          /* SECURITY: Sanitize all free-text user input before processing */
+          const raw = input.value.trim();
+          if (!raw) return;
+          /* For email validation, check the raw value before sanitization
+           * (sanitization would escape '@' and break the check) */
+          if (stepId === "contact" && !isValidEmail(raw)) { input.style.borderColor = "#f87171"; return; }
           input.style.borderColor = "";
+          /* Sanitize after validation — email addresses are stored as-is
+           * for functional mailto: links, names/text are sanitized */
+          const val = stepId === "contact" ? raw.slice(0, 200) : sanitizeInput(raw);
           if (stepId === "name") chatData.userName = val;
           chatData.answers[stepId] = val;
           addMsg(val, "chat-msg--user");

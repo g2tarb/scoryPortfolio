@@ -1,19 +1,8 @@
 /**
  * SCORY — app.js
- * Carrousel disques, transitions particules, chatbot devis, booking.
+ * Orchestrateur principal du portfolio musee digital.
+ * Modules : cursor, particles, chatbot, booking, three-*, aurora, universe, nebula, i18n, data.
  * Three.js charge en differe pour ne pas bloquer le main thread.
- */
-/**
- * SCORY — app.js
- * Orchestrateur principal. Les modules sont scindés par responsabilité :
- *   - cursor.js     → curseur custom + effet magnétique flèches
- *   - particles.js  → transitions particules entre disques
- *   - chatbot.js    → chatbot devis interactif
- *   - booking.js    → calendrier de réservation
- *   - three-*.js    → rendus WebGL (chargés en différé)
- *   - aurora.js / universe.js / nebula-flaynn.js → fonds projet
- *   - i18n.js       → internationalisation FR/EN
- *   - data.js       → données projets, thèmes, flux chatbot
  */
 import gsap from "gsap";
 import Lenis from "lenis";
@@ -241,13 +230,12 @@ async function main() {
       switch (index) {
         case 0: {
           const video = document.createElement("video");
-          video.src = "./scoryModel.mp4";
-          video.autoplay = true;
+          video.setAttribute("preload", "none"); // Lazy — don't load 3MB until needed
+          video.poster = "./image/fondJimmy.png"; // Static poster while loading
           video.loop = true;
           video.muted = true;
           video.playsInline = true;
           video.setAttribute("webkit-playsinline", "");
-          video.setAttribute("preload", "metadata");
           video.className = "project-bg-canvas scory-bg-video";
           video.style.display = "none";
           projectBgHost.appendChild(video);
@@ -255,6 +243,7 @@ async function main() {
             canvas: video,
             orb: null,
             start() {
+              if (!video.src) video.src = "./scoryModel.mp4"; // Lazy load
               video.play().catch(() => {
                 const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
                 document.addEventListener("touchstart", playOnce, { once: true });
@@ -294,70 +283,178 @@ async function main() {
           break;
         }
         case 5: {
-          // JIMMY — fond avec image + titre JIMMY + effet lampadaire gresillant
-          const container = document.createElement("div");
-          container.className = "project-bg-canvas jimmy-bg-container";
-          container.style.display = "none";
-          container.style.position = "absolute";
-          container.style.inset = "0";
-          container.style.overflow = "hidden";
+          // JIMMY — Image fond + Three.js particles + glitch title
 
-          // Background image
-          const img = document.createElement("img");
-          img.src = "./image/fondJimmy.png";
-          img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.2;filter:grayscale(30%) contrast(1.2);";
-          container.appendChild(img);
+          // Background image (behind everything)
+          const jimmyBgImg = document.createElement("img");
+          jimmyBgImg.src = "./image/fondJimmy.png";
+          jimmyBgImg.className = "project-bg-canvas jimmy-bg-img";
+          jimmyBgImg.style.cssText = "display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.18;filter:grayscale(30%) contrast(1.2);transition:opacity 0.05s;";
+          projectBgHost.appendChild(jimmyBgImg);
 
-          // Overlay gradient
-          const overlay = document.createElement("div");
-          overlay.style.cssText = "position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(139,26,26,0.08) 0%,transparent 60%),linear-gradient(to bottom,transparent 50%,rgba(7,6,10,0.95) 100%);";
-          container.appendChild(overlay);
+          // Three.js canvas (on top of image, transparent)
+          const jimmyCanvas = document.createElement("canvas");
+          jimmyCanvas.className = "project-bg-canvas jimmy-bg-canvas";
+          jimmyCanvas.style.cssText = "display:none;position:absolute;inset:0;";
+          projectBgHost.appendChild(jimmyCanvas);
 
-          // JIMMY title
+          // JIMMY title overlay
           const title = document.createElement("div");
           title.textContent = "JIMMY";
-          title.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',serif;font-size:clamp(60px,12vw,140px);color:#c41e3a;letter-spacing:12px;text-shadow:0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2);z-index:2;pointer-events:none;";
-          container.appendChild(title);
+          title.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',serif;font-size:clamp(60px,12vw,140px);color:#c41e3a;letter-spacing:12px;text-shadow:0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2),0 0 120px rgba(196,30,58,0.1);z-index:2;pointer-events:none;";
+          projectBgHost.appendChild(title);
+          title.style.display = "none";
 
-          // Lampadaire flicker effect
-          let flickerInterval = null;
+          let jimmyScene, jimmyCamera, jimmyRenderer, jimmyParticles, jimmyRaf, flickerInterval;
+          const JIMMY_PARTICLE_COUNT = 800;
 
-          projectBgHost.appendChild(container);
+          function initJimmyBg() {
+            if (jimmyRenderer) return;
+            const THREE = window.THREE || (globalThis.THREE);
+            if (!THREE) { console.warn("Three.js not loaded for JIMMY bg"); return; }
+
+            jimmyScene = new THREE.Scene();
+            jimmyCamera = new THREE.PerspectiveCamera(60, jimmyCanvas.width / jimmyCanvas.height, 0.1, 100);
+            jimmyCamera.position.z = 30;
+
+            jimmyRenderer = new THREE.WebGLRenderer({ canvas: jimmyCanvas, alpha: true, antialias: false });
+            jimmyRenderer.setSize(projectBgHost.offsetWidth, projectBgHost.offsetHeight);
+            jimmyRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+            jimmyRenderer.setClearColor(0x000000, 0);
+
+            // Blood particles
+            const geo = new THREE.BufferGeometry();
+            const positions = new Float32Array(JIMMY_PARTICLE_COUNT * 3);
+            const colors = new Float32Array(JIMMY_PARTICLE_COUNT * 3);
+            const sizes = new Float32Array(JIMMY_PARTICLE_COUNT);
+
+            for (let i = 0; i < JIMMY_PARTICLE_COUNT; i++) {
+              positions[i * 3] = (Math.random() - 0.5) * 60;
+              positions[i * 3 + 1] = (Math.random() - 0.5) * 40;
+              positions[i * 3 + 2] = (Math.random() - 0.5) * 30;
+
+              const isBlue = Math.random() > 0.75;
+              if (isBlue) {
+                colors[i * 3] = 0.16; colors[i * 3 + 1] = 0.43; colors[i * 3 + 2] = 0.86;
+              } else {
+                const r = 0.5 + Math.random() * 0.3;
+                colors[i * 3] = r; colors[i * 3 + 1] = 0.05 + Math.random() * 0.05; colors[i * 3 + 2] = 0.05 + Math.random() * 0.05;
+              }
+              sizes[i] = 0.5 + Math.random() * 2;
+            }
+
+            geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+            geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+            geo.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+
+            // Generate soft glow circle texture
+            const texCanvas = document.createElement("canvas");
+            texCanvas.width = 64; texCanvas.height = 64;
+            const texCtx = texCanvas.getContext("2d");
+            const grad = texCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+            grad.addColorStop(0, "rgba(255,255,255,1)");
+            grad.addColorStop(0.15, "rgba(255,255,255,0.8)");
+            grad.addColorStop(0.4, "rgba(255,200,200,0.3)");
+            grad.addColorStop(1, "rgba(255,100,100,0)");
+            texCtx.fillStyle = grad;
+            texCtx.fillRect(0, 0, 64, 64);
+            const particleTexture = new THREE.CanvasTexture(texCanvas);
+
+            const mat = new THREE.PointsMaterial({
+              size: 2.5,
+              vertexColors: true,
+              transparent: true,
+              opacity: 0.7,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+              map: particleTexture,
+              sizeAttenuation: true,
+            });
+
+            jimmyParticles = new THREE.Points(geo, mat);
+            jimmyScene.add(jimmyParticles);
+          }
+
+          function animateJimmy() {
+            jimmyRaf = requestAnimationFrame(animateJimmy);
+            if (!jimmyParticles || !jimmyRenderer) return;
+
+            const time = Date.now() * 0.001;
+            const pos = jimmyParticles.geometry.attributes.position.array;
+
+            for (let i = 0; i < JIMMY_PARTICLE_COUNT; i++) {
+              pos[i * 3 + 1] += Math.sin(time + i * 0.1) * 0.01 + 0.005;
+              pos[i * 3] += Math.cos(time * 0.5 + i * 0.05) * 0.008;
+
+              // Reset particles that float too high
+              if (pos[i * 3 + 1] > 20) pos[i * 3 + 1] = -20;
+            }
+            jimmyParticles.geometry.attributes.position.needsUpdate = true;
+            jimmyParticles.rotation.y = time * 0.03;
+
+            jimmyRenderer.render(jimmyScene, jimmyCamera);
+          }
+
           projectBgs[5] = {
-            canvas: container,
-            orb: null,
+            canvas: jimmyCanvas,
+            orb: title,
             start() {
-              // Flicker like a broken streetlight
-              flickerInterval = setInterval(() => {
-                const r = Math.random();
-                if (r < 0.08) {
-                  // Hard flicker — rapid on/off
-                  img.style.opacity = "0.05";
-                  title.style.opacity = "0.3";
-                  setTimeout(() => { img.style.opacity = "0.22"; title.style.opacity = "1"; }, 50);
-                  setTimeout(() => { img.style.opacity = "0.08"; title.style.opacity = "0.5"; }, 100);
-                  setTimeout(() => { img.style.opacity = "0.2"; title.style.opacity = "1"; }, 180);
-                } else if (r < 0.15) {
-                  // Soft dim
-                  img.style.opacity = "0.12";
-                  title.style.opacity = "0.7";
-                  title.style.textShadow = "0 0 15px rgba(196,30,58,0.3),0 0 40px rgba(196,30,58,0.1)";
-                  setTimeout(() => {
-                    img.style.opacity = "0.2";
-                    title.style.opacity = "1";
-                    title.style.textShadow = "0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2)";
-                  }, 300 + Math.random() * 200);
-                } else if (r < 0.2) {
-                  // Color shift
-                  title.style.color = "#8b1a1a";
-                  setTimeout(() => { title.style.color = "#c41e3a"; }, 100);
+              jimmyBgImg.style.display = "block";
+              title.style.display = "block";
+              if (!jimmyRenderer) {
+                if (!window.THREE) {
+                  const s = document.createElement("script");
+                  s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+                  s.onload = () => { initJimmyBg(); animateJimmy(); };
+                  document.head.appendChild(s);
+                } else {
+                  initJimmyBg();
+                  animateJimmy();
                 }
-              }, 150);
+              } else {
+                animateJimmy();
+              }
+
+              // Flicker lampadaire : 3 flashs rapides toutes les 5 secondes
+              flickerInterval = setInterval(() => {
+                // Flash 1
+                jimmyBgImg.style.opacity = "0.04";
+                title.style.opacity = "0.2";
+                title.style.color = "#8b1a1a";
+                setTimeout(() => {
+                  jimmyBgImg.style.opacity = "0.22";
+                  title.style.opacity = "1";
+                  title.style.color = "#c41e3a";
+                }, 60);
+                // Flash 2
+                setTimeout(() => {
+                  jimmyBgImg.style.opacity = "0.06";
+                  title.style.opacity = "0.3";
+                  title.style.textShadow = "0 0 5px rgba(196,30,58,0.1)";
+                }, 180);
+                setTimeout(() => {
+                  jimmyBgImg.style.opacity = "0.2";
+                  title.style.opacity = "0.9";
+                  title.style.textShadow = "0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2),0 0 120px rgba(196,30,58,0.1)";
+                }, 260);
+                // Flash 3
+                setTimeout(() => {
+                  jimmyBgImg.style.opacity = "0.03";
+                  title.style.opacity = "0.15";
+                }, 400);
+                setTimeout(() => {
+                  jimmyBgImg.style.opacity = "0.18";
+                  title.style.opacity = "1";
+                  title.style.color = "#c41e3a";
+                  title.style.textShadow = "0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2),0 0 120px rgba(196,30,58,0.1)";
+                }, 500);
+              }, 5000);
             },
             stop() {
+              jimmyBgImg.style.display = "none";
+              title.style.display = "none";
+              if (jimmyRaf) { cancelAnimationFrame(jimmyRaf); jimmyRaf = null; }
               if (flickerInterval) { clearInterval(flickerInterval); flickerInterval = null; }
-              img.style.opacity = "0.2";
-              title.style.opacity = "1";
             }
           };
           break;
@@ -473,31 +570,32 @@ async function main() {
     gsap.timeline()
       .to(el, {
         x: "-50%",
-        opacity: 0.15,
-        duration: 0.5,
+        opacity: 0.3,
+        duration: 0.4,
         ease: "power4.out",
       })
       .to(el, {
-        rotation: rotation + (Math.random() - 0.5) * 4,
-        scale: 1.03,
-        duration: 0.15,
+        rotation: rotation + (Math.random() - 0.5) * 6,
+        scale: 1.05,
+        duration: 0.12,
         ease: "power2.out",
       })
       .to(el, {
         rotation: rotation,
         scale: 1,
-        duration: 0.1,
+        duration: 0.08,
         ease: "power2.in",
       })
       .to(el, {
-        opacity: 0.1,
-        duration: 3,
+        opacity: 0.2,
+        duration: 2.5,
         ease: "none",
       })
       .to(el, {
         opacity: 0,
-        x: fromLeft ? "30%" : "-130%",
-        duration: 1.2,
+        x: fromLeft ? "40%" : "-140%",
+        scale: 0.95,
+        duration: 1,
         ease: "power2.in",
         onComplete: () => el.remove(),
       });
@@ -508,6 +606,14 @@ async function main() {
   async function showProjectBgWithSkills(index) {
     await _origShowProjectBg(index);
     fireGraffiti(index, lastNavDirection);
+    // Toggle blood cursor: ON for JIMMY (5), OFF for everything else
+    if (index === 5) {
+      if (window._loadBloodCursor) window._loadBloodCursor();
+      // Wait for script to load then enable
+      setTimeout(() => { if (window.enableBloodCursor) window.enableBloodCursor(); }, 500);
+    } else if (window.disableBloodCursor) {
+      window.disableBloodCursor();
+    }
   }
 
   // PHASE 3 : Montrer le site apres le loader (n'attend PAS Three.js)
@@ -1716,13 +1822,33 @@ async function main() {
 // Applique eco-mode si sauvegarde
 initEcoMode();
 
+/* SECURITY/RESILIENCE: Graceful degradation — WebGL feature detection.
+ * If WebGL is unavailable (old device, disabled GPU, corporate lockdown),
+ * the site falls back to a static background instead of a blank screen. */
+function checkWebGLSupport() {
+  try {
+    const c = document.createElement("canvas");
+    return !!(c.getContext("webgl2") || c.getContext("webgl") || c.getContext("experimental-webgl"));
+  } catch { return false; }
+}
+
+if (!checkWebGLSupport()) {
+  document.body.classList.add("no-webgl");
+  console.warn("[SCORY] WebGL not available — falling back to static background");
+}
+
 try {
   main();
 } catch (err) {
-  console.error("SCORY init error:", err);
+  /* SECURITY: Sanitize error output — never expose stack traces to console in production.
+   * Full stack traces can leak file paths, library versions, and internal logic. */
+  console.error("[SCORY]", err.message || "Unknown error");
   document.body.classList.add("no-webgl");
   const loader = document.getElementById("loader");
   if (loader) loader.classList.add("is-hidden");
+  /* Graceful fallback: ensure the page is still usable without WebGL */
+  const stage = document.getElementById("museum-stage");
+  if (stage) stage.style.background = "radial-gradient(ellipse at 50% 30%, #1a1520 0%, #07060a 70%)";
 }
 
 if ("serviceWorker" in navigator) {

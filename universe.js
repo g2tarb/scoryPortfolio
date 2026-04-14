@@ -32,6 +32,26 @@ export class UniverseBackground {
     this._onResize = () => this.resize();
     window.addEventListener("resize", this._onResize, { passive: true });
     document.addEventListener("mousemove", this._onMouse, { passive: true });
+
+    /* SECURITY/RESILIENCE: WebGL context loss protection */
+    this._onContextLost = (e) => {
+      e.preventDefault();
+      this.stop();
+      console.warn("[SCORY] WebGL context lost on Universe — will attempt restore");
+      setTimeout(() => {
+        try { this.renderer.forceContextRestore(); }
+        catch { /* browser may not support forceContextRestore */ }
+      }, 2000);
+    };
+    this._onContextRestored = () => {
+      console.info("[SCORY] WebGL context restored on Universe");
+      this._build();
+      this.resize();
+      this.start();
+    };
+    this.canvas.addEventListener("webglcontextlost", this._onContextLost);
+    this.canvas.addEventListener("webglcontextrestored", this._onContextRestored);
+
     this.resize();
   }
 
@@ -132,6 +152,8 @@ export class UniverseBackground {
     this.stop();
     window.removeEventListener("resize", this._onResize);
     document.removeEventListener("mousemove", this._onMouse);
+    this.canvas.removeEventListener("webglcontextlost", this._onContextLost);
+    this.canvas.removeEventListener("webglcontextrestored", this._onContextRestored);
     this.scene.traverse(o => { if(o.geometry)o.geometry.dispose(); if(o.material)o.material.dispose(); });
     this.renderer.dispose(); if (this.canvas.parentNode) this.canvas.remove();
   }

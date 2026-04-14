@@ -73,6 +73,29 @@
     </style>
     <link rel="stylesheet" href="./styles.css" media="print" onload="this.media='all'" />
     <noscript><link rel="stylesheet" href="./styles.css" /></noscript>
+    <!--
+      SECURITY: Subresource Integrity (SRI) for CDN scripts
+      ======================================================
+      Import maps do not support "integrity" attributes natively (as of 2026).
+      SRI is designed for <script src="..."> tags, not import maps.
+
+      Mitigation strategy:
+      1. The Service Worker (sw.js) caches CDN responses and serves from cache,
+         reducing exposure to CDN tampering after first load.
+      2. CSP restricts script sources to specific CDN origins only.
+      3. All CDN URLs are pinned to exact versions (no @latest or ranges).
+
+      TODO: When Import Map Integrity lands in browsers (proposal stage),
+      add integrity fields here:
+        "three": { "url": "...", "integrity": "sha384-..." }
+
+      For non-import-map <script> tags, SRI would look like:
+        <script src="https://unpkg.com/gsap@3.12.5/index.js"
+                integrity="sha384-{HASH}"
+                crossorigin="anonymous"></script>
+
+      To generate hashes: curl -s URL | openssl dgst -sha384 -binary | openssl base64 -A
+    -->
     <script type="importmap">
       {
         "imports": {
@@ -124,8 +147,21 @@
     </div>
 
     <noscript>
-      <div style="padding:3rem;text-align:center;color:#c9a962;font-family:serif;font-size:1.3rem;">
-        SCORY requires JavaScript to work. / SCORY necessite JavaScript pour fonctionner.
+      <div style="padding:3rem;text-align:center;color:#c9a962;font-family:'Cormorant Garamond',serif;font-size:1.3rem;max-width:600px;margin:0 auto;line-height:1.6;">
+        <h1 style="font-size:2.5rem;margin-bottom:1rem;letter-spacing:.08em;">SCORY</h1>
+        <p style="margin-bottom:1rem;">Developpeur web freelance — sites sur-mesure &amp; experiences immersives</p>
+        <p style="color:rgba(245,242,255,.6);font-size:1rem;">
+          Ce portfolio interactif utilise JavaScript et WebGL pour une experience immersive.
+          Activez JavaScript dans votre navigateur pour y acceder.
+        </p>
+        <hr style="border:none;border-top:1px solid rgba(201,169,98,.3);margin:1.5rem auto;width:120px;">
+        <p style="color:rgba(245,242,255,.6);font-size:1rem;">
+          This interactive portfolio uses JavaScript and WebGL for an immersive experience.
+          Please enable JavaScript in your browser to access it.
+        </p>
+        <p style="margin-top:1.5rem;font-size:.95rem;">
+          <a href="mailto:contact@scory.fr" style="color:#c9a962;text-decoration:underline;">contact@scory.fr</a>
+        </p>
       </div>
     </noscript>
     <a class="skip-link" href="#museum-stage" data-i18n="skip">Aller au musee</a>
@@ -675,5 +711,26 @@
       </div>
     </div>
     <script type="module" src="./app.js"></script>
+    <script>
+      // Lazy-load blood cursor only when needed (avoids Three.js double-import)
+      window._loadBloodCursor = function() {
+        if (window._bloodCursorLoaded) return;
+        window._bloodCursorLoaded = true;
+        if (!window.THREE) {
+          const s = document.createElement("script");
+          s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+          s.onload = () => {
+            const b = document.createElement("script");
+            b.src = "./blood-cursor-jimmy.js";
+            document.body.appendChild(b);
+          };
+          document.head.appendChild(s);
+        } else {
+          const b = document.createElement("script");
+          b.src = "./blood-cursor-jimmy.js";
+          document.body.appendChild(b);
+        }
+      };
+    </script>
   </body>
 </html>
