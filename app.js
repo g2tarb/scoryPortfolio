@@ -293,6 +293,75 @@ async function main() {
           };
           break;
         }
+        case 5: {
+          // JIMMY — fond avec image + titre JIMMY + effet lampadaire gresillant
+          const container = document.createElement("div");
+          container.className = "project-bg-canvas jimmy-bg-container";
+          container.style.display = "none";
+          container.style.position = "absolute";
+          container.style.inset = "0";
+          container.style.overflow = "hidden";
+
+          // Background image
+          const img = document.createElement("img");
+          img.src = "./image/fondJimmy.png";
+          img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.2;filter:grayscale(30%) contrast(1.2);";
+          container.appendChild(img);
+
+          // Overlay gradient
+          const overlay = document.createElement("div");
+          overlay.style.cssText = "position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(139,26,26,0.08) 0%,transparent 60%),linear-gradient(to bottom,transparent 50%,rgba(7,6,10,0.95) 100%);";
+          container.appendChild(overlay);
+
+          // JIMMY title
+          const title = document.createElement("div");
+          title.textContent = "JIMMY";
+          title.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',serif;font-size:clamp(60px,12vw,140px);color:#c41e3a;letter-spacing:12px;text-shadow:0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2);z-index:2;pointer-events:none;";
+          container.appendChild(title);
+
+          // Lampadaire flicker effect
+          let flickerInterval = null;
+
+          projectBgHost.appendChild(container);
+          projectBgs[5] = {
+            canvas: container,
+            orb: null,
+            start() {
+              // Flicker like a broken streetlight
+              flickerInterval = setInterval(() => {
+                const r = Math.random();
+                if (r < 0.08) {
+                  // Hard flicker — rapid on/off
+                  img.style.opacity = "0.05";
+                  title.style.opacity = "0.3";
+                  setTimeout(() => { img.style.opacity = "0.22"; title.style.opacity = "1"; }, 50);
+                  setTimeout(() => { img.style.opacity = "0.08"; title.style.opacity = "0.5"; }, 100);
+                  setTimeout(() => { img.style.opacity = "0.2"; title.style.opacity = "1"; }, 180);
+                } else if (r < 0.15) {
+                  // Soft dim
+                  img.style.opacity = "0.12";
+                  title.style.opacity = "0.7";
+                  title.style.textShadow = "0 0 15px rgba(196,30,58,0.3),0 0 40px rgba(196,30,58,0.1)";
+                  setTimeout(() => {
+                    img.style.opacity = "0.2";
+                    title.style.opacity = "1";
+                    title.style.textShadow = "0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2)";
+                  }, 300 + Math.random() * 200);
+                } else if (r < 0.2) {
+                  // Color shift
+                  title.style.color = "#8b1a1a";
+                  setTimeout(() => { title.style.color = "#c41e3a"; }, 100);
+                }
+              }, 150);
+            },
+            stop() {
+              if (flickerInterval) { clearInterval(flickerInterval); flickerInterval = null; }
+              img.style.opacity = "0.2";
+              title.style.opacity = "1";
+            }
+          };
+          break;
+        }
         default: return null;
       }
     } catch { return null; }
