@@ -293,6 +293,75 @@ async function main() {
           };
           break;
         }
+        case 5: {
+          // JIMMY — fond avec image + titre JIMMY + effet lampadaire gresillant
+          const container = document.createElement("div");
+          container.className = "project-bg-canvas jimmy-bg-container";
+          container.style.display = "none";
+          container.style.position = "absolute";
+          container.style.inset = "0";
+          container.style.overflow = "hidden";
+
+          // Background image
+          const img = document.createElement("img");
+          img.src = "./image/fondJimmy.png";
+          img.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.2;filter:grayscale(30%) contrast(1.2);";
+          container.appendChild(img);
+
+          // Overlay gradient
+          const overlay = document.createElement("div");
+          overlay.style.cssText = "position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(139,26,26,0.08) 0%,transparent 60%),linear-gradient(to bottom,transparent 50%,rgba(7,6,10,0.95) 100%);";
+          container.appendChild(overlay);
+
+          // JIMMY title
+          const title = document.createElement("div");
+          title.textContent = "JIMMY";
+          title.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',serif;font-size:clamp(60px,12vw,140px);color:#c41e3a;letter-spacing:12px;text-shadow:0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2);z-index:2;pointer-events:none;";
+          container.appendChild(title);
+
+          // Lampadaire flicker effect
+          let flickerInterval = null;
+
+          projectBgHost.appendChild(container);
+          projectBgs[5] = {
+            canvas: container,
+            orb: null,
+            start() {
+              // Flicker like a broken streetlight
+              flickerInterval = setInterval(() => {
+                const r = Math.random();
+                if (r < 0.08) {
+                  // Hard flicker — rapid on/off
+                  img.style.opacity = "0.05";
+                  title.style.opacity = "0.3";
+                  setTimeout(() => { img.style.opacity = "0.22"; title.style.opacity = "1"; }, 50);
+                  setTimeout(() => { img.style.opacity = "0.08"; title.style.opacity = "0.5"; }, 100);
+                  setTimeout(() => { img.style.opacity = "0.2"; title.style.opacity = "1"; }, 180);
+                } else if (r < 0.15) {
+                  // Soft dim
+                  img.style.opacity = "0.12";
+                  title.style.opacity = "0.7";
+                  title.style.textShadow = "0 0 15px rgba(196,30,58,0.3),0 0 40px rgba(196,30,58,0.1)";
+                  setTimeout(() => {
+                    img.style.opacity = "0.2";
+                    title.style.opacity = "1";
+                    title.style.textShadow = "0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2)";
+                  }, 300 + Math.random() * 200);
+                } else if (r < 0.2) {
+                  // Color shift
+                  title.style.color = "#8b1a1a";
+                  setTimeout(() => { title.style.color = "#c41e3a"; }, 100);
+                }
+              }, 150);
+            },
+            stop() {
+              if (flickerInterval) { clearInterval(flickerInterval); flickerInterval = null; }
+              img.style.opacity = "0.2";
+              title.style.opacity = "1";
+            }
+          };
+          break;
+        }
         default: return null;
       }
     } catch { return null; }
@@ -323,6 +392,122 @@ async function main() {
     gsap.to(projectBgHost, { opacity: 0, duration: 0.5 });
     Object.values(projectBgs).forEach((bg) => bg.stop());
     activeProjectBg = null;
+    // Clear graffiti
+    if (graffitiOverlay) graffitiOverlay.innerHTML = '';
+  }
+
+  // ==================== GRAFFITI SKILL SHOUT ====================
+  // Phrases qui explosent a l'ecran quand on change de projet
+  // Direction opposee au clic (clic droite → texte vient de gauche)
+
+  const GRAFFITI_PHRASES = [
+    "JE SAIS FAIRE CAAAAAA",
+    "ET PUIS CA",
+    "CA AUSSI C'EST MOI",
+    "AHAHAHAHA CA AUSSI",
+  ];
+  let graffitiCount = 0;
+  let graffitiOverlay = null;
+  let lastNavDirection = 1; // 1 = droite, -1 = gauche
+
+  // Style graffiti adapte au theme
+  const GRAFFITI_COLORS = {
+    0: { color: "#c9a962", shadow: "rgba(201,169,98,0.4)" },
+    1: { color: "#DA5426", shadow: "rgba(218,84,38,0.4)" },
+    2: { color: "#C9A84C", shadow: "rgba(201,168,76,0.4)" },
+    3: { color: "#7B2D8E", shadow: "rgba(123,45,142,0.4)" },
+    4: { color: "#f0c040", shadow: "rgba(240,192,64,0.4)" },
+    5: { color: "#c41e3a", shadow: "rgba(196,30,58,0.4)" },
+  };
+
+  function createGraffitiOverlay() {
+    if (graffitiOverlay) return graffitiOverlay;
+    graffitiOverlay = document.createElement("div");
+    graffitiOverlay.style.cssText = "position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden;";
+    if (projectBgHost) projectBgHost.appendChild(graffitiOverlay);
+    return graffitiOverlay;
+  }
+
+  function fireGraffiti(projectIndex, direction) {
+    const overlay = createGraffitiOverlay();
+    const colors = GRAFFITI_COLORS[projectIndex] || GRAFFITI_COLORS[0];
+
+    // Choisir la phrase
+    let phrase;
+    if (graffitiCount === 0) {
+      phrase = GRAFFITI_PHRASES[0]; // Premier projet = "JE SAIS FAIRE CAAAAAA"
+    } else {
+      phrase = GRAFFITI_PHRASES[Math.min(graffitiCount, GRAFFITI_PHRASES.length - 1)];
+    }
+    graffitiCount++;
+
+    // Direction opposee au clic
+    const fromLeft = direction > 0; // clic droite → texte vient de gauche
+    const startX = fromLeft ? "-120%" : "120%";
+    const rotation = (Math.random() - 0.5) * 12; // leger angle aleatoire
+
+    // Creer l'element
+    const el = document.createElement("div");
+    el.textContent = phrase;
+    el.style.cssText = `
+      position: absolute;
+      top: ${35 + Math.random() * 30}%;
+      left: 50%;
+      transform: translateX(${startX}) rotate(${rotation}deg);
+      font-family: 'Syne', 'Impact', system-ui, sans-serif;
+      font-size: clamp(2rem, 6vw, 5rem);
+      font-weight: 900;
+      color: ${colors.color};
+      text-shadow: 0 0 20px ${colors.shadow}, 0 0 60px ${colors.shadow}, 4px 4px 0 rgba(0,0,0,0.3);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      -webkit-text-stroke: 1px rgba(0,0,0,0.15);
+    `;
+
+    overlay.appendChild(el);
+
+    // Animation GSAP : slide in → shake → hold → slide out
+    gsap.timeline()
+      .to(el, {
+        x: "-50%",
+        opacity: 0.15,
+        duration: 0.5,
+        ease: "power4.out",
+      })
+      .to(el, {
+        rotation: rotation + (Math.random() - 0.5) * 4,
+        scale: 1.03,
+        duration: 0.15,
+        ease: "power2.out",
+      })
+      .to(el, {
+        rotation: rotation,
+        scale: 1,
+        duration: 0.1,
+        ease: "power2.in",
+      })
+      .to(el, {
+        opacity: 0.1,
+        duration: 3,
+        ease: "none",
+      })
+      .to(el, {
+        opacity: 0,
+        x: fromLeft ? "30%" : "-130%",
+        duration: 1.2,
+        ease: "power2.in",
+        onComplete: () => el.remove(),
+      });
+  }
+
+  // Hook into showProjectBg
+  const _origShowProjectBg = showProjectBg;
+  async function showProjectBgWithSkills(index) {
+    await _origShowProjectBg(index);
+    fireGraffiti(index, lastNavDirection);
   }
 
   // PHASE 3 : Montrer le site apres le loader (n'attend PAS Three.js)
@@ -356,7 +541,7 @@ async function main() {
   }
 
   // Three.js lance le fond quand il est pret
-  threeReady.then(() => showProjectBg(activeIndex));
+  threeReady.then(() => showProjectBgWithSkills(activeIndex));
 
   // Appliquer la langue sauvegardee au demarrage
   setLang(getLang());
@@ -552,6 +737,7 @@ async function main() {
     const currentDisc = d[activeIndex];
     const goingRight = nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0);
     const direction = goingRight ? 1 : -1;
+    lastNavDirection = direction;
 
     if (reduced) {
       activeIndex = nextIndex;
@@ -560,7 +746,7 @@ async function main() {
       updateDots();
       applyTheme(activeIndex);
       animating = false;
-      showProjectBg(activeIndex);
+      showProjectBgWithSkills(activeIndex);
       return;
     }
 
@@ -586,7 +772,7 @@ async function main() {
             updateDots();
             applyTheme(activeIndex);
             animating = false;
-            showProjectBg(activeIndex);
+            showProjectBgWithSkills(activeIndex);
           }
         }
       );
@@ -624,7 +810,7 @@ async function main() {
         applyTheme(activeIndex);
         animating = false;
         if (!reduced && !ecoMode) startSpin();
-        showProjectBg(activeIndex);
+        showProjectBgWithSkills(activeIndex);
       }
     });
 
