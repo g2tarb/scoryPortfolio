@@ -469,24 +469,35 @@ async function main() {
 
     overlay.appendChild(el);
 
-    // Animation GSAP : slide in → hold → fade out
+    // Animation GSAP : slide in → shake → hold → slide out
     gsap.timeline()
       .to(el, {
         x: "-50%",
-        opacity: 0.12,
-        duration: 0.6,
+        opacity: 0.15,
+        duration: 0.5,
         ease: "power4.out",
       })
       .to(el, {
-        opacity: 0.08,
-        scale: 1.02,
-        duration: 2,
-        ease: "power1.inOut",
+        rotation: rotation + (Math.random() - 0.5) * 4,
+        scale: 1.03,
+        duration: 0.15,
+        ease: "power2.out",
+      })
+      .to(el, {
+        rotation: rotation,
+        scale: 1,
+        duration: 0.1,
+        ease: "power2.in",
+      })
+      .to(el, {
+        opacity: 0.1,
+        duration: 3,
+        ease: "none",
       })
       .to(el, {
         opacity: 0,
-        x: fromLeft ? "20%" : "-120%",
-        duration: 1.5,
+        x: fromLeft ? "30%" : "-130%",
+        duration: 1.2,
         ease: "power2.in",
         onComplete: () => el.remove(),
       });
