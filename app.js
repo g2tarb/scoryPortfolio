@@ -392,6 +392,132 @@ async function main() {
     gsap.to(projectBgHost, { opacity: 0, duration: 0.5 });
     Object.values(projectBgs).forEach((bg) => bg.stop());
     activeProjectBg = null;
+    stopSkillRotation();
+  }
+
+  // ==================== "JE SAIS FAIRE CA" — Skill rotation system ====================
+  const SKILL_PHRASES = {
+    0: [ // Portfolio Scory
+      "je sais faire ca",
+      "et aussi ca",
+      "des musees digitaux en Three.js",
+      "et aussi ca",
+      "des shaders GLSL a la main",
+      "et aussi ca",
+      "du vanilla JS sans framework",
+    ],
+    1: [ // 4dayvelopment
+      "je sais faire ca",
+      "et aussi ca",
+      "livrer un site en 4 jours",
+      "et aussi ca",
+      "des ecosystemes digitaux complets",
+      "et aussi ca",
+      "automatiser avec n8n",
+    ],
+    2: [ // Clara Martinez
+      "je sais faire ca",
+      "et aussi ca",
+      "des sites vitrine haut de gamme",
+      "et aussi ca",
+      "des aurora borealis en Canvas",
+      "et aussi ca",
+      "du glassmorphism",
+    ],
+    3: [ // Flaynn
+      "je sais faire ca",
+      "et aussi ca",
+      "des SaaS B2B avec scoring IA",
+      "et aussi ca",
+      "des dashboards avec graphes reseau",
+      "et aussi ca",
+      "de l'auth JWT + PostgreSQL",
+    ],
+    4: [ // ANIMUS
+      "je sais faire ca",
+      "et aussi ca",
+      "generer des histoires par IA",
+      "et aussi ca",
+      "de l'audio procedural",
+      "et aussi ca",
+      "des jeux narratifs",
+    ],
+    5: [ // JIMMY
+      "je sais faire ca",
+      "et aussi ca",
+      "un roman d'horreur de 20 000 mots",
+      "et aussi ca",
+      "un curseur Three.js avec traces de sang",
+      "et aussi ca",
+      "des combats generes par IA",
+    ],
+  };
+
+  let skillOverlay = null;
+  let skillInterval = null;
+  let skillIndex = 0;
+
+  // Style adapte au theme de chaque projet
+  const SKILL_STYLES = {
+    0: { font: "'Cormorant Garamond','Times New Roman',serif", color: "rgba(201,169,98,0.09)", weight: "600", size: "clamp(1.5rem,4vw,3rem)" },
+    1: { font: "'Syne',system-ui,sans-serif", color: "rgba(218,84,38,0.10)", weight: "800", size: "clamp(1.5rem,4vw,2.8rem)" },
+    2: { font: "'Playfair Display',Georgia,serif", color: "rgba(201,168,76,0.09)", weight: "900", size: "clamp(1.5rem,4vw,2.8rem)" },
+    3: { font: "'IBM Plex Sans',system-ui,sans-serif", color: "rgba(123,45,142,0.10)", weight: "600", size: "clamp(1.4rem,3.5vw,2.5rem)" },
+    4: { font: "'Cinzel Decorative','Times New Roman',serif", color: "rgba(240,192,64,0.08)", weight: "700", size: "clamp(1.5rem,4vw,2.8rem)" },
+    5: { font: "'Cinzel','Times New Roman',serif", color: "rgba(196,30,58,0.10)", weight: "700", size: "clamp(1.5rem,4vw,2.8rem)" },
+  };
+
+  function createSkillOverlay() {
+    if (skillOverlay) return skillOverlay;
+    skillOverlay = document.createElement("div");
+    skillOverlay.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;pointer-events:none;text-align:center;width:90%;max-width:700px;opacity:0;transition:opacity 1.5s ease;";
+    skillOverlay.innerHTML = `<div class="skill-text-inner"></div>`;
+    if (projectBgHost) projectBgHost.appendChild(skillOverlay);
+    return skillOverlay;
+  }
+
+  function startSkillRotation(projectIndex) {
+    stopSkillRotation();
+    const phrases = SKILL_PHRASES[projectIndex];
+    if (!phrases || phrases.length === 0) return;
+
+    const overlay = createSkillOverlay();
+    const textEl = overlay.querySelector(".skill-text-inner") || overlay.querySelector("div");
+    const style = SKILL_STYLES[projectIndex] || SKILL_STYLES[0];
+    skillIndex = 0;
+
+    // Appliquer le style du theme
+    textEl.style.fontFamily = style.font;
+    textEl.style.fontSize = style.size;
+    textEl.style.fontWeight = style.weight;
+    textEl.style.color = style.color;
+    textEl.style.lineHeight = "1.3";
+    textEl.style.letterSpacing = "1px";
+    textEl.style.fontStyle = "italic";
+
+    function showNext() {
+      overlay.style.opacity = "0";
+      setTimeout(() => {
+        textEl.textContent = phrases[skillIndex % phrases.length];
+        overlay.style.opacity = "1";
+        skillIndex++;
+      }, 1500);
+    }
+
+    setTimeout(showNext, 2000);
+    skillInterval = setInterval(showNext, 10000);
+  }
+
+  function stopSkillRotation() {
+    if (skillInterval) { clearInterval(skillInterval); skillInterval = null; }
+    if (skillOverlay) skillOverlay.style.opacity = "0";
+  }
+
+  // Hook into showProjectBg — start rotation when project changes
+  const _origShowProjectBg = showProjectBg;
+  async function showProjectBgWithSkills(index) {
+    await _origShowProjectBg(index);
+    startSkillRotation(index);
   }
 
   // PHASE 3 : Montrer le site apres le loader (n'attend PAS Three.js)
@@ -425,7 +551,7 @@ async function main() {
   }
 
   // Three.js lance le fond quand il est pret
-  threeReady.then(() => showProjectBg(activeIndex));
+  threeReady.then(() => showProjectBgWithSkills(activeIndex));
 
   // Appliquer la langue sauvegardee au demarrage
   setLang(getLang());
@@ -629,7 +755,7 @@ async function main() {
       updateDots();
       applyTheme(activeIndex);
       animating = false;
-      showProjectBg(activeIndex);
+      showProjectBgWithSkills(activeIndex);
       return;
     }
 
@@ -655,7 +781,7 @@ async function main() {
             updateDots();
             applyTheme(activeIndex);
             animating = false;
-            showProjectBg(activeIndex);
+            showProjectBgWithSkills(activeIndex);
           }
         }
       );
@@ -693,7 +819,7 @@ async function main() {
         applyTheme(activeIndex);
         animating = false;
         if (!reduced && !ecoMode) startSpin();
-        showProjectBg(activeIndex);
+        showProjectBgWithSkills(activeIndex);
       }
     });
 
