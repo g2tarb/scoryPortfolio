@@ -50,6 +50,29 @@ export class WaterReflectionLayer {
     this._buildScene();
     this.resize();
     window.addEventListener("resize", this._onResize);
+
+    /* SECURITY/RESILIENCE: WebGL context loss protection.
+     * Mobile devices and resource-constrained environments may lose the
+     * WebGL context. Without handling, the canvas goes black permanently. */
+    this._onContextLost = (e) => {
+      e.preventDefault();
+      this._running = false;
+      cancelAnimationFrame(this._raf);
+      console.warn("[SCORY] WebGL context lost on WaterReflection — will attempt restore");
+      setTimeout(() => {
+        try { this.renderer.forceContextRestore(); }
+        catch { /* browser may not support forceContextRestore */ }
+      }, 2000);
+    };
+    this._onContextRestored = () => {
+      console.info("[SCORY] WebGL context restored on WaterReflection");
+      this._buildScene();
+      this.resize();
+      this._tick();
+    };
+    this.canvas.addEventListener("webglcontextlost", this._onContextLost);
+    this.canvas.addEventListener("webglcontextrestored", this._onContextRestored);
+
     this._tick();
   }
 
@@ -270,6 +293,8 @@ export class WaterReflectionLayer {
     this._running = false;
     cancelAnimationFrame(this._raf);
     window.removeEventListener("resize", this._onResize);
+    this.canvas.removeEventListener("webglcontextlost", this._onContextLost);
+    this.canvas.removeEventListener("webglcontextrestored", this._onContextRestored);
     this.material.dispose();
     this.mesh.geometry.dispose();
     const t = this.uniforms.uTexture.value;
