@@ -829,7 +829,46 @@ async function main() {
 
 
   /* ---------- Navigation avec transition particules ---------- */
-  async function goTo(nextIndex) {
+  // ===== POLES — separation pro / creatif au swipe depuis le hub Scory =====
+  // Ordre dans chaque pole = ordre du cycle au swipe
+  const POLE_PRO = ["DYG", "Clara Martinez", "4dayvelopment", "SecurEats"];
+  const POLE_CREATIF = ["ANIMUS", "JIMMY"];
+
+  function getPoleOf(index) {
+    if (index === SCORY_INDEX) return "hub";
+    const title = PROJECTS()[index]?.title;
+    if (!title) return "hub";
+    if (POLE_PRO.includes(title)) return "pro";
+    if (POLE_CREATIF.includes(title)) return "creatif";
+    return "hub";
+  }
+
+  function getPoleIndices(poleName) {
+    const titles = poleName === "pro" ? POLE_PRO : POLE_CREATIF;
+    const projects = PROJECTS();
+    return titles.map((t) => projects.findIndex((p) => p.title === t)).filter((i) => i >= 0);
+  }
+
+  // direction = -1 (gauche) ou +1 (droite). Au hub, choisit le pole. Dans un pole, cycle.
+  function nextIndexForDirection(direction) {
+    const pole = getPoleOf(activeIndex);
+    if (pole === "hub") {
+      const target = direction > 0 ? "pro" : "creatif";
+      const indices = getPoleIndices(target);
+      return indices[0] ?? activeIndex;
+    }
+    const indices = getPoleIndices(pole);
+    if (indices.length === 0) return activeIndex;
+    const cur = indices.indexOf(activeIndex);
+    const next = (cur + direction + indices.length) % indices.length;
+    return indices[next];
+  }
+
+  function updateHubClass() {
+    document.body.classList.toggle("is-hub", activeIndex === SCORY_INDEX);
+  }
+
+  async function goTo(nextIndex, opts = {}) {
     const d = discs();
     const n = d.length;
     if (n === 0 || animating) return;
@@ -839,7 +878,10 @@ async function main() {
 
     animating = true;
     const currentDisc = d[activeIndex];
-    const goingRight = nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0);
+    // Direction d'animation : explicite (nav pole-aware) sinon deduite de la diff d'indices
+    const goingRight = opts.direction != null
+      ? opts.direction > 0
+      : (nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0));
     const direction = goingRight ? 1 : -1;
     lastNavDirection = direction;
 
@@ -849,6 +891,7 @@ async function main() {
       setLabel(activeIndex);
       updateDots();
       applyTheme(activeIndex);
+      updateHubClass();
       animating = false;
       showProjectBgWithSkills(activeIndex);
       return;
@@ -875,6 +918,7 @@ async function main() {
             setLabel(activeIndex, true);
             updateDots();
             applyTheme(activeIndex);
+            updateHubClass();
             animating = false;
             showProjectBgWithSkills(activeIndex);
           }
@@ -912,6 +956,7 @@ async function main() {
         setLabel(activeIndex, true);
         updateDots();
         applyTheme(activeIndex);
+        updateHubClass();
         animating = false;
         if (!reduced && !ecoMode) startSpin();
         showProjectBgWithSkills(activeIndex);
@@ -960,13 +1005,13 @@ async function main() {
   }
 
   /* ---------- Flèches ---------- */
-  arrowLeft.addEventListener("click", () => { if (!animating) goTo(activeIndex - 1); });
-  arrowRight.addEventListener("click", () => { if (!animating) goTo(activeIndex + 1); });
+  arrowLeft.addEventListener("click", () => { if (!animating) goTo(nextIndexForDirection(-1), { direction: -1 }); });
+  arrowRight.addEventListener("click", () => { if (!animating) goTo(nextIndexForDirection(1), { direction: 1 }); });
 
   /* ---------- Clavier ---------- */
   carousel.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") { e.preventDefault(); goTo(activeIndex + 1); }
-    if (e.key === "ArrowLeft") { e.preventDefault(); goTo(activeIndex - 1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); goTo(nextIndexForDirection(1), { direction: 1 }); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); goTo(nextIndexForDirection(-1), { direction: -1 }); }
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && detailVisible) closeDetail();
@@ -1246,8 +1291,8 @@ async function main() {
     // Swipe rapide (velocity > 0.3) ou long (> 60px)
     const isSwipe = (Math.abs(dx) > SWIPE_DISTANCE_FAST && velocity > SWIPE_VELOCITY_MIN) || Math.abs(dx) > SWIPE_DISTANCE_SLOW;
     if (isSwipe && !animating) {
-      if (dx < 0) goTo(activeIndex + 1);
-      else goTo(activeIndex - 1);
+      if (dx < 0) goTo(nextIndexForDirection(1), { direction: 1 });
+      else goTo(nextIndexForDirection(-1), { direction: -1 });
     }
   });
 
@@ -1342,6 +1387,7 @@ async function main() {
   activeIndex = startIndex;
   buildDots();
   applyTheme(startIndex);
+  updateHubClass();
 
 
   if (reduced) {
