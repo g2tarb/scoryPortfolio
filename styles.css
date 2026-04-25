@@ -515,29 +515,6 @@ html[lang="en"] .project-disc.is-active .disc-label::after {
 .nav-arrow--left { left: clamp(0.75rem, 4vw, 2.5rem); }
 .nav-arrow--right { right: clamp(0.75rem, 4vw, 2.5rem); }
 
-/* Hint Creatif/Pro affiche uniquement sur le hub Scory (clignote) */
-.nav-arrow__hint {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  font-family: 'Bebas Neue', system-ui, sans-serif;
-  font-size: 14px; font-weight: 700;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--accent-gold, #c9a962);
-  text-shadow: 0 0 12px var(--theme-glow-strong, rgba(201,169,98,0.5));
-  white-space: nowrap; pointer-events: none;
-  opacity: 0; transition: opacity 0.4s ease;
-  z-index: 1;
-}
-.nav-arrow--left .nav-arrow__hint { left: calc(100% + 14px); }
-.nav-arrow--right .nav-arrow__hint { right: calc(100% + 14px); }
-body.is-hub .nav-arrow__hint {
-  opacity: 1;
-  animation: nav-hint-blink 1.4s ease-in-out infinite;
-}
-@keyframes nav-hint-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.25; }
-}
-
 /* ===== DISC HINT MOBILE (au-dessus du disque) ===== */
 .disc-hint {
   display: none;

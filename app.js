@@ -864,10 +864,6 @@ async function main() {
     return indices[next];
   }
 
-  function updateHubClass() {
-    document.body.classList.toggle("is-hub", activeIndex === SCORY_INDEX);
-  }
-
   async function goTo(nextIndex, opts = {}) {
     const d = discs();
     const n = d.length;
@@ -891,7 +887,6 @@ async function main() {
       setLabel(activeIndex);
       updateDots();
       applyTheme(activeIndex);
-      updateHubClass();
       animating = false;
       showProjectBgWithSkills(activeIndex);
       return;
@@ -918,7 +913,6 @@ async function main() {
             setLabel(activeIndex, true);
             updateDots();
             applyTheme(activeIndex);
-            updateHubClass();
             animating = false;
             showProjectBgWithSkills(activeIndex);
           }
@@ -956,7 +950,6 @@ async function main() {
         setLabel(activeIndex, true);
         updateDots();
         applyTheme(activeIndex);
-        updateHubClass();
         animating = false;
         if (!reduced && !ecoMode) startSpin();
         showProjectBgWithSkills(activeIndex);
@@ -1387,7 +1380,6 @@ async function main() {
   activeIndex = startIndex;
   buildDots();
   applyTheme(startIndex);
-  updateHubClass();
 
 
   if (reduced) {

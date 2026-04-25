@@ -26,9 +26,6 @@ export const TRANSLATIONS = {
   "disc.5.meta": { fr: "Do Your Game", en: "Do Your Game" },
   "disc.6.title": { fr: "SecurEats", en: "SecurEats" },
   "disc.6.meta": { fr: "App + Site", en: "App + Site" },
-  // Hints fleches au hub Scory
-  "nav.hint.creatif": { fr: "Creatif", en: "Creative" },
-  "nav.hint.pro": { fr: "Pro", en: "Pro" },
   // Cartel
   "cartel.kicker": { fr: "Cartel", en: "Label" },
   // Detail panel
