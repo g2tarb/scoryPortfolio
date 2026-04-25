@@ -839,7 +839,7 @@ async function main() {
     });
     setTimeout(() => {
       els.forEach((el) => el.classList.remove("is-glitching"));
-    }, 800);
+    }, 2600);
   }
 
   async function goTo(nextIndex) {
