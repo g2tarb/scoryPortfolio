@@ -2,7 +2,7 @@
  * SCORY — Service Worker v8
  * Cache les assets statiques + CDN critiques pour resilience totale.
  */
-const CACHE_NAME = "scory-v17";
+const CACHE_NAME = "scory-v18";
 const STATIC_ASSETS = [
   "./",
   "./index.html",
