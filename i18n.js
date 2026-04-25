@@ -133,7 +133,12 @@ export function setLang(lang) {
     if (attr === "placeholder") {
       el.placeholder = t[lang] || t.fr;
     } else {
-      el.textContent = t[lang] || t.fr;
+      const value = t[lang] || t.fr;
+      el.textContent = value;
+      // Sync data-text (utilise par l'effet glitch CSS via attr(data-text))
+      if (el.classList.contains("glitch-text") || el.hasAttribute("data-text")) {
+        el.setAttribute("data-text", value);
+      }
     }
   });
 }

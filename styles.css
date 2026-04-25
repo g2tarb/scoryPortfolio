@@ -205,15 +205,52 @@ body {
   margin: 0;
   font-family: var(--font-display); font-weight: 600;
   font-size: clamp(1.1rem, 2.5vw, 1.6rem); letter-spacing: 0.1em;
-  color: rgba(245,242,255,0.15);
+  color: rgba(245,242,255,0.45);
   transition: color 0.8s ease;
 }
 .floating-sub {
   margin: 0.15rem 0 0;
   font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase;
-  color: rgba(245,242,255,0.18);
+  color: rgba(245,242,255,0.45);
   max-width: 320px;
 }
+
+/* ===== GLITCH TEXT — RGB shift periodique, suit les couleurs du theme actif ===== */
+.glitch-text { position: relative; display: inline-block; }
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  font: inherit; letter-spacing: inherit; text-transform: inherit;
+  white-space: pre-wrap;
+}
+.glitch-text::before {
+  color: var(--accent-magenta, #c084fc);
+  animation: glitch-rgb-1 3s infinite steps(1);
+  mix-blend-mode: screen;
+}
+.glitch-text::after {
+  color: var(--accent-ice, #9ec8ff);
+  animation: glitch-rgb-2 3s infinite steps(1);
+  mix-blend-mode: screen;
+}
+@keyframes glitch-rgb-1 {
+  0%, 92%, 100% { transform: translate(0, 0); opacity: 0; }
+  93% { transform: translate(-1.5px, 0); opacity: 0.7; }
+  95% { transform: translate(2px, -1px); opacity: 0.6; }
+  97% { transform: translate(-1px, 1px); opacity: 0.7; }
+}
+@keyframes glitch-rgb-2 {
+  0%, 92%, 100% { transform: translate(0, 0); opacity: 0; }
+  94% { transform: translate(1.5px, 1px); opacity: 0.6; }
+  96% { transform: translate(-2px, 0); opacity: 0.7; }
+  98% { transform: translate(1px, -1px); opacity: 0.5; }
+}
+/* p.floating-sub : multi-lignes possible, le wrap force */
+p.glitch-text { display: block; }
+p.glitch-text::before, p.glitch-text::after { white-space: inherit; max-width: 100%; }
 
 /* ===== GLASS PANEL ===== */
 .glass-panel {
