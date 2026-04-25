@@ -282,137 +282,27 @@ async function main() {
           break;
         }
         case 4: {
-          // JIMMY — Image fond + Three.js particles + glitch title
-
-          // Background image (behind everything)
+          // JIMMY — Image fond + titre + flicker lampadaire (sans particules 3D)
           const jimmyBgImg = document.createElement("img");
           jimmyBgImg.src = "./image/fondJimmy.png";
           jimmyBgImg.className = "project-bg-canvas jimmy-bg-img";
           jimmyBgImg.style.cssText = "display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.18;filter:grayscale(30%) contrast(1.2);transition:opacity 0.05s;";
           projectBgHost.appendChild(jimmyBgImg);
 
-          // Three.js canvas (on top of image, transparent)
-          const jimmyCanvas = document.createElement("canvas");
-          jimmyCanvas.className = "project-bg-canvas jimmy-bg-canvas";
-          jimmyCanvas.style.cssText = "display:none;position:absolute;inset:0;";
-          projectBgHost.appendChild(jimmyCanvas);
-
-          // JIMMY title overlay
           const title = document.createElement("div");
           title.textContent = "JIMMY";
           title.style.cssText = "position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',serif;font-size:clamp(60px,12vw,140px);color:#c41e3a;letter-spacing:12px;text-shadow:0 0 30px rgba(196,30,58,0.5),0 0 80px rgba(196,30,58,0.2),0 0 120px rgba(196,30,58,0.1);z-index:2;pointer-events:none;";
           projectBgHost.appendChild(title);
           title.style.display = "none";
 
-          let jimmyScene, jimmyCamera, jimmyRenderer, jimmyParticles, jimmyRaf, flickerInterval;
-          const JIMMY_PARTICLE_COUNT = 800;
-
-          function initJimmyBg() {
-            if (jimmyRenderer) return;
-            const THREE = window.THREE || (globalThis.THREE);
-            if (!THREE) { console.warn("Three.js not loaded for JIMMY bg"); return; }
-
-            jimmyScene = new THREE.Scene();
-            jimmyCamera = new THREE.PerspectiveCamera(60, jimmyCanvas.width / jimmyCanvas.height, 0.1, 100);
-            jimmyCamera.position.z = 30;
-
-            jimmyRenderer = new THREE.WebGLRenderer({ canvas: jimmyCanvas, alpha: true, antialias: false });
-            jimmyRenderer.setSize(projectBgHost.offsetWidth, projectBgHost.offsetHeight);
-            jimmyRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-            jimmyRenderer.setClearColor(0x000000, 0);
-
-            // Blood particles
-            const geo = new THREE.BufferGeometry();
-            const positions = new Float32Array(JIMMY_PARTICLE_COUNT * 3);
-            const colors = new Float32Array(JIMMY_PARTICLE_COUNT * 3);
-            const sizes = new Float32Array(JIMMY_PARTICLE_COUNT);
-
-            for (let i = 0; i < JIMMY_PARTICLE_COUNT; i++) {
-              positions[i * 3] = (Math.random() - 0.5) * 60;
-              positions[i * 3 + 1] = (Math.random() - 0.5) * 40;
-              positions[i * 3 + 2] = (Math.random() - 0.5) * 30;
-
-              const isBlue = Math.random() > 0.75;
-              if (isBlue) {
-                colors[i * 3] = 0.16; colors[i * 3 + 1] = 0.43; colors[i * 3 + 2] = 0.86;
-              } else {
-                const r = 0.5 + Math.random() * 0.3;
-                colors[i * 3] = r; colors[i * 3 + 1] = 0.05 + Math.random() * 0.05; colors[i * 3 + 2] = 0.05 + Math.random() * 0.05;
-              }
-              sizes[i] = 0.5 + Math.random() * 2;
-            }
-
-            geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-            geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-            geo.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
-
-            // Generate soft glow circle texture
-            const texCanvas = document.createElement("canvas");
-            texCanvas.width = 64; texCanvas.height = 64;
-            const texCtx = texCanvas.getContext("2d");
-            const grad = texCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
-            grad.addColorStop(0, "rgba(255,255,255,1)");
-            grad.addColorStop(0.15, "rgba(255,255,255,0.8)");
-            grad.addColorStop(0.4, "rgba(255,200,200,0.3)");
-            grad.addColorStop(1, "rgba(255,100,100,0)");
-            texCtx.fillStyle = grad;
-            texCtx.fillRect(0, 0, 64, 64);
-            const particleTexture = new THREE.CanvasTexture(texCanvas);
-
-            const mat = new THREE.PointsMaterial({
-              size: 2.5,
-              vertexColors: true,
-              transparent: true,
-              opacity: 0.7,
-              blending: THREE.AdditiveBlending,
-              depthWrite: false,
-              map: particleTexture,
-              sizeAttenuation: true,
-            });
-
-            jimmyParticles = new THREE.Points(geo, mat);
-            jimmyScene.add(jimmyParticles);
-          }
-
-          function animateJimmy() {
-            jimmyRaf = requestAnimationFrame(animateJimmy);
-            if (!jimmyParticles || !jimmyRenderer) return;
-
-            const time = Date.now() * 0.001;
-            const pos = jimmyParticles.geometry.attributes.position.array;
-
-            for (let i = 0; i < JIMMY_PARTICLE_COUNT; i++) {
-              pos[i * 3 + 1] += Math.sin(time + i * 0.1) * 0.01 + 0.005;
-              pos[i * 3] += Math.cos(time * 0.5 + i * 0.05) * 0.008;
-
-              // Reset particles that float too high
-              if (pos[i * 3 + 1] > 20) pos[i * 3 + 1] = -20;
-            }
-            jimmyParticles.geometry.attributes.position.needsUpdate = true;
-            jimmyParticles.rotation.y = time * 0.03;
-
-            jimmyRenderer.render(jimmyScene, jimmyCamera);
-          }
+          let flickerInterval;
 
           projectBgs[4] = {
-            canvas: jimmyCanvas,
+            canvas: jimmyBgImg,
             orb: title,
             start() {
               jimmyBgImg.style.display = "block";
               title.style.display = "block";
-              if (!jimmyRenderer) {
-                if (!window.THREE) {
-                  const s = document.createElement("script");
-                  s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-                  s.onload = () => { initJimmyBg(); animateJimmy(); };
-                  document.head.appendChild(s);
-                } else {
-                  initJimmyBg();
-                  animateJimmy();
-                }
-              } else {
-                animateJimmy();
-              }
 
               // Flicker lampadaire : 3 flashs rapides toutes les 5 secondes
               flickerInterval = setInterval(() => {
@@ -452,7 +342,6 @@ async function main() {
             stop() {
               jimmyBgImg.style.display = "none";
               title.style.display = "none";
-              if (jimmyRaf) { cancelAnimationFrame(jimmyRaf); jimmyRaf = null; }
               if (flickerInterval) { clearInterval(flickerInterval); flickerInterval = null; }
             }
           };
@@ -570,7 +459,10 @@ async function main() {
   }
 
   async function showProjectBg(index) {
-    Object.values(projectBgs).forEach((bg) => bg.stop());
+    Object.values(projectBgs).forEach((bg) => {
+      bg.stop();
+      if (bg.orb) bg.orb.style.display = "none";
+    });
     if (projectBgHost) {
       projectBgHost.querySelectorAll(".project-bg-canvas").forEach((c) => { c.style.display = "none"; });
     }
@@ -1140,31 +1032,35 @@ async function main() {
       });
       detailCtaWrap.appendChild(cta);
     } else if (p.url) {
-      const cta = document.createElement("a");
-      cta.href = p.url;
-      cta.target = "_blank";
-      cta.rel = "noopener noreferrer";
-      cta.className = "detail-panel__cta";
-      cta.innerHTML = `Visiter le site <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>`;
-      // Empêcher la fermeture du panneau au clic sur le lien
-      cta.addEventListener("pointerup", (e) => e.stopPropagation());
-      cta.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        // Warp transition avant de naviguer
-        if (!reduced) {
-          const warp = { p: 0 };
-          gsap.to(warp, {
-            p: 1, duration: 0.8, ease: "power3.in",
-            onUpdate: () => neural.setTransitionProgress(warp.p),
-            onComplete: () => { window.open(p.url, "_blank"); neural.setTransitionProgress(0); },
-          });
-          gsap.to(document.body, { opacity: 0, duration: 0.6, delay: 0.4, onComplete: () => { gsap.set(document.body, { opacity: 1 }); } });
-        } else {
-          window.open(p.url, "_blank");
-        }
-      });
-      detailCtaWrap.appendChild(cta);
+      // 2 CTAs si urlSite est defini (cas SecurEats App + Site), sinon 1 seul CTA
+      const ctas = p.urlSite
+        ? [{ label: "Visiter l'app", href: p.url }, { label: "Visiter le site", href: p.urlSite }]
+        : [{ label: "Visiter le site", href: p.url }];
+      for (const { label, href } of ctas) {
+        const cta = document.createElement("a");
+        cta.href = href;
+        cta.target = "_blank";
+        cta.rel = "noopener noreferrer";
+        cta.className = "detail-panel__cta";
+        cta.innerHTML = `${label} <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>`;
+        cta.addEventListener("pointerup", (e) => e.stopPropagation());
+        cta.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!reduced) {
+            const warp = { p: 0 };
+            gsap.to(warp, {
+              p: 1, duration: 0.8, ease: "power3.in",
+              onUpdate: () => neural.setTransitionProgress(warp.p),
+              onComplete: () => { window.open(href, "_blank"); neural.setTransitionProgress(0); },
+            });
+            gsap.to(document.body, { opacity: 0, duration: 0.6, delay: 0.4, onComplete: () => { gsap.set(document.body, { opacity: 1 }); } });
+          } else {
+            window.open(href, "_blank");
+          }
+        });
+        detailCtaWrap.appendChild(cta);
+      }
     }
     // ===== OUVERTURE SIMPLE — scale + fade, GPU only =====
     const disc = _discsCache.find((d) => d.classList.contains("is-active"));
