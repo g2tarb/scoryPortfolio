@@ -1,19 +1,18 @@
 /**
  * SCORY — app.js
  * Orchestrateur principal du portfolio musee digital.
- * Modules : cursor, particles, chatbot, booking, three-*, aurora, universe, nebula, i18n, data.
+ * Modules : cursor, particles, booking, three-*, aurora, universe, i18n, data.
  * Three.js charge en differe pour ne pas bloquer le main thread.
  */
 import gsap from "gsap";
 import Lenis from "lenis";
-import { PROJECTS as PROJECTS_ALL, THEMES, CHAT_FLOW as CHAT_FLOW_ALL } from "./data.js";
+import { PROJECTS as PROJECTS_ALL, THEMES } from "./data.js";
 import { getLang, setLang, t } from "./i18n.js";
 import { initCursor, initMagneticArrows } from "./cursor.js";
 import { initAudio } from "./audio.js";
 
 /** Getters bilingues */
 function PROJECTS() { return PROJECTS_ALL[getLang()] || PROJECTS_ALL.fr; }
-function CHAT_FLOW() { return CHAT_FLOW_ALL[getLang()] || CHAT_FLOW_ALL.fr; }
 
 /* ---------- Constantes ---------- */
 const EASE_SPRING_HEAVY = "back.out(1.32)";
@@ -672,8 +671,8 @@ async function main() {
       });
       // Rafraichir les dots
       buildDots();
-      // Relancer le chatbot dans la nouvelle langue
-      if (chatStateRef.restart) chatStateRef.restart();
+      // Relancer le bot dans la nouvelle langue
+      if (chatStateRef && chatStateRef.restart) chatStateRef.restart();
       // Titre de page
       const project = projects[activeIndex];
       document.title = activeIndex === SCORY_INDEX
@@ -707,7 +706,7 @@ async function main() {
     s.setProperty("--font-display", t.fontDisplay);
     s.setProperty("--font-sans", t.fontSans);
     neuralHost.style.filter = t.neuralFilter;
-    // Couleurs chatbot (calculées depuis les hex)
+    // Tints derives du theme (utilises par sections, panels, accents)
     s.setProperty("--theme-tint-a", hexToRgba(t.magenta, 0.08));
     s.setProperty("--theme-tint-b", hexToRgba(t.magenta, 0.18));
     s.setProperty("--theme-tint-c", hexToRgba(t.magenta, 0.3));
@@ -1054,11 +1053,12 @@ async function main() {
     // Bouton CTA
     detailCtaWrap.innerHTML = "";
     if (!p.url && activeIndex === SCORY_INDEX) {
-      // Disque Scory → CTA vers le chatbot devis
+      // Disque Scory → CTA scrolle vers le bot prospect
+      const ctaLabel = getLang() === "fr" ? "Lance ta demande" : "Launch your request";
       const cta = document.createElement("button");
       cta.type = "button";
       cta.className = "detail-panel__cta";
-      cta.innerHTML = `Estimer mon projet <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>`;
+      cta.innerHTML = `${ctaLabel} <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>`;
       cta.addEventListener("pointerup", (e) => e.stopPropagation());
       cta.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1476,7 +1476,7 @@ async function main() {
     });
   }
 
-  /* ---------- CTA flottant — auto-hide quand chatbot visible ---------- */
+  /* ---------- CTA flottant — auto-hide quand le bot est visible ---------- */
   const floatingCta = document.getElementById("floating-cta");
   if (floatingCta) {
     floatingCta.addEventListener("click", () => {
@@ -1551,13 +1551,12 @@ async function main() {
       if (navigator.vibrate) navigator.vibrate([100, 50, 200]);
       // Sauvegarder le discount
       localStorage.setItem("scory_discount", "SCROLL5");
-      // Apres 2s → fermer le panneau, scroll vers le chatbot, injecter message
+      // Apres 2s → fermer le panneau et scroller vers le bot
       setTimeout(() => {
         overscrollBottom.classList.remove("is-visible");
         _overscrollCooldown = true;
         const chatSection = document.getElementById("chatbot-section");
         if (chatSection) scrollToElement(chatSection);
-        setTimeout(() => injectDiscountMessage(), 1200);
       }, 2000);
     }
   }
@@ -1642,7 +1641,7 @@ async function main() {
     }
   }, { passive: true });
 
-  /* ---------- Overscroll CTA → chatbot ---------- */
+  /* ---------- Overscroll CTA → bot ---------- */
   const overscrollCta = document.getElementById("overscroll-cta");
   if (overscrollCta) {
     overscrollCta.addEventListener("click", () => {
@@ -1652,29 +1651,7 @@ async function main() {
     });
   }
 
-  /* ---------- Discount message injection ---------- */
-  function injectDiscountMessage() {
-    const msgContainer = document.getElementById("chatbot-messages");
-    if (!msgContainer) return;
-
-    const msg = document.createElement("div");
-    msg.className = "chat-msg chat-msg--bot chat-msg--discount";
-    msg.innerHTML = `
-      <span style="font-size:1.5rem;display:block;margin-bottom:0.4rem;">🎉🎉🎉</span>
-      <strong>FELICITATIONS !</strong> Vous avez decouvert le secret !<br><br>
-      Vous venez de debloquer <strong style="color:var(--accent-gold);">-5% de discount</strong> sur votre prochain projet.<br><br>
-      Code : <strong style="color:var(--accent-gold);letter-spacing:0.1em;">SCROLL5</strong><br><br>
-      Allez, estimez votre projet — le discount est deja applique ! 👇
-    `;
-    msg.style.opacity = "0";
-    msg.style.transform = "translateY(10px)";
-    msgContainer.appendChild(msg);
-    msgContainer.scrollTop = msgContainer.scrollHeight;
-
-    gsap.to(msg, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
-  }
-
-  /* ---------- Scroll hint click → chatbot ---------- */
+  /* ---------- Scroll hint click → bot ---------- */
   const scrollHint = document.querySelector(".scroll-hint");
   if (scrollHint) {
     scrollHint.style.cursor = "pointer";
@@ -1840,22 +1817,19 @@ async function main() {
     ambientObs.observe(stage);
   }
 
-  /* ---------- Chatbot + Booking (sequentiel) ---------- */
+  /* ---------- Chatbot + Booking ---------- */
   let chatStateRef = { completed: false };
   let bookingApi = null;
   import("./chatbot.js").then(({ initChatbot, chatState }) => {
     chatStateRef = chatState;
-    initChatbot({
-      isValidEmail,
-      onComplete: () => { if (bookingApi) bookingApi.openBooking(); },
-    });
+    initChatbot({ isValidEmail });
     return import("./booking.js");
   }).then(({ initBooking }) => {
     bookingApi = initBooking({
       trapFocus, isValidEmail, contactEmail: CONTACT_EMAIL,
       getChatCompleted: () => chatStateRef.completed,
     });
-  });
+  }).catch(() => {});
 }
 
 /* ---------- Boot ---------- */

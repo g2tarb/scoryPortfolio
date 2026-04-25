@@ -395,57 +395,28 @@
       </div>
     </section>
 
-    <!-- Chatbot -->
-    <section id="chatbot-section" class="chatbot-section reveal">
-      <div class="chatbot-glow" aria-hidden="true"></div>
-      <!-- Orbites circulaires autour du bot -->
-      <div class="chatbot-orbits" aria-hidden="true">
-        <div class="chatbot-orbit chatbot-orbit--1">
-          <div class="chatbot-orbit__dot"></div>
-        </div>
-        <div class="chatbot-orbit chatbot-orbit--2">
-          <div class="chatbot-orbit__dot"></div>
-          <div class="chatbot-orbit__dot chatbot-orbit__dot--b"></div>
-        </div>
-        <div class="chatbot-orbit chatbot-orbit--3">
-          <div class="chatbot-orbit__dot"></div>
-        </div>
-      </div>
-      <div class="chatbot-container glass-panel">
-        <div class="chatbot-progress" id="chatbot-progress">
-          <div class="chatbot-progress__shimmer"></div>
-        </div>
-        <div class="chatbot-header">
-          <div class="chatbot-avatar">
-            <div class="chatbot-avatar__orb"></div>
-            <div class="chatbot-avatar__ring"></div>
-            <div class="chatbot-avatar__ring chatbot-avatar__ring--outer"></div>
-            <div class="chatbot-avatar__particles">
-              <span></span><span></span><span></span><span></span>
-            </div>
+    <!-- Chatbot prospect — avatar disque rotatif + titre glitch -->
+    <section id="chatbot-section" class="chatbot-section reveal" aria-label="Bot prospect">
+      <div class="chatbot-container">
+        <div class="chatbot-progress" id="chatbot-progress" aria-hidden="true"></div>
+        <header class="chatbot-header">
+          <div class="chatbot-disc" aria-hidden="true">
+            <div class="chatbot-disc__groove"></div>
+            <div class="chatbot-disc__center"></div>
           </div>
           <div class="chatbot-header__text">
-            <span class="chatbot-name" data-i18n="chat.name">Scory Assistant</span>
+            <span class="chatbot-name" data-text="Scory" data-i18n="chat.name">Scory</span>
             <span class="chatbot-status">
               <span class="chatbot-status__dot"></span>
-              <span id="chatbot-status-text" data-i18n="chat.status">Pret a estimer votre projet</span>
+              <span id="chatbot-status-text" data-i18n="chat.status">En ligne</span>
             </span>
           </div>
-          <div class="chatbot-header__badge">
-            <span class="chatbot-badge__pulse"></span>
-            IA
-          </div>
-        </div>
+        </header>
         <div class="chatbot-messages" id="chatbot-messages"></div>
-        <div class="chatbot-input-area" id="chatbot-input-area">
-          <div class="chatbot-pills" id="chatbot-pills"></div>
-          <div class="chatbot-typing" id="chatbot-typing" style="display:none">
-            <span></span><span></span><span></span>
-          </div>
-        </div>
-        <div class="chatbot-footer">
-          <span class="chatbot-footer__secure">&#128274; Estimation gratuite &middot; Sans engagement</span>
-        </div>
+        <div class="chatbot-pills" id="chatbot-pills"></div>
+        <footer class="chatbot-footer">
+          <span data-i18n="chat.footer">5 questions, 30 secondes. Sans engagement.</span>
+        </footer>
       </div>
     </section>
 
@@ -520,8 +491,8 @@
     </div>
 
     <!-- CTA flottant -->
-    <button class="floating-cta" id="floating-cta" aria-label="Devis gratuit">
-      <span data-i18n="cta.floating">Devis gratuit</span>
+    <button class="floating-cta" id="floating-cta" type="button" aria-label="Discuter de mon projet">
+      <span data-i18n="cta.floating">Discutons</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
 
@@ -604,7 +575,7 @@
       "@type": "FAQPage",
       "mainEntity": [
         {"@type": "Question", "name": "Quels types de sites web creez-vous ?", "acceptedAnswer": {"@type": "Answer", "text": "Sites vitrines sur-mesure, landing pages, e-commerce, applications SaaS, portfolios creatifs, blogs et applications mobiles. Design haut de gamme avec animations Three.js, GSAP et WebGL."}},
-        {"@type": "Question", "name": "Combien coute un site web sur-mesure ?", "acceptedAnswer": {"@type": "Answer", "text": "A partir de 500 euros pour une landing page, 800 euros pour un site vitrine, jusqu'a 6000 euros pour une application SaaS complete. Utilisez notre chatbot devis integre pour une estimation instantanee."}},
+        {"@type": "Question", "name": "Combien coute un site web sur-mesure ?", "acceptedAnswer": {"@type": "Answer", "text": "A partir de 500 euros pour une landing page, 800 euros pour un site vitrine, jusqu'a 6000 euros pour une application SaaS complete. Visitez 4dayvelopment.fr pour un devis instantane."}},
         {"@type": "Question", "name": "Quel est le delai de livraison ?", "acceptedAnswer": {"@type": "Answer", "text": "De 1 semaine pour une landing page a 2-3 mois pour un projet SaaS complet. Nous proposons aussi des livraisons en urgence."}}
       ]
     }]
@@ -629,7 +600,7 @@
       <h2>Projets Realises</h2>
       <article>
         <h3>Portfolio Scory — Musee Digital Interactif</h3>
-        <p>Portfolio concu comme un musee interactif : fond neural Three.js procedural, reflets eau via shader GLSL, carrousel a disques vinyle avec transitions particules, themes dynamiques par projet, chatbot devis integre. 100% vanilla JS, zero framework. Technologies : Three.js, GLSL, GSAP, Web Audio API.</p>
+        <p>Portfolio concu comme un musee interactif : fond neural Three.js procedural, reflets eau via shader GLSL, carrousel a disques vinyle avec transitions particules, themes dynamiques par projet. 100% vanilla JS, zero framework. Technologies : Three.js, GLSL, GSAP, Web Audio API.</p>
       </article>
       <article>
         <h3>4dayvelopment — Agence Web Ecosystemes Digitaux</h3>
@@ -662,7 +633,7 @@
         <li>Expertise Three.js, WebGL et animations immersives</li>
         <li>Design dark luxury et glassmorphism</li>
         <li>Developpement 100% vanilla JS — zero dependance framework</li>
-        <li>Devis gratuit et instantane via le chatbot integre</li>
+        <li>Devis gratuit et instantane via 4dayvelopment.fr</li>
         <li>Support et maintenance apres livraison</li>
       </ul>
 

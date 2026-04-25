@@ -48,7 +48,11 @@ export const TRANSLATIONS = {
   "service.3.price": { fr: "Sur devis", en: "Custom quote" },
   "service.3.desc": { fr: "Three.js, shaders GLSL, WebGL. Des experiences que vos visiteurs n'oublieront pas.", en: "Three.js, GLSL shaders, WebGL. Experiences your visitors won't forget." },
   // CTA flottant
-  "cta.floating": { fr: "Devis gratuit", en: "Free quote" },
+  "cta.floating": { fr: "Discutons", en: "Let's talk" },
+  // Chatbot
+  "chat.name": { fr: "Scory", en: "Scory" },
+  "chat.status": { fr: "En ligne", en: "Online" },
+  "chat.footer": { fr: "5 questions, 30 secondes. Sans engagement.", en: "5 questions, 30 seconds. No commitment." },
   // Process
   "process.title": { fr: "Mon processus", en: "My process" },
   "process.1.name": { fr: "Contact", en: "Contact" },
@@ -73,9 +77,6 @@ export const TRANSLATIONS = {
   "about.v2": { fr: "Code artisanal", en: "Handcrafted code" },
   "about.v3": { fr: "Immersif & interactif", en: "Immersive & interactive" },
   "about.v4": { fr: "Support 24h/24", en: "24/7 support" },
-  // Chatbot
-  "chat.name": { fr: "Scory Assistant", en: "Scory Assistant" },
-  "chat.status": { fr: "En ligne", en: "Online" },
   // Contact
   "contact.title": { fr: "Me contacter", en: "Get in touch" },
   "contact.rdv": { fr: "Prendre rendez-vous", en: "Book a meeting" },
@@ -111,11 +112,6 @@ export const TRANSLATIONS = {
   "cal.fri": { fr: "Ven", en: "Fri" },
   "cal.sat": { fr: "Sam", en: "Sat" },
   "cal.sun": { fr: "Dim", en: "Sun" },
-  // Toast
-  "toast.chat": {
-    fr: "Repondez d'abord au chatbot juste au-dessus pour estimer votre projet",
-    en: "First answer the chatbot above to estimate your project",
-  },
 };
 
 let currentLang = localStorage.getItem("scory-lang") || "fr";
