@@ -255,8 +255,7 @@ async function main() {
         }
         case 1: { const { UniverseBackground } = await import("./universe.js"); projectBgs[1] = new UniverseBackground(projectBgHost); break; }
         case 2: { const { AuroraBorealis } = await import("./aurora.js"); projectBgs[2] = new AuroraBorealis(projectBgHost); break; }
-        case 3: { const { FlaynnNebula } = await import("./nebula-flaynn.js"); projectBgs[3] = new FlaynnNebula(projectBgHost); break; }
-        case 4: {
+        case 3: {
           const video = document.createElement("video");
           video.src = "./fondAnime/diable.mp4";
           video.autoplay = true;
@@ -268,7 +267,7 @@ async function main() {
           video.className = "project-bg-canvas animus-bg-video";
           video.style.display = "none";
           projectBgHost.appendChild(video);
-          projectBgs[4] = {
+          projectBgs[3] = {
             canvas: video,
             orb: null,
             start() {
@@ -282,7 +281,7 @@ async function main() {
           };
           break;
         }
-        case 5: {
+        case 4: {
           // JIMMY — Image fond + Three.js particles + glitch title
 
           // Background image (behind everything)
@@ -395,7 +394,7 @@ async function main() {
             jimmyRenderer.render(jimmyScene, jimmyCamera);
           }
 
-          projectBgs[5] = {
+          projectBgs[4] = {
             canvas: jimmyCanvas,
             orb: title,
             start() {
@@ -459,6 +458,111 @@ async function main() {
           };
           break;
         }
+        case 5: {
+          // DYG — reproduction fidele du logo SVG de la nav DYG (logo.js du site)
+          const canvas = document.createElement("canvas");
+          canvas.className = "project-bg-canvas dyg-bg-canvas";
+          canvas.style.cssText = "display:none;position:absolute;inset:0;width:100%;height:100%;background:#000;";
+          projectBgHost.appendChild(canvas);
+
+          // Couleurs des 8 archetypes — alignees sur ORBS de logo.js
+          const DYG_ORB_COLORS = ["#3B82F6","#22C55E","#F5C542","#A855F7","#06B6D4","#EF4444","#F97316","#EC4899"];
+          const dygOrbs = DYG_ORB_COLORS.map((c, i) => {
+            const r = parseInt(c.slice(1, 3), 16), g = parseInt(c.slice(3, 5), 16), b = parseInt(c.slice(5, 7), 16);
+            return { color: c, rgb: `${r},${g},${b}`, angle: (Math.PI * 2 / 8) * i };
+          });
+          // Vitesse SVG officielle : 1 tour en 6.3s, deltaAngle par frame a 60 FPS
+          const DYG_DELTA = (Math.PI * 2 / 6.3) / 60;
+          let dygRaf = null;
+
+          function resizeDyg() {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = projectBgHost.offsetWidth * dpr;
+            canvas.height = projectBgHost.offsetHeight * dpr;
+          }
+
+          function drawDyg() {
+            dygRaf = requestAnimationFrame(drawDyg);
+            const ctx = canvas.getContext("2d");
+            const W = canvas.width, H = canvas.height;
+            ctx.clearRect(0, 0, W, H);
+            const cx = W / 2, cy = H / 2;
+            // Ratio d'orbite identique au SVG : orbitRx/orbitRy = 42/16 ≈ 0.381
+            const orbitRx = Math.min(W, H) * 0.42;
+            const orbitRy = orbitRx * 0.381;
+
+            // Texte "DYG" central — meme rendu que le logo : Bebas Neue, #FAFAFA, letter-spacing 0.12em
+            const fontSize = Math.min(W, H) * 0.22;
+            ctx.font = `700 ${fontSize}px 'Bebas Neue', sans-serif`;
+            ctx.fillStyle = "#FAFAFA";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            if ("letterSpacing" in ctx) ctx.letterSpacing = `${fontSize * 0.12}px`;
+            ctx.fillText("DYG", cx, cy);
+
+            const orbR = Math.max(6, Math.min(W, H) * 0.012);
+            const glowR = orbR * 5;
+            for (const o of dygOrbs) {
+              o.angle += DYG_DELTA;
+              const x = cx + Math.cos(o.angle) * orbitRx;
+              const y = cy + Math.sin(o.angle) * orbitRy;
+              // Halo flou (rayon 2.5x glow, opacity tres faible — equivaut au feGaussianBlur du SVG)
+              const grad = ctx.createRadialGradient(x, y, 0, x, y, glowR);
+              grad.addColorStop(0, `rgba(${o.rgb},0.18)`);
+              grad.addColorStop(1, `rgba(${o.rgb},0)`);
+              ctx.fillStyle = grad;
+              ctx.beginPath(); ctx.arc(x, y, glowR, 0, Math.PI * 2); ctx.fill();
+              // Bille solide (opacity 0.9 du SVG)
+              ctx.globalAlpha = 0.9;
+              ctx.fillStyle = o.color;
+              ctx.beginPath(); ctx.arc(x, y, orbR, 0, Math.PI * 2); ctx.fill();
+              ctx.globalAlpha = 1;
+            }
+          }
+
+          const dygRo = new ResizeObserver(resizeDyg);
+          dygRo.observe(projectBgHost);
+
+          projectBgs[5] = {
+            canvas,
+            orb: null,
+            start() { resizeDyg(); if (!dygRaf) drawDyg(); },
+            stop() { if (dygRaf) { cancelAnimationFrame(dygRaf); dygRaf = null; } }
+          };
+          break;
+        }
+        case 6: {
+          // SecurEats — video fond + overlay "APP + SITE" (2-en-1)
+          const video = document.createElement("video");
+          video.src = "./fondAnime/secureEats.mp4";
+          video.loop = true;
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute("webkit-playsinline", "");
+          video.setAttribute("preload", "metadata");
+          video.className = "project-bg-canvas secureats-bg-video";
+          video.style.cssText = "display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;";
+          projectBgHost.appendChild(video);
+
+          const label = document.createElement("div");
+          label.textContent = "APP + SITE";
+          label.className = "secureats-label";
+          label.style.cssText = "display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Bebas Neue','Cinzel',sans-serif;font-size:clamp(48px,10vw,140px);color:#fff;letter-spacing:12px;text-shadow:0 0 40px rgba(0,0,0,0.8),0 4px 20px rgba(0,0,0,0.6);z-index:2;pointer-events:none;font-weight:700;white-space:nowrap;";
+          projectBgHost.appendChild(label);
+
+          projectBgs[6] = {
+            canvas: video,
+            orb: label,
+            start() {
+              video.play().catch(() => {
+                const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
+                document.addEventListener("touchstart", playOnce, { once: true });
+              });
+            },
+            stop() { video.pause(); }
+          };
+          break;
+        }
         default: return null;
       }
     } catch { return null; }
@@ -468,7 +572,7 @@ async function main() {
   async function showProjectBg(index) {
     Object.values(projectBgs).forEach((bg) => bg.stop());
     if (projectBgHost) {
-      projectBgHost.querySelectorAll(".project-bg-canvas, .flaynn-orbit").forEach((c) => { c.style.display = "none"; });
+      projectBgHost.querySelectorAll(".project-bg-canvas").forEach((c) => { c.style.display = "none"; });
     }
     if (!projectBgHost) {
       activeProjectBg = null;
@@ -512,9 +616,11 @@ async function main() {
     0: { color: "#c9a962", shadow: "rgba(201,169,98,0.4)" },
     1: { color: "#DA5426", shadow: "rgba(218,84,38,0.4)" },
     2: { color: "#C9A84C", shadow: "rgba(201,168,76,0.4)" },
-    3: { color: "#7B2D8E", shadow: "rgba(123,45,142,0.4)" },
-    4: { color: "#f0c040", shadow: "rgba(240,192,64,0.4)" },
-    5: { color: "#c41e3a", shadow: "rgba(196,30,58,0.4)" },
+    3: { color: "#f0c040", shadow: "rgba(240,192,64,0.4)" },
+    4: { color: "#c41e3a", shadow: "rgba(196,30,58,0.4)" },
+    5: { color: "#3B82F6", shadow: "rgba(59,130,246,0.4)" },
+    6: { color: "#f2b13b", shadow: "rgba(242,177,59,0.4)" },
+    7: { color: "#DA5426", shadow: "rgba(218,84,38,0.4)" },
   };
 
   function createGraffitiOverlay() {
@@ -606,8 +712,8 @@ async function main() {
   async function showProjectBgWithSkills(index) {
     await _origShowProjectBg(index);
     fireGraffiti(index, lastNavDirection);
-    // Toggle blood cursor: ON for JIMMY (5), OFF for everything else
-    if (index === 5) {
+    // Toggle blood cursor: ON for JIMMY (4), OFF for everything else
+    if (index === 4) {
       if (window._loadBloodCursor) window._loadBloodCursor();
       // Wait for script to load then enable
       setTimeout(() => { if (window.enableBloodCursor) window.enableBloodCursor(); }, 500);

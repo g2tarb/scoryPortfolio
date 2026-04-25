@@ -18,10 +18,14 @@ export const TRANSLATIONS = {
   "disc.1.meta": { fr: "Agence web", en: "Web agency" },
   "disc.2.title": { fr: "Clara Martinez", en: "Clara Martinez" },
   "disc.2.meta": { fr: "Coaching premium", en: "Premium coaching" },
-  "disc.3.title": { fr: "Flaynn", en: "Flaynn" },
-  "disc.3.meta": { fr: "SaaS B2B", en: "B2B SaaS" },
-  "disc.4.title": { fr: "ANIMUS", en: "ANIMUS" },
-  "disc.4.meta": { fr: "Jeu narratif IA", en: "AI narrative game" },
+  "disc.3.title": { fr: "ANIMUS", en: "ANIMUS" },
+  "disc.3.meta": { fr: "Jeu narratif IA", en: "AI narrative game" },
+  "disc.4.title": { fr: "JIMMY", en: "JIMMY" },
+  "disc.4.meta": { fr: "Roman horreur dark", en: "Dark horror novel" },
+  "disc.5.title": { fr: "DYG", en: "DYG" },
+  "disc.5.meta": { fr: "Do Your Game", en: "Do Your Game" },
+  "disc.6.title": { fr: "SecurEats", en: "SecurEats" },
+  "disc.6.meta": { fr: "App + Site", en: "App + Site" },
   // Cartel
   "cartel.kicker": { fr: "Cartel", en: "Label" },
   // Detail panel
@@ -44,16 +48,13 @@ export const TRANSLATIONS = {
   "service.3.price": { fr: "Sur devis", en: "Custom quote" },
   "service.3.desc": { fr: "Three.js, shaders GLSL, WebGL. Des experiences que vos visiteurs n'oublieront pas.", en: "Three.js, GLSL shaders, WebGL. Experiences your visitors won't forget." },
   // Testimonials
-  "testimonials.title": { fr: "Clara Martinez \u00b7 4dayvelopment \u00b7 Flaynn", en: "Clara Martinez \u00b7 4dayvelopment \u00b7 Flaynn" },
+  "testimonials.title": { fr: "Clara Martinez \u00b7 4dayvelopment \u00b7 DYG", en: "Clara Martinez \u00b7 4dayvelopment \u00b7 DYG" },
   "testimonial.1.text": { fr: "\"Scory a su transformer notre vision en un site qui depasse tout ce qu'on imaginait. Livraison rapide, design irreprochable, communication au top.\"", en: "\"Scory turned our vision into a website that exceeded everything we imagined. Fast delivery, flawless design, top-notch communication.\"" },
   "testimonial.1.author": { fr: "Clara M.", en: "Clara M." },
   "testimonial.1.role": { fr: "Coach Business, Paris", en: "Business Coach, Paris" },
   "testimonial.2.text": { fr: "\"Un vrai artisan du web. Chaque detail est soigne, les animations sont fluides, et le site performe. On recommande a 100%.\"", en: "\"A true web artisan. Every detail is polished, animations are smooth, and the site performs. 100% recommended.\"" },
   "testimonial.2.author": { fr: "Equipe 4dayvelopment", en: "4dayvelopment Team" },
   "testimonial.2.role": { fr: "Agence digitale", en: "Digital agency" },
-  "testimonial.3.text": { fr: "\"Le dashboard Flaynn est exactement ce qu'on cherchait : rapide, intuitif, beau. Scory a livre au-dela du brief initial.\"", en: "\"The Flaynn dashboard is exactly what we needed: fast, intuitive, beautiful. Scory delivered beyond the initial brief.\"" },
-  "testimonial.3.author": { fr: "Fondateur Flaynn", en: "Flaynn Founder" },
-  "testimonial.3.role": { fr: "SaaS B2B", en: "B2B SaaS" },
   // CTA flottant
   "cta.floating": { fr: "Devis gratuit", en: "Free quote" },
   // Process

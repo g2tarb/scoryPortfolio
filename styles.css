@@ -187,51 +187,6 @@ body {
   transition: opacity 2s ease, background-image 0.5s ease;
 }
 
-/* ===== Orbe Flaynn (copie hero-orbit flaynn.tech) ===== */
-.flaynn-orbit {
-  position: absolute;
-  top: clamp(4rem, 10vw, 7rem); left: 50%;
-  width: min(72vw, 38rem); aspect-ratio: 1;
-  transform: translateX(-50%);
-  pointer-events: none; z-index: 1;
-  opacity: 0.95;
-}
-.flaynn-orbit__ring,
-.flaynn-orbit__core {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-}
-.flaynn-orbit__ring--outer {
-  width: 100%; height: 100%;
-  border: 1px solid rgba(139, 92, 246, 0.12);
-  box-shadow: 0 0 120px rgba(139, 92, 246, 0.12), inset 0 0 40px rgba(59, 130, 246, 0.05);
-  animation: flaynn-orbit-rotate 45s linear infinite;
-}
-.flaynn-orbit__ring--inner {
-  width: 68%; height: 68%;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background:
-    radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.08), transparent 60%),
-    radial-gradient(circle at 30% 30%, rgba(59, 130, 246, 0.08), transparent 45%);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  animation: flaynn-orbit-rotate 30s linear infinite reverse;
-}
-.flaynn-orbit__core {
-  width: 24%; height: 24%;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.32), transparent 32%),
-    radial-gradient(circle, rgba(139, 92, 246, 0.32), rgba(59, 130, 246, 0.1) 58%, transparent 72%);
-  filter: blur(1px);
-  animation: flaynn-core-pulse 6s ease-in-out infinite;
-}
-@keyframes flaynn-orbit-rotate {
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-@keyframes flaynn-core-pulse {
-  0%, 100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.12); }
-}
 .particle-canvas { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
 
 /* Vignette immersive */
@@ -365,34 +320,79 @@ body {
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(201,168,76,0.28) inset, 0 0 80px rgba(201,168,76,0.2);
 }
 
-/* Flaynn — Violet / Magenta */
-.project-disc[data-index="3"] {
-  background: radial-gradient(circle at 30% 25%, rgba(123,45,142,0.34), rgba(123,45,142,0.02) 55%),
-    linear-gradient(160deg, rgba(28,12,38,0.82), rgba(12,8,20,0.6));
-  border-color: rgba(123,45,142,0.22);
-}
-.project-disc[data-index="3"] .disc-title { font-family: 'IBM Plex Sans', system-ui, sans-serif; font-weight: 600; }
-.project-disc[data-index="3"] .disc-meta { color: rgba(193,53,132,0.65); }
-.project-disc[data-index="3"] .disc-groove {
-  background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(123,45,142,0.07) 5px, rgba(123,45,142,0.07) 6px);
-}
-.project-disc[data-index="3"].is-active {
-  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(123,45,142,0.28) inset, 0 0 80px rgba(123,45,142,0.2);
-}
-
 /* ANIMUS — Or celeste / Rouge demon */
-.project-disc[data-index="4"] {
+.project-disc[data-index="3"] {
   background: radial-gradient(circle at 30% 25%, rgba(240,192,64,0.34), rgba(240,192,64,0.02) 55%),
     linear-gradient(160deg, rgba(60,30,14,0.82), rgba(20,10,6,0.6));
   border-color: rgba(240,192,64,0.22);
 }
-.project-disc[data-index="4"] .disc-title { font-family: 'Cinzel Decorative', 'Times New Roman', serif; font-weight: 700; }
-.project-disc[data-index="4"] .disc-meta { color: rgba(224,64,0,0.65); }
-.project-disc[data-index="4"] .disc-groove {
+.project-disc[data-index="3"] .disc-title { font-family: 'Cinzel Decorative', 'Times New Roman', serif; font-weight: 700; }
+.project-disc[data-index="3"] .disc-meta { color: rgba(224,64,0,0.65); }
+.project-disc[data-index="3"] .disc-groove {
   background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(240,192,64,0.07) 5px, rgba(240,192,64,0.07) 6px);
 }
-.project-disc[data-index="4"].is-active {
+.project-disc[data-index="3"].is-active {
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(240,192,64,0.28) inset, 0 0 80px rgba(240,192,64,0.2);
+}
+
+/* JIMMY — Rouge sang / Noir */
+.project-disc[data-index="4"] {
+  background: radial-gradient(circle at 30% 25%, rgba(196,30,58,0.34), rgba(196,30,58,0.02) 55%),
+    linear-gradient(160deg, rgba(30,6,10,0.82), rgba(10,4,6,0.6));
+  border-color: rgba(196,30,58,0.24);
+}
+.project-disc[data-index="4"] .disc-title { font-family: 'Cinzel', 'Times New Roman', serif; font-weight: 700; }
+.project-disc[data-index="4"] .disc-meta { color: rgba(139,26,26,0.75); }
+.project-disc[data-index="4"] .disc-groove {
+  background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(196,30,58,0.08) 5px, rgba(196,30,58,0.08) 6px);
+}
+.project-disc[data-index="4"].is-active {
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(196,30,58,0.3) inset, 0 0 80px rgba(196,30,58,0.22);
+}
+
+/* DYG — Bleu archetype */
+.project-disc[data-index="5"] {
+  background: radial-gradient(circle at 30% 25%, rgba(59,130,246,0.32), rgba(59,130,246,0.02) 55%),
+    linear-gradient(160deg, rgba(10,20,40,0.82), rgba(6,10,22,0.6));
+  border-color: rgba(59,130,246,0.24);
+}
+.project-disc[data-index="5"] .disc-title { font-family: 'Bebas Neue', 'Cinzel', sans-serif; font-weight: 700; letter-spacing: 0.12em; }
+.project-disc[data-index="5"] .disc-meta { color: rgba(168,85,247,0.7); }
+.project-disc[data-index="5"] .disc-groove {
+  background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(59,130,246,0.08) 5px, rgba(59,130,246,0.08) 6px);
+}
+.project-disc[data-index="5"].is-active {
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(59,130,246,0.3) inset, 0 0 80px rgba(59,130,246,0.22);
+}
+
+/* SecurEats App — Jaune fast-food */
+.project-disc[data-index="6"] {
+  background: radial-gradient(circle at 30% 25%, rgba(242,177,59,0.32), rgba(242,177,59,0.02) 55%),
+    linear-gradient(160deg, rgba(40,24,10,0.82), rgba(16,10,6,0.6));
+  border-color: rgba(242,177,59,0.24);
+}
+.project-disc[data-index="6"] .disc-title { font-family: 'Syne', system-ui, sans-serif; font-weight: 700; }
+.project-disc[data-index="6"] .disc-meta { color: rgba(218,84,38,0.7); }
+.project-disc[data-index="6"] .disc-groove {
+  background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(242,177,59,0.08) 5px, rgba(242,177,59,0.08) 6px);
+}
+.project-disc[data-index="6"].is-active {
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(242,177,59,0.3) inset, 0 0 80px rgba(242,177,59,0.22);
+}
+
+/* SecurEats Site — Orange vif */
+.project-disc[data-index="7"] {
+  background: radial-gradient(circle at 30% 25%, rgba(218,84,38,0.32), rgba(218,84,38,0.02) 55%),
+    linear-gradient(160deg, rgba(40,16,8,0.82), rgba(18,8,4,0.6));
+  border-color: rgba(218,84,38,0.24);
+}
+.project-disc[data-index="7"] .disc-title { font-family: 'Syne', system-ui, sans-serif; font-weight: 700; }
+.project-disc[data-index="7"] .disc-meta { color: rgba(242,177,59,0.7); }
+.project-disc[data-index="7"] .disc-groove {
+  background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(218,84,38,0.08) 5px, rgba(218,84,38,0.08) 6px);
+}
+.project-disc[data-index="7"].is-active {
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(218,84,38,0.3) inset, 0 0 80px rgba(218,84,38,0.22);
 }
 
 /* Disque actif — glow statique (pas d'animation box-shadow continue = meilleur FPS) */
@@ -2671,7 +2671,6 @@ body.eco-mode .chatbot-container::after,
 body.eco-mode .chatbot-progress__shimmer,
 body.eco-mode .cursor-dot,
 body.eco-mode .cursor-ring,
-body.eco-mode .flaynn-orbit,
 body.eco-mode .ambient-bg { display: none !important; }
 
 /* Zero backdrop-filter (le plus couteux GPU) */
