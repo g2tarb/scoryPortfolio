@@ -828,42 +828,21 @@ async function main() {
 
 
   /* ---------- Navigation avec transition particules ---------- */
-  // ===== POLES — separation pro / creatif au swipe depuis le hub Scory =====
-  // Ordre dans chaque pole = ordre du cycle au swipe
-  const POLE_PRO = ["DYG", "Clara Martinez", "4dayvelopment", "SecurEats"];
-  const POLE_CREATIF = ["ANIMUS", "JIMMY"];
-
-  function getPoleOf(index) {
-    if (index === SCORY_INDEX) return "hub";
-    const title = PROJECTS()[index]?.title;
-    if (!title) return "hub";
-    if (POLE_PRO.includes(title)) return "pro";
-    if (POLE_CREATIF.includes(title)) return "creatif";
-    return "hub";
+  // Declenche un burst glitch sur tous les elements .glitch-text (titre, sous-titre, etc.)
+  function triggerGlitchBurst() {
+    const els = document.querySelectorAll(".glitch-text");
+    els.forEach((el) => {
+      el.classList.remove("is-glitching");
+      // force reflow pour relancer l'animation meme si la classe est rajoutee aussitot
+      void el.offsetWidth;
+      el.classList.add("is-glitching");
+    });
+    setTimeout(() => {
+      els.forEach((el) => el.classList.remove("is-glitching"));
+    }, 800);
   }
 
-  function getPoleIndices(poleName) {
-    const titles = poleName === "pro" ? POLE_PRO : POLE_CREATIF;
-    const projects = PROJECTS();
-    return titles.map((t) => projects.findIndex((p) => p.title === t)).filter((i) => i >= 0);
-  }
-
-  // direction = -1 (gauche) ou +1 (droite). Au hub, choisit le pole. Dans un pole, cycle.
-  function nextIndexForDirection(direction) {
-    const pole = getPoleOf(activeIndex);
-    if (pole === "hub") {
-      const target = direction > 0 ? "pro" : "creatif";
-      const indices = getPoleIndices(target);
-      return indices[0] ?? activeIndex;
-    }
-    const indices = getPoleIndices(pole);
-    if (indices.length === 0) return activeIndex;
-    const cur = indices.indexOf(activeIndex);
-    const next = (cur + direction + indices.length) % indices.length;
-    return indices[next];
-  }
-
-  async function goTo(nextIndex, opts = {}) {
+  async function goTo(nextIndex) {
     const d = discs();
     const n = d.length;
     if (n === 0 || animating) return;
@@ -873,12 +852,11 @@ async function main() {
 
     animating = true;
     const currentDisc = d[activeIndex];
-    // Direction d'animation : explicite (nav pole-aware) sinon deduite de la diff d'indices
-    const goingRight = opts.direction != null
-      ? opts.direction > 0
-      : (nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0));
+    const goingRight = nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0);
     const direction = goingRight ? 1 : -1;
     lastNavDirection = direction;
+    // Burst glitch sur le branding + bot quand on swipe
+    triggerGlitchBurst();
 
     if (reduced) {
       activeIndex = nextIndex;
@@ -997,13 +975,13 @@ async function main() {
   }
 
   /* ---------- Flèches ---------- */
-  arrowLeft.addEventListener("click", () => { if (!animating) goTo(nextIndexForDirection(-1), { direction: -1 }); });
-  arrowRight.addEventListener("click", () => { if (!animating) goTo(nextIndexForDirection(1), { direction: 1 }); });
+  arrowLeft.addEventListener("click", () => { if (!animating) goTo(activeIndex - 1); });
+  arrowRight.addEventListener("click", () => { if (!animating) goTo(activeIndex + 1); });
 
   /* ---------- Clavier ---------- */
   carousel.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") { e.preventDefault(); goTo(nextIndexForDirection(1), { direction: 1 }); }
-    if (e.key === "ArrowLeft") { e.preventDefault(); goTo(nextIndexForDirection(-1), { direction: -1 }); }
+    if (e.key === "ArrowRight") { e.preventDefault(); goTo(activeIndex + 1); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); goTo(activeIndex - 1); }
   });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && detailVisible) closeDetail();
@@ -1284,8 +1262,8 @@ async function main() {
     // Swipe rapide (velocity > 0.3) ou long (> 60px)
     const isSwipe = (Math.abs(dx) > SWIPE_DISTANCE_FAST && velocity > SWIPE_VELOCITY_MIN) || Math.abs(dx) > SWIPE_DISTANCE_SLOW;
     if (isSwipe && !animating) {
-      if (dx < 0) goTo(nextIndexForDirection(1), { direction: 1 });
-      else goTo(nextIndexForDirection(-1), { direction: -1 });
+      if (dx < 0) goTo(activeIndex + 1);
+      else goTo(activeIndex - 1);
     }
   });
 
