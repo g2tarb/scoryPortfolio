@@ -944,47 +944,11 @@ html.lenis, html.lenis body { height: auto; }
 .stats-section::after,
 .services-section::after,
 .process-section::after,
-.about-section::after,
-.testimonials-section::after {
+.about-section::after {
   content: ""; display: block;
   width: min(120px, 25%); height: 1px; margin: clamp(2rem, 4vw, 3.5rem) auto 0;
   background: linear-gradient(90deg, transparent, var(--theme-tint-c), transparent);
   opacity: 0.6;
-}
-
-/* ===== TESTIMONIALS ===== */
-.testimonials-title { letter-spacing: 0.06em; }
-.testimonials-section {
-  position: relative; z-index: 2;
-  padding: clamp(2rem, 5vw, 4rem) clamp(1rem, 4vw, 3rem);
-  max-width: 1000px; margin: 0 auto;
-}
-.testimonials-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
-}
-.testimonial {
-  padding: 1.75rem 1.25rem; text-align: left;
-  border-left: 2px solid var(--accent-gold);
-  transition: transform 0.3s var(--ease-spring-soft), box-shadow 0.3s ease;
-}
-.testimonial:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--glass-shadow), 0 0 20px var(--theme-glow);
-}
-.testimonial__text {
-  margin: 0 0 1rem; font-size: 0.88rem; line-height: 1.65;
-  color: rgba(245,242,255,0.75); font-style: italic;
-}
-.testimonial__author {
-  display: flex; flex-direction: column; gap: 0.15rem;
-}
-.testimonial__name {
-  font-size: 0.82rem; font-weight: 600; color: var(--accent-gold);
-  transition: color 0.6s ease;
-}
-.testimonial__role {
-  font-size: 0.72rem; color: rgba(245,242,255,0.4);
-  letter-spacing: 0.04em;
 }
 
 /* ===== CTA FLOTTANT ===== */
@@ -2197,14 +2161,12 @@ body.eco-mode .chatbot-orbits { display: none; }
     padding-bottom: 2.4rem;
   }
   .process-grid { grid-template-columns: repeat(2, 1fr); }
-  .testimonials-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* =============================================================================
    RESPONSIVE — Tablette (768px)
    ============================================================================= */
 @media (max-width: 768px) {
-  .testimonials-grid { grid-template-columns: 1fr; gap: 1rem; }
   .project-disc { width: clamp(180px, 36vmin, 260px); }
   .nav-arrow { width: 54px; height: 54px; }
   .museum-label { padding: 1rem 1.15rem; }
@@ -2262,7 +2224,7 @@ body.eco-mode .chatbot-orbits { display: none; }
 
   /* Sections contenu */
   .section-title { margin-bottom: 1.25rem; font-size: clamp(1rem, 4vw, 1.3rem); }
-  .stats-section, .process-section, .about-section, .contact-section, .services-section, .testimonials-section { padding: 1.25rem 0.75rem; }
+  .stats-section, .process-section, .about-section, .contact-section, .services-section { padding: 1.25rem 0.75rem; }
 
   /* Services — empile en colonne */
   .service-row { flex-direction: column; gap: 0.5rem; align-items: stretch; padding: 1rem 0; }
@@ -2270,10 +2232,6 @@ body.eco-mode .chatbot-orbits { display: none; }
   .service-price { font-size: 0.88rem; color: var(--accent-gold); }
   .service-desc { font-size: 0.74rem; }
 
-  /* Testimonials */
-  .testimonials-grid { grid-template-columns: 1fr; gap: 0.75rem; }
-  .testimonial { padding: 1.25rem 1rem; }
-  .testimonial__text { font-size: 0.82rem; }
 
   /* CTA flottant — au-dessus du sound toggle */
   .floating-cta {
@@ -2510,11 +2468,6 @@ body.eco-mode .chatbot-orbits { display: none; }
   .about-philosophy { font-size: 0.72rem; }
   .about-values { flex-direction: column; gap: 0.3rem; }
 
-  /* Testimonials */
-  .testimonial { padding: 1rem 0.75rem; border-left-width: 1.5px; }
-  .testimonial__text { font-size: 0.76rem; }
-  .testimonial__name { font-size: 0.75rem; }
-
   /* Contact */
   .contact-card { padding: 0.6rem 0.7rem; min-height: 44px; }
 
@@ -2603,7 +2556,6 @@ body.eco-mode .chatbot-orbits { display: none; }
   .about-mission { font-size: 0.75rem; }
   .about-philosophy { font-size: 0.65rem; }
   .about-avatar { width: 48px; height: 48px; }
-  .testimonial__text { font-size: 0.68rem; }
   .floating-cta { font-size: 0.65rem; padding: 0.45rem 0.85rem; }
 }
 
