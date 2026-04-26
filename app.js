@@ -255,32 +255,6 @@ async function main() {
         case 1: { const { UniverseBackground } = await import("./universe.js"); projectBgs[1] = new UniverseBackground(projectBgHost); break; }
         case 2: { const { AuroraBorealis } = await import("./aurora.js"); projectBgs[2] = new AuroraBorealis(projectBgHost); break; }
         case 3: {
-          const video = document.createElement("video");
-          video.src = "./fondAnime/diable.mp4";
-          video.autoplay = true;
-          video.loop = true;
-          video.muted = true;
-          video.playsInline = true;
-          video.setAttribute("webkit-playsinline", "");
-          video.setAttribute("preload", "metadata");
-          video.className = "project-bg-canvas animus-bg-video";
-          video.style.display = "none";
-          projectBgHost.appendChild(video);
-          projectBgs[3] = {
-            canvas: video,
-            orb: null,
-            start() {
-              video.play().catch(() => {
-                // iOS fallback: play on first user interaction
-                const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
-                document.addEventListener("touchstart", playOnce, { once: true });
-              });
-            },
-            stop() { video.pause(); }
-          };
-          break;
-        }
-        case 4: {
           // JIMMY — Image fond + titre + flicker lampadaire (sans particules 3D)
           const jimmyBgImg = document.createElement("img");
           jimmyBgImg.src = "./image/fondJimmy.png";
@@ -296,7 +270,7 @@ async function main() {
 
           let flickerInterval;
 
-          projectBgs[4] = {
+          projectBgs[3] = {
             canvas: jimmyBgImg,
             orb: title,
             start() {
@@ -346,7 +320,7 @@ async function main() {
           };
           break;
         }
-        case 5: {
+        case 4: {
           // DYG — reproduction fidele du logo SVG de la nav DYG (logo.js du site)
           const canvas = document.createElement("canvas");
           canvas.className = "project-bg-canvas dyg-bg-canvas";
@@ -411,7 +385,7 @@ async function main() {
           const dygRo = new ResizeObserver(resizeDyg);
           dygRo.observe(projectBgHost);
 
-          projectBgs[5] = {
+          projectBgs[4] = {
             canvas,
             orb: null,
             start() { resizeDyg(); if (!dygRaf) drawDyg(); },
@@ -419,7 +393,7 @@ async function main() {
           };
           break;
         }
-        case 6: {
+        case 5: {
           // SecurEats — video fond + overlay "APP + SITE" (2-en-1)
           const video = document.createElement("video");
           video.src = "./fondAnime/secureEats.mp4";
@@ -438,7 +412,7 @@ async function main() {
           label.style.cssText = "display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Bebas Neue','Cinzel',sans-serif;font-size:clamp(48px,10vw,140px);color:#fff;letter-spacing:12px;text-shadow:0 0 40px rgba(0,0,0,0.8),0 4px 20px rgba(0,0,0,0.6);z-index:2;pointer-events:none;font-weight:700;white-space:nowrap;";
           projectBgHost.appendChild(label);
 
-          projectBgs[6] = {
+          projectBgs[5] = {
             canvas: video,
             orb: label,
             start() {
@@ -502,16 +476,14 @@ async function main() {
   let graffitiOverlay = null;
   let lastNavDirection = 1; // 1 = droite, -1 = gauche
 
-  // Style graffiti adapte au theme
+  // Style graffiti adapte au theme — indices alignes sur PROJECTS
   const GRAFFITI_COLORS = {
-    0: { color: "#c9a962", shadow: "rgba(201,169,98,0.4)" },
-    1: { color: "#DA5426", shadow: "rgba(218,84,38,0.4)" },
-    2: { color: "#C9A84C", shadow: "rgba(201,168,76,0.4)" },
-    3: { color: "#f0c040", shadow: "rgba(240,192,64,0.4)" },
-    4: { color: "#c41e3a", shadow: "rgba(196,30,58,0.4)" },
-    5: { color: "#3B82F6", shadow: "rgba(59,130,246,0.4)" },
-    6: { color: "#f2b13b", shadow: "rgba(242,177,59,0.4)" },
-    7: { color: "#DA5426", shadow: "rgba(218,84,38,0.4)" },
+    0: { color: "#c9a962", shadow: "rgba(201,169,98,0.4)" },  // Scory hub
+    1: { color: "#DA5426", shadow: "rgba(218,84,38,0.4)" },  // 4dayvelopment
+    2: { color: "#C9A84C", shadow: "rgba(201,168,76,0.4)" }, // Clara Martinez
+    3: { color: "#c41e3a", shadow: "rgba(196,30,58,0.4)" },  // JIMMY
+    4: { color: "#3B82F6", shadow: "rgba(59,130,246,0.4)" }, // DYG
+    5: { color: "#f2b13b", shadow: "rgba(242,177,59,0.4)" }, // SecurEats
   };
 
   function createGraffitiOverlay() {
@@ -603,8 +575,8 @@ async function main() {
   async function showProjectBgWithSkills(index) {
     await _origShowProjectBg(index);
     fireGraffiti(index, lastNavDirection);
-    // Toggle blood cursor: ON for JIMMY (4), OFF for everything else
-    if (index === 4) {
+    // Toggle blood cursor: ON for JIMMY (3), OFF for everything else
+    if (index === 3) {
       if (window._loadBloodCursor) window._loadBloodCursor();
       // Wait for script to load then enable
       setTimeout(() => { if (window.enableBloodCursor) window.enableBloodCursor(); }, 500);
