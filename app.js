@@ -990,7 +990,7 @@ async function main() {
       return;
     }
 
-    // ===== TRANSITION FEU PLEINE PAGE =====
+    // ===== TRANSITION CODE BINAIRE PLEINE PAGE =====
     stopSpin();
     d.forEach(disc => gsap.killTweensOf(disc));
 
@@ -1008,35 +1008,20 @@ async function main() {
       stage.removeAttribute("aria-hidden");
     }
 
-    // Canvas de couverture plein ecran (fond opaque = page actuelle)
+    // Canvas plein ecran unique
     const W = window.innerWidth;
     const H = window.innerHeight;
-    const coverCv = document.createElement("canvas");
-    coverCv.width = W; coverCv.height = H;
-    Object.assign(coverCv.style, {
-      position: "fixed", top: "0", left: "0",
-      width: "100%", height: "100%",
-      zIndex: "998", pointerEvents: "none",
-    });
-    const coverCtx = coverCv.getContext("2d");
-    coverCtx.fillStyle = "#07060a";
-    coverCtx.fillRect(0, 0, W, H);
-    document.body.appendChild(coverCv);
-
-    // Canvas de flammes basse-resolution (etire par CSS)
-    const COLS = Math.max(60, Math.round(W / 14));
-    const ROWS = Math.max(38, Math.round(H / 14));
-    const flameCv = document.createElement("canvas");
-    flameCv.width = COLS; flameCv.height = ROWS;
-    Object.assign(flameCv.style, {
+    const cv = document.createElement("canvas");
+    cv.width = W; cv.height = H;
+    Object.assign(cv.style, {
       position: "fixed", top: "0", left: "0",
       width: "100%", height: "100%",
       zIndex: "999", pointerEvents: "none",
     });
-    const flameCtx = flameCv.getContext("2d");
-    document.body.appendChild(flameCv);
+    const ctx = cv.getContext("2d");
+    document.body.appendChild(cv);
 
-    // Mettre a jour la page SOUS le canvas de couverture
+    // Mettre a jour la page SOUS le canvas
     discSpinAngle = 0;
     activeIndex = nextIndex;
     setActiveClasses(activeIndex);
@@ -1046,73 +1031,91 @@ async function main() {
     getProjectBg(nextIndex).catch(() => {});
     showProjectBgWithSkills(activeIndex);
 
-    // Algorithme de feu
-    const heat = new Float32Array(COLS * ROWS);
-    const DURATION = 1350;
-    let burnStart = null;
+    // Parametres de la pluie de code
+    const CHAR_H = 14;
+    const CHAR_W = 9;
+    const NCOLS = Math.ceil(W / CHAR_W);
+    const NROWS = Math.ceil(H / CHAR_H) + 2;
+    const CHARS = "01";
+    const WAVE_MS = 900;   // duree de l'activation de toutes les colonnes
+    const FALL_MS = 380;   // duree de descente d'une colonne
+    const TRAIL = 10;      // longueur du sillage lumineux
 
-    function fireFrame(ts) {
-      if (!burnStart) burnStart = ts;
-      const p = Math.min((ts - burnStart) / DURATION, 1);
+    // Chaque colonne : delai d'activation selon la direction
+    const cols = Array.from({ length: NCOLS }, (_, i) => ({
+      delay: direction > 0
+        ? (i / NCOLS) * WAVE_MS
+        : ((NCOLS - 1 - i) / NCOLS) * WAVE_MS,
+      done: false,
+    }));
 
-      // Front de combustion gauche→droite ou droite→gauche
-      const frontX = direction > 0 ? p * COLS : (1 - p) * COLS;
-      const ZONE = 13;
+    let codeStart = null;
 
-      // Allumer le front avec bruit organique
-      for (let r = 0; r < ROWS; r++) {
-        for (let dz = 0; dz <= ZONE; dz++) {
-          const c = direction > 0
-            ? Math.round(frontX - dz)
-            : Math.round(frontX + dz);
-          if (c < 0 || c >= COLS) continue;
-          const t = (1 - dz / ZONE) * (0.78 + Math.random() * 0.22);
-          if (t > heat[r * COLS + c]) heat[r * COLS + c] = t;
+    function codeFrame(ts) {
+      if (!codeStart) codeStart = ts;
+      const elapsed = ts - codeStart;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.font = `bold ${CHAR_H}px "JetBrains Mono", "Courier New", monospace`;
+      ctx.textBaseline = "top";
+
+      let allDone = true;
+
+      for (let ci = 0; ci < NCOLS; ci++) {
+        const col = cols[ci];
+        const x = ci * CHAR_W;
+
+        if (col.done) continue; // zone transparente, nouvelle page visible
+
+        if (elapsed < col.delay) {
+          // Pas encore active : zone opaque (ancienne page)
+          ctx.fillStyle = "#07060a";
+          ctx.fillRect(x, 0, CHAR_W, H);
+          allDone = false;
+          continue;
+        }
+
+        allDone = false;
+        const colElapsed = elapsed - col.delay;
+        const headRow = (colElapsed / FALL_MS) * NROWS;
+
+        if (headRow >= NROWS) {
+          col.done = true;
+          continue; // toute la colonne est revelée
+        }
+
+        const headPx = headRow * CHAR_H;
+
+        // Zone en dessous de la tete = encore opaque (ancienne page)
+        if (headPx < H) {
+          ctx.fillStyle = "#07060a";
+          ctx.fillRect(x, headPx, CHAR_W, H - headPx);
+        }
+
+        // Sillage de caracteres lumineux autour de la tete
+        for (let t = TRAIL; t >= 0; t--) {
+          const row = Math.floor(headRow) - t;
+          if (row < 0 || row >= NROWS) continue;
+          const alpha = t === 0 ? 1 : (1 - t / TRAIL) * 0.9;
+          const char = CHARS[Math.floor(Math.random() * CHARS.length)];
+          if (t === 0) {
+            ctx.fillStyle = `rgba(255,255,255,${alpha})`; // tete : blanc
+          } else if (t <= 3) {
+            ctx.fillStyle = `rgba(180,230,255,${alpha})`; // proche : bleu glace
+          } else {
+            ctx.fillStyle = `rgba(201,169,98,${alpha * 0.7})`; // loin : or Scory
+          }
+          ctx.fillText(char, x, row * CHAR_H);
         }
       }
 
-      // Propagation + refroidissement
-      for (let r = 1; r < ROWS - 1; r++) {
-        for (let c = 1; c < COLS - 1; c++) {
-          const avg = (heat[r*COLS+c] + heat[(r-1)*COLS+c] + heat[(r+1)*COLS+c] +
-                       heat[r*COLS+c-1] + heat[r*COLS+c+1]) / 5;
-          heat[r*COLS+c] = Math.max(0, avg - 0.038 - Math.random() * 0.025);
-        }
-      }
-
-      // Couverture : zone non-brulee reste opaque, zone brulee = transparente
-      coverCtx.clearRect(0, 0, W, H);
-      const frontPx = Math.round((frontX / COLS) * W);
-      coverCtx.fillStyle = "#07060a";
-      if (direction > 0) {
-        if (frontPx < W) coverCtx.fillRect(frontPx, 0, W - frontPx, H);
+      if (!allDone) {
+        requestAnimationFrame(codeFrame);
       } else {
-        if (frontPx > 0) coverCtx.fillRect(0, 0, frontPx, H);
-      }
-
-      // Flammes rouge/orange/jaune
-      flameCtx.clearRect(0, 0, COLS, ROWS);
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-          const h = heat[r * COLS + c];
-          if (h < 0.04) continue;
-          let fr, fg, fb, fa;
-          if (h < 0.25) { fr = 140; fg = 0; fb = 0; fa = (h / 0.25) * 0.75; }
-          else if (h < 0.55) { fr = 255; fg = Math.round(((h-0.25)/0.3)*170); fb = 0; fa = 0.88; }
-          else { fr = 255; fg = 200 + Math.round(((h-0.55)/0.45)*55); fb = Math.round(((h-0.55)/0.45)*90); fa = 1; }
-          flameCtx.fillStyle = `rgba(${fr},${fg},${fb},${fa})`;
-          flameCtx.fillRect(c, r, 1, 1);
-        }
-      }
-
-      if (p < 1) {
-        requestAnimationFrame(fireFrame);
-      } else {
-        gsap.to([coverCv, flameCv], {
-          opacity: 0, duration: 0.25,
+        gsap.to(cv, {
+          opacity: 0, duration: 0.2,
           onComplete: () => {
-            coverCv.remove();
-            flameCv.remove();
+            cv.remove();
             animating = false;
             if (!reduced && !ecoMode) startSpin();
           }
@@ -1120,7 +1123,7 @@ async function main() {
       }
     }
 
-    requestAnimationFrame(fireFrame);
+    requestAnimationFrame(codeFrame);
   }
 
   /* ---------- Flèches ---------- */
