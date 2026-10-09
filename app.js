@@ -1004,11 +1004,11 @@ async function main() {
     // Precharger le fond du prochain projet pendant l'animation
     getProjectBg(nextIndex).catch(() => {});
 
-    // ===== TRANSITION VINYLE — le disque actuel recule sur le cote,
-    //        le suivant tourne depuis derriere et se pose au centre =====
+    // ===== TRANSITION VINYLE — glissement propre sans conflit transform/spinDisc =====
+    // spinDisc ecrit style.transform="rotate()" en rAF : toute rotation GSAP dans
+    // la transition creerait un saut au clearProps. On anime uniquement x/scale/opacity.
     const nextDisc = d[nextIndex];
 
-    // Le suivant passe devant pendant toute la transition
     gsap.set(currentDisc, { zIndex: 1 });
     gsap.set(nextDisc, { zIndex: 2 });
 
@@ -1017,6 +1017,7 @@ async function main() {
         gsap.set(currentDisc, { clearProps: "all" });
         gsap.set(nextDisc, { clearProps: "all" });
         currentDisc.style.display = "none";
+        discSpinAngle = 0; // reset : evite le saut lors du startSpin
         activeIndex = nextIndex;
         setActiveClasses(activeIndex);
         setLabel(activeIndex, true);
@@ -1028,44 +1029,26 @@ async function main() {
       }
     });
 
-    // Phase 1 : disque actuel se pousse sur le cote dans la direction + recule (reste visible)
+    // Phase 1 : disque actuel glisse sur le cote + recule
     tl.to(currentDisc, {
-      x: direction * 105,
-      y: 10,
-      scale: 0.68,
-      opacity: 0.28,
-      rotation: discSpinAngle + direction * 55,
-      duration: 0.5,
+      x: direction * 155,
+      scale: 0.72,
+      opacity: 0,
+      duration: 0.44,
       ease: "power2.inOut",
     }, 0);
 
-    // Fond projet : fade pendant la transition
+    // Fond projet : fade
     if (projectBgHost) {
-      tl.to(projectBgHost, { opacity: 0, duration: 0.2 }, 0.2);
+      tl.to(projectBgHost, { opacity: 0, duration: 0.18 }, 0.18);
     }
 
-    // Phase 2 : nouveau disque tourne depuis l'arriere-plan et se pose au centre
-    // Il demarre en arriere (scale 0.68), legerement decale de l'autre cote,
-    // en train de tourner — et vient se placer progressivement
+    // Phase 2 : nouveau disque arrive du cote oppose et se place — aucune rotation GSAP
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      {
-        x: -direction * 55,
-        y: 8,
-        scale: 0.68,
-        rotation: discSpinAngle + direction * 230,
-        opacity: 0.55,
-      },
-      {
-        x: 0,
-        y: 0,
-        scale: 1,
-        rotation: discSpinAngle,
-        opacity: 1,
-        duration: 0.72,
-        ease: "power2.out",
-      },
-      0.1
+      { x: -direction * 130, scale: 0.72, opacity: 0 },
+      { x: 0, scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+      0.04
     );
   }
 
