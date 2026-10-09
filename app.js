@@ -1004,10 +1004,11 @@ async function main() {
     // Precharger le fond du prochain projet pendant l'animation
     getProjectBg(nextIndex).catch(() => {});
 
-    // ===== TRANSITION VINYLE — glissement propre sans conflit transform/spinDisc =====
-    // spinDisc ecrit style.transform="rotate()" en rAF : toute rotation GSAP dans
-    // la transition creerait un saut au clearProps. On anime uniquement x/scale/opacity.
+    // ===== TRANSITION VINYLE — spin + glissement, sans teleportation =====
+    // Regle : la rotation finale du nextDisc DOIT etre 0 (= valeur CSS naturelle).
+    // Ainsi clearProps:all n'a aucun effet visible, et discSpinAngle repart de 0.
     const nextDisc = d[nextIndex];
+    const spinOut = discSpinAngle; // rotation actuelle du disque sortant
 
     gsap.set(currentDisc, { zIndex: 1 });
     gsap.set(nextDisc, { zIndex: 2 });
@@ -1017,7 +1018,7 @@ async function main() {
         gsap.set(currentDisc, { clearProps: "all" });
         gsap.set(nextDisc, { clearProps: "all" });
         currentDisc.style.display = "none";
-        discSpinAngle = 0; // reset : evite le saut lors du startSpin
+        discSpinAngle = 0; // repart de 0 — nextDisc a fini a rotation:0, aucun saut
         activeIndex = nextIndex;
         setActiveClasses(activeIndex);
         setLabel(activeIndex, true);
@@ -1029,26 +1030,28 @@ async function main() {
       }
     });
 
-    // Phase 1 : disque actuel glisse sur le cote + recule
+    // Phase 1 : disque actuel tourne sur lui-meme + retrecit + part sur le cote dans le fond
     tl.to(currentDisc, {
-      x: direction * 155,
-      scale: 0.72,
-      opacity: 0,
-      duration: 0.44,
+      rotation: spinOut + direction * 380,
+      x: direction * 190,
+      scale: 0.52,
+      opacity: 0.12,
+      duration: 0.50,
       ease: "power2.inOut",
     }, 0);
 
-    // Fond projet : fade
+    // Fond projet : fade pendant la sortie
     if (projectBgHost) {
-      tl.to(projectBgHost, { opacity: 0, duration: 0.18 }, 0.18);
+      tl.to(projectBgHost, { opacity: 0, duration: 0.18 }, 0.2);
     }
 
-    // Phase 2 : nouveau disque arrive du cote oppose et se place — aucune rotation GSAP
+    // Phase 2 : nouveau disque arrive du fond (tourne + petit + decale) et se pose
+    // rotation finale = 0 obligatoire pour que clearProps soit invisible
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      { x: -direction * 130, scale: 0.72, opacity: 0 },
-      { x: 0, scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
-      0.04
+      { rotation: -direction * 280, x: -direction * 160, scale: 0.52, opacity: 0 },
+      { rotation: 0, x: 0, scale: 1, opacity: 1, duration: 0.62, ease: "power2.out" },
+      0.07
     );
   }
 
