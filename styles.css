@@ -313,6 +313,7 @@ p.glitch-text::before, p.glitch-text::after { white-space: inherit; max-width: 1
   perspective: 1200px; perspective-origin: 50% 75%;
   min-height: min(38vh, 350px); outline: none; touch-action: pan-x;
   padding-bottom: 2.8rem;
+  overflow: visible;
 }
 .project-carousel:focus-visible { box-shadow: var(--focus-ring); border-radius: var(--radius-panel); }
 
@@ -440,10 +441,69 @@ p.glitch-text::before, p.glitch-text::after { white-space: inherit; max-width: 1
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(242,177,59,0.3) inset, 0 0 80px rgba(242,177,59,0.22);
 }
 
-/* Disque actif — glow statique (pas d'animation box-shadow continue = meilleur FPS) */
+/* agent-factory — Bleu acier tech */
+.project-disc[data-index="6"] {
+  background: radial-gradient(circle at 30% 25%, rgba(96,165,250,0.26), rgba(96,165,250,0.02) 55%),
+    linear-gradient(160deg, rgba(6,14,30,0.86), rgba(3,7,18,0.65));
+  border-color: rgba(96,165,250,0.2);
+}
+.project-disc[data-index="6"] .disc-title { font-family: 'JetBrains Mono', monospace; font-size: clamp(0.58rem, 2.5vmin, 0.95rem); letter-spacing: 0.04em; }
+.project-disc[data-index="6"] .disc-meta { color: rgba(56,189,248,0.7); }
+.project-disc[data-index="6"] .disc-groove {
+  background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(96,165,250,0.06) 5px, rgba(96,165,250,0.06) 6px);
+}
+.project-disc[data-index="6"].is-active {
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(96,165,250,0.28) inset, 0 0 80px rgba(96,165,250,0.2);
+}
+
+/* Lyma — Glacier + Or */
+.project-disc[data-index="7"] {
+  background: radial-gradient(circle at 30% 25%, rgba(158,200,255,0.22), rgba(158,200,255,0.02) 55%),
+    linear-gradient(160deg, rgba(4,10,24,0.86), rgba(2,5,14,0.65));
+  border-color: rgba(158,200,255,0.2);
+}
+.project-disc[data-index="7"] .disc-title { font-family: 'JetBrains Mono', monospace; font-size: clamp(0.65rem, 2.8vmin, 1.05rem); letter-spacing: 0.06em; }
+.project-disc[data-index="7"] .disc-meta { color: rgba(201,169,98,0.7); }
+.project-disc[data-index="7"] .disc-groove {
+  background: repeating-radial-gradient(circle at 50% 50%, transparent 0, transparent 5px, rgba(158,200,255,0.06) 5px, rgba(158,200,255,0.06) 6px);
+}
+.project-disc[data-index="7"].is-active {
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(158,200,255,0.28) inset, 0 0 80px rgba(158,200,255,0.2);
+}
+
+/* Disque actif — glow + respiration douce (filter GPU, pas de box-shadow animé) */
+@keyframes discBreath {
+  0%, 100% { filter: drop-shadow(0 0 12px var(--theme-glow-disc)); }
+  50%       { filter: drop-shadow(0 0 38px var(--theme-glow-disc)) drop-shadow(0 0 8px var(--theme-glow-disc)); }
+}
 .project-disc.is-active {
   transition: opacity 0.3s ease;
   box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255,255,255,0.15) inset, 0 0 70px var(--theme-glow-disc);
+  animation: discBreath 2.6s ease-in-out infinite;
+  will-change: filter;
+}
+
+/* Disques peek — voisins visibles aux bords */
+.disc-peek-prev,
+.disc-peek-next {
+  display: grid !important;
+  position: absolute !important;
+  top: 50%;
+  pointer-events: none;
+  opacity: 0.28;
+  filter: blur(1.5px) saturate(0.7);
+  transition: opacity 0.4s ease, filter 0.4s ease;
+  z-index: 0;
+}
+.disc-peek-prev {
+  left: 0;
+  transform: translateY(-50%) translateX(-42%) scale(0.62) rotateY(18deg);
+  transform-origin: left center;
+}
+.disc-peek-next {
+  right: 0;
+  transform: translateY(-50%) translateX(42%) scale(0.62) rotateY(-18deg);
+  transform-origin: right center;
 }
 
 /* Rotation lente vinyle */
@@ -802,6 +862,17 @@ html.lenis, html.lenis body { height: auto; }
   font-weight: 700; color: var(--accent-gold); opacity: 0.25;
   letter-spacing: -0.02em; line-height: 1;
   transition: color 0.6s ease;
+}
+.label-hook {
+  margin: 0 0 0.6rem;
+  font-family: var(--font-mono);
+  font-size: clamp(0.72rem, 1.7vw, 0.82rem);
+  color: var(--accent-gold);
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  opacity: 0.88;
+  border-left: 2px solid var(--accent-gold);
+  padding-left: 0.65rem;
 }
 .label-desc {
   margin: 0; line-height: 1.55; color: rgba(245,242,255,0.72);

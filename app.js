@@ -195,6 +195,7 @@ async function main() {
   const track = document.getElementById("project-track");
   const labelNum = document.getElementById("label-num");
   const labelTitle = document.getElementById("label-title");
+  const labelHook = document.getElementById("label-hook");
   const labelDesc = document.getElementById("label-desc");
   const labelStack = document.getElementById("label-stack");
   const detailPanel = document.getElementById("detail-panel");
@@ -870,15 +871,17 @@ async function main() {
     if (!animate || reduced) {
       labelNum.textContent = num;
       labelTitle.textContent = p.title;
+      if (labelHook) { labelHook.textContent = p.hook || ""; labelHook.style.display = p.hook ? "" : "none"; }
       labelDesc.textContent = p.desc;
       renderStack(p.stack);
       return;
     }
-    const els = [labelNum, labelTitle, labelDesc, labelStack];
+    const els = [labelNum, labelTitle, labelHook, labelDesc, labelStack].filter(Boolean);
     gsap.to(els, {
       opacity: 0, y: -6, duration: 0.2, ease: "power2.in",
       onComplete: () => {
         labelTitle.textContent = p.title;
+        if (labelHook) { labelHook.textContent = p.hook || ""; labelHook.style.display = p.hook ? "" : "none"; }
         labelDesc.textContent = p.desc;
         renderStack(p.stack);
         // Compteur animé sur le numéro
@@ -897,13 +900,27 @@ async function main() {
   }
 
   function setActiveClasses(i) {
-    discs().forEach((d, idx) => {
+    const all = discs();
+    const n = all.length;
+    const prevIdx = (i - 1 + n) % n;
+    const nextIdx = (i + 1) % n;
+    all.forEach((d, idx) => {
       const isActive = idx === i;
+      const isPrev = idx === prevIdx && !isActive;
+      const isNext = idx === nextIdx && !isActive;
       d.classList.toggle("is-active", isActive);
+      d.classList.toggle("disc-peek-prev", isPrev);
+      d.classList.toggle("disc-peek-next", isNext);
       d.setAttribute("aria-current", isActive ? "true" : "false");
-      // display:none force = impossible d'avoir du texte fantome
       d.removeAttribute("style");
-      if (!isActive) d.style.display = "none";
+      if (!isActive && !isPrev && !isNext) d.style.display = "none";
+    });
+  }
+
+  function hidePeek() {
+    discs().forEach((d) => {
+      d.classList.remove("disc-peek-prev", "disc-peek-next");
+      if (!d.classList.contains("is-active")) d.style.display = "none";
     });
   }
 
@@ -931,6 +948,7 @@ async function main() {
     if (nextIndex >= n) nextIndex = 0;
     if (nextIndex === activeIndex) return;
 
+    hidePeek();
     animating = true;
     const currentDisc = d[activeIndex];
     const goingRight = nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0);
