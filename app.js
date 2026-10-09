@@ -1043,13 +1043,13 @@ async function main() {
     // Il arrive depuis "derriere" avec le meme elan — effet de continuite naturelle
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      { rotation: discSpinAngle + direction * 320, scale: 0.04, opacity: 0 },
+      { rotation: discSpinAngle + direction * 320, scale: 0.08, opacity: 0 },
       {
         rotation: discSpinAngle,
         scale: 1,
         opacity: 1,
-        duration: 0.72,
-        ease: "back.out(1.35)",
+        duration: 0.85,
+        ease: "expo.out",
       },
       0.18
     );
