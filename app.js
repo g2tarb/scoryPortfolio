@@ -1004,17 +1004,8 @@ async function main() {
     // Precharger le fond du prochain projet pendant l'animation
     getProjectBg(nextIndex).catch(() => {});
 
-    // ===== TRANSITION MULTIPLEX — changement de chaine =====
+    // ===== TRANSITION VINYLE — spin sur place, le suivant sort de derriere =====
     const nextDisc = d[nextIndex];
-
-    // Creer l'overlay static TV (si pas deja la)
-    let staticOverlay = document.getElementById("tv-static");
-    if (!staticOverlay) {
-      staticOverlay = document.createElement("div");
-      staticOverlay.id = "tv-static";
-      staticOverlay.className = "tv-static";
-      stage.appendChild(staticOverlay);
-    }
 
     const tl = gsap.timeline({
       onComplete: () => {
@@ -1032,44 +1023,35 @@ async function main() {
       }
     });
 
-    // Phase 1: le disque actuel tourne vite + glisse vers l'exterieur (0.6s)
+    // Phase 1 : disque actuel accelere + retrecit vers le fond (spin out)
     tl.to(currentDisc, {
-      rotation: discSpinAngle + direction * 540,
-      x: direction * window.innerWidth * 0.45,
-      scale: 0.4,
-      duration: 0.6, ease: "power2.in",
+      rotation: discSpinAngle + direction * 660,
+      scale: 0,
+      duration: 0.55, ease: "power3.in",
     }, 0);
-    // Opacity separee — reste visible 80% du temps, fade seulement a la fin
     tl.to(currentDisc, {
       opacity: 0,
-      duration: 0.2, ease: "power2.in",
-    }, 0.4);
+      duration: 0.18, ease: "power1.in",
+    }, 0.37);
 
-    // Static TV flash au moment de la coupure
-    tl.to(staticOverlay, { opacity: 0.15, duration: 0.08 }, 0.45);
-    tl.to(staticOverlay, { opacity: 0.25, duration: 0.05 }, 0.53);
-    tl.to(staticOverlay, { opacity: 0.1, duration: 0.04 }, 0.58);
-    tl.to(staticOverlay, { opacity: 0, duration: 0.15 }, 0.65);
-
-    // (Neural supprime — plus de flash fond)
+    // Fond projet : fade discret pendant la transition
     if (projectBgHost) {
-      tl.to(projectBgHost, { opacity: 0, duration: 0.1 }, 0.5);
+      tl.to(projectBgHost, { opacity: 0, duration: 0.2 }, 0.25);
     }
 
-    // Phase 2: le nouveau disque glisse depuis l'exterieur + tourne et ralentit pour se poser (0.7s)
+    // Phase 2 : nouveau disque emerge du fond dans le meme sens de rotation (spin in)
+    // Il arrive depuis "derriere" avec le meme elan — effet de continuite naturelle
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      { rotation: -direction * 360, x: -direction * window.innerWidth * 0.45, scale: 0.4, opacity: 1 },
-      { rotation: 0, x: 0, scale: 1, opacity: 1,
-        duration: 0.7, ease: "power2.out",
-        onStart: () => {
-          if (!ecoMode) {
-            const p = { v: 0.15 };
-            gsap.to(p, { v: 0, duration: 0.4, onUpdate: () => neural.setTransitionProgress(p.v) });
-          }
-        }
+      { rotation: discSpinAngle + direction * 320, scale: 0.04, opacity: 0 },
+      {
+        rotation: discSpinAngle,
+        scale: 1,
+        opacity: 1,
+        duration: 0.72,
+        ease: "back.out(1.35)",
       },
-      0.4 // le nouveau commence avant que l'ancien ait fini de disparaitre
+      0.18
     );
   }
 
