@@ -425,6 +425,115 @@ async function main() {
           };
           break;
         }
+        case 7: {
+          // LYMA — pluie binaire Matrix qui converge vers le titre central
+          const canvas = document.createElement("canvas");
+          canvas.className = "project-bg-canvas lyma-bg-canvas";
+          canvas.style.cssText = "display:none;position:absolute;inset:0;width:100%;height:100%;background:#000;";
+          projectBgHost.appendChild(canvas);
+
+          const LYMA_CHARS = "01";
+          const LYMA_GOLD = "#c9a962";
+          const LYMA_ICE = "#9ec8ff";
+          const LYMA_DIM = "rgba(0,8,20,0.15)";
+          let cols = [], lymaRaf = null;
+
+          function resizeLyma() {
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = projectBgHost.offsetWidth * dpr;
+            canvas.height = projectBgHost.offsetHeight * dpr;
+            const fontSize = Math.max(10, Math.min(canvas.width, canvas.height) * 0.016);
+            const numCols = Math.floor(canvas.width / fontSize);
+            cols = Array.from({ length: numCols }, (_, i) => ({
+              y: Math.random() * canvas.height,
+              speed: fontSize * (0.4 + Math.random() * 0.8),
+              gold: Math.random() < 0.07,
+            }));
+          }
+
+          function drawLyma() {
+            lymaRaf = requestAnimationFrame(drawLyma);
+            const ctx = canvas.getContext("2d");
+            const W = canvas.width, H = canvas.height;
+
+            // Fade trail
+            ctx.fillStyle = LYMA_DIM;
+            ctx.fillRect(0, 0, W, H);
+
+            const fontSize = Math.max(10, Math.min(W, H) * 0.016);
+            ctx.font = `${fontSize}px 'JetBrains Mono', monospace`;
+            ctx.textBaseline = "top";
+
+            for (let i = 0; i < cols.length; i++) {
+              const c = cols[i];
+              const char = LYMA_CHARS[Math.floor(Math.random() * LYMA_CHARS.length)];
+              const x = i * fontSize;
+              // Colonnes or = rare highlight
+              if (c.gold) {
+                ctx.fillStyle = LYMA_GOLD;
+                ctx.shadowColor = LYMA_GOLD;
+                ctx.shadowBlur = 8;
+              } else {
+                ctx.fillStyle = LYMA_ICE;
+                ctx.shadowColor = LYMA_ICE;
+                ctx.shadowBlur = 4;
+              }
+              ctx.globalAlpha = 0.7 + Math.random() * 0.3;
+              ctx.fillText(char, x, c.y);
+              ctx.globalAlpha = 1;
+              ctx.shadowBlur = 0;
+              c.y += c.speed;
+              if (c.y > H) {
+                c.y = -fontSize;
+                c.gold = Math.random() < 0.07;
+              }
+            }
+
+            // Titre central "LYMA" — grand, lumineux, permanant
+            const titleSize = Math.min(W, H) * 0.18;
+            ctx.font = `700 ${titleSize}px 'Cormorant Garamond', serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+
+            // Halo derrière le titre pour le faire ressortir
+            ctx.fillStyle = "rgba(0,0,0,0.55)";
+            const tw = ctx.measureText("LYMA").width;
+            ctx.fillRect(W / 2 - tw / 2 - 24, H / 2 - titleSize * 0.65, tw + 48, titleSize * 1.3);
+
+            // Dégradé or → glacier
+            const grad = ctx.createLinearGradient(W / 2 - tw / 2, 0, W / 2 + tw / 2, 0);
+            grad.addColorStop(0, LYMA_GOLD);
+            grad.addColorStop(1, LYMA_ICE);
+            ctx.fillStyle = grad;
+            ctx.shadowColor = LYMA_ICE;
+            ctx.shadowBlur = 30;
+            ctx.fillText("LYMA", W / 2, H / 2);
+
+            // Sous-titre
+            const subSize = Math.min(W, H) * 0.028;
+            ctx.font = `${subSize}px 'DM Sans', sans-serif`;
+            ctx.fillStyle = "rgba(158,200,255,0.7)";
+            ctx.shadowBlur = 0;
+            ctx.fillText("agent codeur · multi-provider · pont agent-factory", W / 2, H / 2 + titleSize * 0.62);
+
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+          }
+
+          const lymaRo = new ResizeObserver(resizeLyma);
+          lymaRo.observe(projectBgHost);
+
+          projectBgs[7] = {
+            canvas,
+            orb: null,
+            start() { resizeLyma(); if (!lymaRaf) drawLyma(); canvas.style.display = "block"; },
+            stop() {
+              if (lymaRaf) { cancelAnimationFrame(lymaRaf); lymaRaf = null; }
+              canvas.style.display = "none";
+            }
+          };
+          break;
+        }
         default: return null;
       }
     } catch { return null; }
@@ -1049,6 +1158,28 @@ async function main() {
         });
         detailCtaWrap.appendChild(cta);
       }
+    } else if (!p.url) {
+      // Projets sans URL publique (repo prive) → bouton verrouille
+      const isLyma = p.title === "Lyma";
+      const wrap = document.createElement("div");
+      wrap.style.cssText = "display:flex;flex-direction:column;align-items:flex-start;gap:6px;";
+
+      const cta = document.createElement("button");
+      cta.type = "button";
+      cta.className = "detail-panel__cta detail-panel__cta--locked";
+      cta.disabled = true;
+      cta.style.cssText = "opacity:0.55;cursor:not-allowed;pointer-events:none;filter:grayscale(0.4);";
+      cta.innerHTML = `<span style="margin-right:6px;">🔒</span>${getLang() === "fr" ? "Voir le projet" : "View project"} <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg></span>`;
+      wrap.appendChild(cta);
+
+      if (isLyma) {
+        const hint = document.createElement("span");
+        hint.style.cssText = "font-size:0.72em;color:rgba(158,200,255,0.6);font-style:italic;padding-left:4px;letter-spacing:0.03em;";
+        hint.textContent = getLang() === "fr" ? "Petit filou, non. 😏" : "Nice try, not today. 😏";
+        wrap.appendChild(hint);
+      }
+
+      detailCtaWrap.appendChild(wrap);
     }
     // ===== OUVERTURE SIMPLE — scale + fade, GPU only =====
     const disc = _discsCache.find((d) => d.classList.contains("is-active"));
