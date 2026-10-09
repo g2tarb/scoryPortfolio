@@ -1,13 +1,71 @@
+# robots.txt — scory.dev
+# Contenu public professionnel : indexation et accès IA explicitement autorisés.
+
 User-agent: *
 Allow: /
 Disallow: /fondAnime/
 Disallow: /audio/
 
-Sitemap: https://scory.dev/sitemap.xml
-
-# Crawl-delay pour etre poli avec les bots
+# --- Moteurs de recherche classiques ---
 User-agent: Googlebot
+Allow: /
 Crawl-delay: 1
 
 User-agent: Bingbot
+Allow: /
 Crawl-delay: 2
+
+# --- Crawlers IA : recherche & récupération en temps réel (réponses citées) ---
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+# --- Crawlers IA : entraînement / découverte (pour être « connu » des modèles) ---
+User-agent: GPTBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+Sitemap: https://scory.dev/sitemap.xml
