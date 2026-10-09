@@ -950,11 +950,9 @@ async function main() {
 
     hidePeek();
     animating = true;
-    const currentDisc = d[activeIndex];
     const goingRight = nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0);
     const direction = goingRight ? 1 : -1;
     lastNavDirection = direction;
-    // Burst glitch sur le branding + bot quand on swipe
     triggerGlitchBurst();
 
     if (reduced) {
@@ -968,159 +966,157 @@ async function main() {
       return;
     }
 
-    // Mode eco: crossfade simple — zero rotation, zero static, zero GPU lourd
     if (ecoMode) {
-      const nextDisc = d[nextIndex];
-      gsap.to(currentDisc, {
+      const curDisc = d[activeIndex];
+      const nxtDisc = d[nextIndex];
+      gsap.to(curDisc, {
         opacity: 0, duration: 0.3, ease: "power2.in",
+        onComplete: () => { curDisc.removeAttribute("style"); curDisc.style.display = "none"; }
+      });
+      nxtDisc.style.display = "grid";
+      gsap.fromTo(nxtDisc, { opacity: 0 }, {
+        opacity: 1, duration: 0.3, ease: "power2.out",
         onComplete: () => {
-          currentDisc.removeAttribute("style");
-          currentDisc.style.display = "none";
+          nxtDisc.style.cssText = "";
+          activeIndex = nextIndex;
+          setActiveClasses(activeIndex);
+          setLabel(activeIndex, true);
+          updateDots();
+          applyTheme(activeIndex);
+          animating = false;
+          showProjectBgWithSkills(activeIndex);
         }
       });
-      nextDisc.style.display = "grid";
-      gsap.fromTo(nextDisc,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.3, ease: "power2.out",
-          onComplete: () => {
-            nextDisc.style.cssText = "";
-            activeIndex = nextIndex;
-            setActiveClasses(activeIndex);
-            setLabel(activeIndex, true);
-            updateDots();
-            applyTheme(activeIndex);
-            animating = false;
-            showProjectBgWithSkills(activeIndex);
-          }
-        }
-      );
       return;
     }
 
-    // Stopper la rotation + tuer tout tween GSAP residuel sur tous les disques
+    // ===== TRANSITION FEU PLEINE PAGE =====
     stopSpin();
     d.forEach(disc => gsap.killTweensOf(disc));
 
-    const nextDisc = d[nextIndex];
-    gsap.set(nextDisc, { clearProps: "all" });
-    getProjectBg(nextIndex).catch(() => {});
-
-    // ===== TRANSITION COMBUSTION — feuille qui brule, revele le disque suivant =====
-    function burnCleanup() {
-      gsap.set(currentDisc, { clearProps: "all" });
-      gsap.set(nextDisc, { clearProps: "all" });
-      currentDisc.style.display = "none";
-      currentDisc.style.webkitMaskImage = "";
-      currentDisc.style.maskImage = "";
-      discSpinAngle = 0;
-      activeIndex = nextIndex;
-      setActiveClasses(activeIndex);
-      setLabel(activeIndex, true);
-      updateDots();
-      applyTheme(activeIndex);
-      animating = false;
-      if (!reduced && !ecoMode) startSpin();
-      showProjectBgWithSkills(activeIndex);
+    // Fermer le panneau de detail instantanement si ouvert
+    if (detailVisible) {
+      detailVisible = false;
+      if (_glitchTitle) { _glitchTitle.cancel(); _glitchTitle = null; }
+      if (_glitchText) { _glitchText.cancel(); _glitchText = null; }
+      if (_closeOnOutsideRef) { document.removeEventListener("pointerdown", _closeOnOutsideRef, true); _closeOnOutsideRef = null; }
+      if (_detailFocusTrap) { _detailFocusTrap(); _detailFocusTrap = null; }
+      gsap.killTweensOf(detailPanel);
+      gsap.set(detailPanel, { clearProps: "all" });
+      detailPanel.classList.remove("is-visible");
+      detailPanel.setAttribute("aria-hidden", "true");
+      stage.removeAttribute("aria-hidden");
     }
 
-    // Nouveau disque en dessous, fade in progressif
-    nextDisc.style.display = "grid";
-    gsap.set(nextDisc, { opacity: 0, zIndex: 1 });
-    gsap.set(currentDisc, { zIndex: 2 });
-    if (projectBgHost) gsap.to(projectBgHost, { opacity: 0, duration: 0.25, delay: 0.15 });
-    gsap.to(nextDisc, { opacity: 1, duration: 0.55, delay: 0.2, ease: "power1.in" });
-
-    // Canvas de feu (basses-res, etire via CSS sur la vraie taille du disque)
-    const rect = currentDisc.getBoundingClientRect();
-    const COLS = 60, ROWS = 60;
-    const fireCv = document.createElement("canvas");
-    fireCv.width = COLS; fireCv.height = ROWS;
-    Object.assign(fireCv.style, {
-      position: "fixed",
-      left: rect.left + "px", top: rect.top + "px",
-      width: rect.width + "px", height: rect.height + "px",
-      zIndex: "600", pointerEvents: "none", borderRadius: "50%",
+    // Canvas de couverture plein ecran (fond opaque = page actuelle)
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    const coverCv = document.createElement("canvas");
+    coverCv.width = W; coverCv.height = H;
+    Object.assign(coverCv.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100%", height: "100%",
+      zIndex: "998", pointerEvents: "none",
     });
-    document.body.appendChild(fireCv);
-    const fCtx = fireCv.getContext("2d");
+    const coverCtx = coverCv.getContext("2d");
+    coverCtx.fillStyle = "#07060a";
+    coverCtx.fillRect(0, 0, W, H);
+    document.body.appendChild(coverCv);
 
-    // Canvas masque (meme taille basse-res)
-    const maskCv = document.createElement("canvas");
-    maskCv.width = COLS; maskCv.height = ROWS;
-    const mCtx = maskCv.getContext("2d");
+    // Canvas de flammes basse-resolution (etire par CSS)
+    const COLS = Math.max(60, Math.round(W / 14));
+    const ROWS = Math.max(38, Math.round(H / 14));
+    const flameCv = document.createElement("canvas");
+    flameCv.width = COLS; flameCv.height = ROWS;
+    Object.assign(flameCv.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100%", height: "100%",
+      zIndex: "999", pointerEvents: "none",
+    });
+    const flameCtx = flameCv.getContext("2d");
+    document.body.appendChild(flameCv);
 
+    // Mettre a jour la page SOUS le canvas de couverture
+    discSpinAngle = 0;
+    activeIndex = nextIndex;
+    setActiveClasses(activeIndex);
+    setLabel(activeIndex, true);
+    updateDots();
+    applyTheme(activeIndex);
+    getProjectBg(nextIndex).catch(() => {});
+    showProjectBgWithSkills(activeIndex);
+
+    // Algorithme de feu
     const heat = new Float32Array(COLS * ROWS);
-    const DURATION = 820; // ms
+    const DURATION = 1350;
     let burnStart = null;
 
     function fireFrame(ts) {
       if (!burnStart) burnStart = ts;
       const p = Math.min((ts - burnStart) / DURATION, 1);
 
-      // Front de combustion avance selon la direction de navigation
-      const front = direction > 0 ? p * COLS : (1 - p) * COLS;
-      const ZONE = 7;
+      // Front de combustion gauche→droite ou droite→gauche
+      const frontX = direction > 0 ? p * COLS : (1 - p) * COLS;
+      const ZONE = 13;
 
-      // Allumer le front
+      // Allumer le front avec bruit organique
       for (let r = 0; r < ROWS; r++) {
         for (let dz = 0; dz <= ZONE; dz++) {
-          const c = Math.round(direction > 0 ? front - dz : front + dz);
+          const c = direction > 0
+            ? Math.round(frontX - dz)
+            : Math.round(frontX + dz);
           if (c < 0 || c >= COLS) continue;
-          const t = (1 - dz / ZONE) * (0.85 + Math.random() * 0.15);
+          const t = (1 - dz / ZONE) * (0.78 + Math.random() * 0.22);
           if (t > heat[r * COLS + c]) heat[r * COLS + c] = t;
         }
       }
 
-      // Propagation thermique + refroidissement
+      // Propagation + refroidissement
       for (let r = 1; r < ROWS - 1; r++) {
         for (let c = 1; c < COLS - 1; c++) {
           const avg = (heat[r*COLS+c] + heat[(r-1)*COLS+c] + heat[(r+1)*COLS+c] +
                        heat[r*COLS+c-1] + heat[r*COLS+c+1]) / 5;
-          heat[r*COLS+c] = Math.max(0, avg - 0.035 - Math.random() * 0.03);
+          heat[r*COLS+c] = Math.max(0, avg - 0.038 - Math.random() * 0.025);
         }
       }
 
-      // --- Canvas feu (flammes rouge/orange/jaune) ---
-      fCtx.clearRect(0, 0, COLS, ROWS);
+      // Couverture : zone non-brulee reste opaque, zone brulee = transparente
+      coverCtx.clearRect(0, 0, W, H);
+      const frontPx = Math.round((frontX / COLS) * W);
+      coverCtx.fillStyle = "#07060a";
+      if (direction > 0) {
+        if (frontPx < W) coverCtx.fillRect(frontPx, 0, W - frontPx, H);
+      } else {
+        if (frontPx > 0) coverCtx.fillRect(0, 0, frontPx, H);
+      }
+
+      // Flammes rouge/orange/jaune
+      flameCtx.clearRect(0, 0, COLS, ROWS);
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           const h = heat[r * COLS + c];
-          if (h < 0.02) continue;
+          if (h < 0.04) continue;
           let fr, fg, fb, fa;
-          if (h < 0.3) { fr = 180; fg = 0; fb = 0; fa = h / 0.3; }
-          else if (h < 0.6) { fr = 255; fg = Math.round((h-0.3)/0.3*140); fb = 0; fa = 0.9; }
-          else { fr = 255; fg = Math.round(140+(h-0.6)/0.4*115); fb = Math.round((h-0.6)/0.4*80); fa = 1; }
-          fCtx.fillStyle = `rgba(${fr},${fg},${fb},${fa})`;
-          fCtx.fillRect(c, r, 1, 1);
+          if (h < 0.25) { fr = 140; fg = 0; fb = 0; fa = (h / 0.25) * 0.75; }
+          else if (h < 0.55) { fr = 255; fg = Math.round(((h-0.25)/0.3)*170); fb = 0; fa = 0.88; }
+          else { fr = 255; fg = 200 + Math.round(((h-0.55)/0.45)*55); fb = Math.round(((h-0.55)/0.45)*90); fa = 1; }
+          flameCtx.fillStyle = `rgba(${fr},${fg},${fb},${fa})`;
+          flameCtx.fillRect(c, r, 1, 1);
         }
       }
-
-      // --- Masque CSS pour le disque actuel : blanc = visible, noir = brule ---
-      mCtx.clearRect(0, 0, COLS, ROWS);
-      mCtx.fillStyle = "white";
-      // Zone non-brûlée (avant le front)
-      if (direction > 0) {
-        mCtx.fillRect(Math.round(front), 0, COLS, ROWS);
-      } else {
-        mCtx.fillRect(0, 0, Math.round(front), ROWS);
-      }
-      const maskUrl = maskCv.toDataURL("image/png", 0.5);
-      currentDisc.style.webkitMaskImage = `url(${maskUrl})`;
-      currentDisc.style.maskImage = `url(${maskUrl})`;
-      currentDisc.style.webkitMaskSize = "100% 100%";
-      currentDisc.style.maskSize = "100% 100%";
-      currentDisc.style.webkitMaskRepeat = "no-repeat";
-      currentDisc.style.maskRepeat = "no-repeat";
 
       if (p < 1) {
         requestAnimationFrame(fireFrame);
       } else {
-        // Tout consomme — effacer le canvas feu puis cleanup
-        gsap.to(fireCv, { opacity: 0, duration: 0.18, onComplete: () => {
-          fireCv.remove();
-          maskCv.remove();
-          burnCleanup();
-        }});
+        gsap.to([coverCv, flameCv], {
+          opacity: 0, duration: 0.25,
+          onComplete: () => {
+            coverCv.remove();
+            flameCv.remove();
+            animating = false;
+            if (!reduced && !ecoMode) startSpin();
+          }
+        });
       }
     }
 
