@@ -1,12 +1,12 @@
 /**
  * SCORY — chatbot.js
  * Mini-bot prospect : 5 questions multi-choix + capture contact.
- * Pas de calcul de devis. Resultat envoye par mailto a gdbyana@gmail.com
+ * Pas de calcul de devis. Resultat envoye par mailto a contact@scory.dev
  * pour relance manuelle.
  */
 import { getLang } from "./i18n.js";
 
-const CONTACT_TARGET = "gdbyana@gmail.com";
+const CONTACT_TARGET = "contact@scory.dev";
 
 /** Flux 5 questions (FR + EN) — multi-choix uniquement */
 const FLOW = {
@@ -158,7 +158,7 @@ export function initChatbot({ isValidEmail }) {
       submitBtn.disabled = true;
       submitBtn.textContent = tx().submitting;
 
-      // Construit un mailto pre-rempli vers gdbyana@gmail.com
+      // Construit un mailto pre-rempli vers contact@scory.dev
       const subject = `Lead portfolio Scory — ${name}`;
       const lines = [
         `${tx().summaryHeader}:`,

@@ -24,7 +24,7 @@ const SWIPE_VELOCITY_MIN = 0.3;
 const SWIPE_DISTANCE_FAST = 40;
 const SWIPE_DISTANCE_SLOW = 60;
 const SCORY_INDEX = 0;
-const CONTACT_EMAIL = "gdbyana@gmail.com";
+const CONTACT_EMAIL = "contact@scory.dev";
 
 
 /** @param {string} email @returns {boolean} */
@@ -77,6 +77,17 @@ function glitchType(el, text, opts = {}) {
       el.appendChild(document.createTextNode(" "));
     }
   });
+  // Resout un caractere sur sa lettre finale (fin normale ou annulation).
+  function settle(span, final) {
+    span.textContent = final;
+    span.style.opacity = "1";
+    span.style.color = "";
+    span.classList.remove("glitch-char");
+  }
+  // Chaque caractere a son propre interval ; on les suit pour pouvoir tout
+  // nettoyer a l'annulation (references locales, jamais partagees).
+  const intervals = new Set();
+  let nextTimer = null;
   const done = new Promise((resolve) => {
     let i = 0;
     function nextChar() {
@@ -87,22 +98,31 @@ function glitchType(el, text, opts = {}) {
       span.classList.add("glitch-char");
       let round = 0;
       const tick = setInterval(() => {
-        if (cancelled) { clearInterval(tick); resolve(); return; }
+        if (cancelled) { clearInterval(tick); intervals.delete(tick); resolve(); return; }
         if (round < glitchRounds) {
           span.textContent = GLITCH_CHARS[Math.random() * GLITCH_CHARS.length | 0];
           round++;
         } else {
           clearInterval(tick);
-          span.textContent = final;
-          span.style.color = "";
-          span.classList.remove("glitch-char");
+          intervals.delete(tick);
+          settle(span, final);
         }
       }, glitchSpeed);
-      setTimeout(nextChar, charDelay);
+      intervals.add(tick);
+      nextTimer = setTimeout(nextChar, charDelay);
     }
     nextChar();
   });
-  return { cancel: () => { cancelled = true; }, done };
+  // Annulation propre : on fige tout le texte sur sa version finale lisible,
+  // jamais sur un glyphe aleatoire (sinon residus type « decouLqlQ 7 »).
+  const cancel = () => {
+    cancelled = true;
+    intervals.forEach((t) => clearInterval(t));
+    intervals.clear();
+    if (nextTimer) clearTimeout(nextTimer);
+    charNodes.forEach(({ span, final }) => settle(span, final));
+  };
+  return { cancel, done };
 }
 
 function prefersReducedMotion() {
@@ -187,17 +207,29 @@ async function main() {
     try {
       switch (index) {
         case 0: {
-          // Portfolio Scory — image WebP statique
-          const img = document.createElement("img");
-          img.src = "./image/mediascory.webp";
-          img.className = "project-bg-canvas scory-bg-img";
-          img.style.cssText = "display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.35;";
-          projectBgHost.appendChild(img);
+          // Portfolio Scory — video de fond (lazy : 3 Mo charges seulement a l'affichage)
+          const video = document.createElement("video");
+          video.setAttribute("preload", "none");
+          video.poster = "./image/mediascory.webp"; // Poster statique pendant le chargement
+          video.loop = true;
+          video.muted = true;
+          video.playsInline = true;
+          video.setAttribute("webkit-playsinline", "");
+          video.className = "project-bg-canvas scory-bg-video";
+          video.style.cssText = "display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.35;";
+          projectBgHost.appendChild(video);
           projectBgs[0] = {
-            canvas: img,
+            canvas: video,
             orb: null,
-            start() { img.style.display = "block"; },
-            stop() { img.style.display = "none"; }
+            start() {
+              video.style.display = "block";
+              if (!video.src) video.src = "./scoryModel.mp4"; // Lazy load
+              video.play().catch(() => {
+                const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
+                document.addEventListener("touchstart", playOnce, { once: true });
+              });
+            },
+            stop() { video.pause(); video.style.display = "none"; }
           };
           break;
         }
@@ -501,14 +533,13 @@ async function main() {
   let graffitiOverlay = null;
   let lastNavDirection = 1; // 1 = droite, -1 = gauche
 
-  // Style graffiti adapte au theme — indices alignes sur PROJECTS
+  // Style graffiti adapte au theme — indices alignes sur PROJECTS/THEMES
   const GRAFFITI_COLORS = {
-    0: { color: "#c9a962", shadow: "rgba(201,169,98,0.4)" },  // Scory hub
-    1: { color: "#DA5426", shadow: "rgba(218,84,38,0.4)" },  // 4dayvelopment
-    2: { color: "#C9A84C", shadow: "rgba(201,168,76,0.4)" }, // Clara Martinez
-    3: { color: "#c41e3a", shadow: "rgba(196,30,58,0.4)" },  // JIMMY
-    4: { color: "#3B82F6", shadow: "rgba(59,130,246,0.4)" }, // DYG
-    5: { color: "#f2b13b", shadow: "rgba(242,177,59,0.4)" }, // SecurEats
+    0: { color: "#c9a962", shadow: "rgba(201,169,98,0.4)" },  // Portfolio Scory
+    1: { color: "#DA5426", shadow: "rgba(218,84,38,0.4)" },   // 4dayvelopment
+    2: { color: "#c41e3a", shadow: "rgba(196,30,58,0.4)" },   // JIMMY
+    3: { color: "#3B82F6", shadow: "rgba(59,130,246,0.4)" },  // DYG
+    4: { color: "#9ec8ff", shadow: "rgba(158,200,255,0.4)" }, // Lyma
   };
 
   function createGraffitiOverlay() {
@@ -671,7 +702,7 @@ async function main() {
       // Titre de page
       const project = projects[activeIndex];
       document.title = activeIndex === SCORY_INDEX
-        ? (newLang === "fr" ? "SCORY — Musee Digital" : "SCORY — Digital Museum")
+        ? (newLang === "fr" ? "SCORY — Ingénieur produit full-stack" : "SCORY — Full-stack product engineer")
         : `${project?.title || ""} — SCORY`;
     });
   }
@@ -713,7 +744,7 @@ async function main() {
     // Titre de page dynamique + hash routing
     const project = PROJECTS()[index];
     document.title = index === SCORY_INDEX
-      ? "SCORY — Developpeur Freelance"
+      ? (document.documentElement.lang === "en" ? "SCORY — Full-stack product engineer" : "SCORY — Ingénieur produit full-stack")
       : `${project?.title || ""} — SCORY`;
     const slug = project?.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-$/, "") || "";
     const hash = index === SCORY_INDEX ? "" : slug;
@@ -1089,7 +1120,7 @@ async function main() {
       });
       detailCtaWrap.appendChild(cta);
     } else if (p.url) {
-      // 2 CTAs si urlSite est defini (cas SecurEats App + Site), sinon 1 seul CTA
+      // 2 CTAs si urlSite est defini (projet avec app + site), sinon 1 seul CTA
       const ctas = p.urlSite
         ? [{ label: "Visiter l'app", href: p.url }, { label: "Visiter le site", href: p.urlSite }]
         : [{ label: "Visiter le site", href: p.url }];

@@ -1,0 +1,29 @@
+# SCORY — Scory Yana
+
+> Ingénieur produit full-stack basé à Paris, disponible à distance. Je conçois et je code des produits complets, du schéma de base de données jusqu'au déploiement en production : applications SaaS, systèmes d'agents IA multi-provider, pipelines d'automatisation et outils de sécurité défensive. Langages : JavaScript, TypeScript, Python, Rust.
+
+## Expertises
+
+- **Produits web full-stack** : SaaS, marketplaces et plateformes, architecturés et déployés de bout en bout (Next.js, Fastify, PostgreSQL).
+- **Systèmes IA & agents** : runtimes agentiques multi-provider (Anthropic, OpenAI, DeepSeek, modèles locaux), orchestration d'agents, outillage IA pour développeurs, avec budgets, sandboxing et contrôle des capacités.
+- **Automatisation & données** : pipelines de données, scraping, enrichissement B2B, outils CLI.
+- **Sécurité défensive** : reconnaissance autorisée, détection, honeypots, détection de secrets par analyse d'entropie.
+
+## Projets
+
+- [4dayvelopment](https://4dayvelopment.fr/) : agence web sur-mesure, animations WebGL maison (Node.js, Express, WebGL, GSAP, n8n).
+- [JIMMY](https://splendid-malasada-e630ad.netlify.app/) : expérience narrative IA + arène de combat, 12 000 lignes de TypeScript strict, combats générés par Gemini Pro.
+- [DYG](https://dyg-olfu.onrender.com) : scanner de profil GitHub (score 8 axes, archétype, conseils), back-end Fastify + PostgreSQL, scoring côté serveur. Plateforme élargie en développement.
+- Lyma : agent codeur CLI Python multi-provider (rotation de clés, fallback entre providers), pont vers agent-factory. Projet personnel.
+- agent-factory : CLI Python qui compile des agents IA à capacités bornées (un enfant ne dépasse jamais son parent, vérifié à la compilation), budgets, kill-switches, 86 tests. Projet personnel.
+
+## Contact
+
+- Email : contact@scory.dev
+- GitHub : https://github.com/g2tarb
+- Localisation : Paris, France — à distance partout en France, en Europe et à l'international.
+
+## Notes
+
+- Pour un site vitrine, le travail passe par l'agence 4dayvelopment.fr.
+- Les outils de sécurité présentés sont défensifs et destinés à des engagements autorisés uniquement.

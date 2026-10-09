@@ -10,10 +10,10 @@ export const TRANSLATIONS = {
     en: "The only limit is your imagination",
   },
   // Floating brand
-  "brand.sub": { fr: "Developpeur freelance — sites sur-mesure & experiences immersives", en: "Freelance developer — bespoke websites & immersive experiences" },
+  "brand.sub": { fr: "Ingénieur produit full-stack — IA agentique, automatisation & sécurité", en: "Full-stack product engineer — agentic AI, automation & security" },
   // Discs
   "disc.0.title": { fr: "Portfolio Scory", en: "Scory Portfolio" },
-  "disc.0.meta": { fr: "Creative Dev — Paris", en: "Creative Dev — Paris" },
+  "disc.0.meta": { fr: "Full-stack & IA — Paris", en: "Full-stack & AI — Paris" },
   "disc.1.title": { fr: "4dayvelopment", en: "4dayvelopment" },
   "disc.1.meta": { fr: "Agence web", en: "Web agency" },
   "disc.2.title": { fr: "JIMMY", en: "JIMMY" },
@@ -34,15 +34,15 @@ export const TRANSLATIONS = {
   "stat.template": { fr: "Template utilise", en: "Template used" },
   // Services
   "services.title": { fr: "Ce que je fais", en: "What I do" },
-  "service.1.name": { fr: "Site vitrine premium", en: "Premium showcase site" },
-  "service.1.price": { fr: "A partir de 800 \u20ac", en: "From \u20ac800" },
-  "service.1.desc": { fr: "Design sur-mesure, responsive, animations, SEO. Votre image, sublimee.", en: "Bespoke design, responsive, animations, SEO. Your brand, elevated." },
-  "service.2.name": { fr: "Application SaaS", en: "SaaS application" },
-  "service.2.price": { fr: "A partir de 5 000 \u20ac", en: "From \u20ac5,000" },
-  "service.2.desc": { fr: "Full-stack, dashboard, auth, API. De l'idee au produit, cle en main.", en: "Full-stack, dashboard, auth, API. From idea to product, turnkey." },
-  "service.3.name": { fr: "Experience immersive", en: "Immersive experience" },
+  "service.1.name": { fr: "Produit web full-stack", en: "Full-stack web product" },
+  "service.1.price": { fr: "Sur devis", en: "Custom quote" },
+  "service.1.desc": { fr: "Next.js, Fastify, PostgreSQL. SaaS, marketplaces et plateformes, architectur\u00e9s et d\u00e9ploy\u00e9s de bout en bout.", en: "Next.js, Fastify, PostgreSQL. SaaS, marketplaces and platforms, architected and shipped end-to-end." },
+  "service.2.name": { fr: "Syst\u00e8mes IA & agents", en: "AI systems & agents" },
+  "service.2.price": { fr: "Sur devis", en: "Custom quote" },
+  "service.2.desc": { fr: "Runtimes agentiques multi-provider, orchestration d'agents et outils IA pour d\u00e9veloppeurs.", en: "Multi-provider agentic runtimes, agent orchestration and AI tooling for developers." },
+  "service.3.name": { fr: "Automatisation & s\u00e9curit\u00e9", en: "Automation & security" },
   "service.3.price": { fr: "Sur devis", en: "Custom quote" },
-  "service.3.desc": { fr: "Three.js, shaders GLSL, WebGL. Des experiences que vos visiteurs n'oublieront pas.", en: "Three.js, GLSL shaders, WebGL. Experiences your visitors won't forget." },
+  "service.3.desc": { fr: "Pipelines de donn\u00e9es, scraping, outils CLI et s\u00e9curit\u00e9 d\u00e9fensive : reconnaissance, d\u00e9tection, honeypots.", en: "Data pipelines, scraping, CLI tools and defensive security: reconnaissance, detection, honeypots." },
   // CTA flottant
   "cta.floating": { fr: "Discutons", en: "Let's talk" },
   // Chatbot
@@ -62,17 +62,17 @@ export const TRANSLATIONS = {
   // About
   "about.title": { fr: "Qui suis-je ?", en: "Who am I?" },
   "about.mission": {
-    fr: "Je concois des experiences web immersives qui transforment votre vision en realite digitale.",
-    en: "I create immersive web experiences that turn your vision into digital reality.",
+    fr: "Je conçois et je code des produits complets — du schéma de base de données aux agents IA — et je les mène jusqu'en production.",
+    en: "I design and build complete products — from the database schema to AI agents — and take them all the way to production.",
   },
   "about.philosophy": {
-    fr: "Chaque projet est une oeuvre sur-mesure. Design premium, code artisanal. Pas de templates. Pas de compromis. Juste votre univers, sublime.",
-    en: "Every project is a bespoke masterpiece. Premium design, handcrafted code. No templates. No compromises. Just your universe, sublime.",
+    fr: "Full-stack JavaScript et Python. SaaS, systèmes d'agents IA, pipelines de données et outils de sécurité défensive. Code sobre, systèmes qui tiennent, zéro template.",
+    en: "Full-stack JavaScript and Python. SaaS, AI agent systems, data pipelines and defensive security tooling. Lean code, systems that hold, zero templates.",
   },
-  "about.v1": { fr: "Design sur-mesure", en: "Bespoke design" },
-  "about.v2": { fr: "Code artisanal", en: "Handcrafted code" },
-  "about.v3": { fr: "Immersif & interactif", en: "Immersive & interactive" },
-  "about.v4": { fr: "Support 24h/24", en: "24/7 support" },
+  "about.v1": { fr: "Full-stack JS & Python", en: "Full-stack JS & Python" },
+  "about.v2": { fr: "IA agentique & agents", en: "Agentic AI & agents" },
+  "about.v3": { fr: "Automatisation & données", en: "Automation & data" },
+  "about.v4": { fr: "Sécurité défensive", en: "Defensive security" },
   // Contact
   "contact.title": { fr: "Me contacter", en: "Get in touch" },
   "contact.rdv": { fr: "Prendre rendez-vous", en: "Book a meeting" },
