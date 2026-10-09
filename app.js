@@ -1001,61 +1001,130 @@ async function main() {
     stopSpin();
     d.forEach(disc => gsap.killTweensOf(disc));
 
-    // Nettoyer tout state GSAP residuel sur le nextDisc (transition precedente interrompue)
     const nextDisc = d[nextIndex];
     gsap.set(nextDisc, { clearProps: "all" });
-
-    // Precharger le fond du prochain projet pendant l'animation
     getProjectBg(nextIndex).catch(() => {});
 
-    // ===== TRANSITION VINYLE — spin + glissement, sans teleportation =====
-    // Regle : la rotation finale du nextDisc DOIT etre 0 (= valeur CSS naturelle).
-    // Ainsi clearProps:all n'a aucun effet visible, et discSpinAngle repart de 0.
-    const spinOut = discSpinAngle; // rotation actuelle du disque sortant
-
-    gsap.set(currentDisc, { zIndex: 1 });
-    gsap.set(nextDisc, { zIndex: 2 });
-
-    const tl = gsap.timeline({
-      onComplete: () => {
-        gsap.set(currentDisc, { clearProps: "all" });
-        gsap.set(nextDisc, { clearProps: "all" });
-        currentDisc.style.display = "none";
-        discSpinAngle = 0; // repart de 0 — nextDisc a fini a rotation:0, aucun saut
-        activeIndex = nextIndex;
-        setActiveClasses(activeIndex);
-        setLabel(activeIndex, true);
-        updateDots();
-        applyTheme(activeIndex);
-        animating = false;
-        if (!reduced && !ecoMode) startSpin();
-        showProjectBgWithSkills(activeIndex);
-      }
-    });
-
-    // Phase 1 : disque actuel tourne sur lui-meme + retrecit + part sur le cote dans le fond
-    tl.to(currentDisc, {
-      rotation: spinOut + direction * 380,
-      x: direction * 190,
-      scale: 0.52,
-      opacity: 0.12,
-      duration: 0.50,
-      ease: "power2.inOut",
-    }, 0);
-
-    // Fond projet : fade pendant la sortie
-    if (projectBgHost) {
-      tl.to(projectBgHost, { opacity: 0, duration: 0.18 }, 0.2);
+    // ===== TRANSITION COMBUSTION — feuille qui brule, revele le disque suivant =====
+    function burnCleanup() {
+      gsap.set(currentDisc, { clearProps: "all" });
+      gsap.set(nextDisc, { clearProps: "all" });
+      currentDisc.style.display = "none";
+      currentDisc.style.webkitMaskImage = "";
+      currentDisc.style.maskImage = "";
+      discSpinAngle = 0;
+      activeIndex = nextIndex;
+      setActiveClasses(activeIndex);
+      setLabel(activeIndex, true);
+      updateDots();
+      applyTheme(activeIndex);
+      animating = false;
+      if (!reduced && !ecoMode) startSpin();
+      showProjectBgWithSkills(activeIndex);
     }
 
-    // Phase 2 : nouveau disque arrive du fond (tourne + petit + decale) et se pose
-    // rotation finale = 0 obligatoire pour que clearProps soit invisible
+    // Nouveau disque en dessous, fade in progressif
     nextDisc.style.display = "grid";
-    tl.fromTo(nextDisc,
-      { rotation: -direction * 280, x: -direction * 160, scale: 0.52, opacity: 0 },
-      { rotation: 0, x: 0, scale: 1, opacity: 1, duration: 0.62, ease: "power2.out" },
-      0.07
-    );
+    gsap.set(nextDisc, { opacity: 0, zIndex: 1 });
+    gsap.set(currentDisc, { zIndex: 2 });
+    if (projectBgHost) gsap.to(projectBgHost, { opacity: 0, duration: 0.25, delay: 0.15 });
+    gsap.to(nextDisc, { opacity: 1, duration: 0.55, delay: 0.2, ease: "power1.in" });
+
+    // Canvas de feu (basses-res, etire via CSS sur la vraie taille du disque)
+    const rect = currentDisc.getBoundingClientRect();
+    const COLS = 60, ROWS = 60;
+    const fireCv = document.createElement("canvas");
+    fireCv.width = COLS; fireCv.height = ROWS;
+    Object.assign(fireCv.style, {
+      position: "fixed",
+      left: rect.left + "px", top: rect.top + "px",
+      width: rect.width + "px", height: rect.height + "px",
+      zIndex: "600", pointerEvents: "none", borderRadius: "50%",
+    });
+    document.body.appendChild(fireCv);
+    const fCtx = fireCv.getContext("2d");
+
+    // Canvas masque (meme taille basse-res)
+    const maskCv = document.createElement("canvas");
+    maskCv.width = COLS; maskCv.height = ROWS;
+    const mCtx = maskCv.getContext("2d");
+
+    const heat = new Float32Array(COLS * ROWS);
+    const DURATION = 820; // ms
+    let burnStart = null;
+
+    function fireFrame(ts) {
+      if (!burnStart) burnStart = ts;
+      const p = Math.min((ts - burnStart) / DURATION, 1);
+
+      // Front de combustion avance selon la direction de navigation
+      const front = direction > 0 ? p * COLS : (1 - p) * COLS;
+      const ZONE = 7;
+
+      // Allumer le front
+      for (let r = 0; r < ROWS; r++) {
+        for (let dz = 0; dz <= ZONE; dz++) {
+          const c = Math.round(direction > 0 ? front - dz : front + dz);
+          if (c < 0 || c >= COLS) continue;
+          const t = (1 - dz / ZONE) * (0.85 + Math.random() * 0.15);
+          if (t > heat[r * COLS + c]) heat[r * COLS + c] = t;
+        }
+      }
+
+      // Propagation thermique + refroidissement
+      for (let r = 1; r < ROWS - 1; r++) {
+        for (let c = 1; c < COLS - 1; c++) {
+          const avg = (heat[r*COLS+c] + heat[(r-1)*COLS+c] + heat[(r+1)*COLS+c] +
+                       heat[r*COLS+c-1] + heat[r*COLS+c+1]) / 5;
+          heat[r*COLS+c] = Math.max(0, avg - 0.035 - Math.random() * 0.03);
+        }
+      }
+
+      // --- Canvas feu (flammes rouge/orange/jaune) ---
+      fCtx.clearRect(0, 0, COLS, ROWS);
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const h = heat[r * COLS + c];
+          if (h < 0.02) continue;
+          let fr, fg, fb, fa;
+          if (h < 0.3) { fr = 180; fg = 0; fb = 0; fa = h / 0.3; }
+          else if (h < 0.6) { fr = 255; fg = Math.round((h-0.3)/0.3*140); fb = 0; fa = 0.9; }
+          else { fr = 255; fg = Math.round(140+(h-0.6)/0.4*115); fb = Math.round((h-0.6)/0.4*80); fa = 1; }
+          fCtx.fillStyle = `rgba(${fr},${fg},${fb},${fa})`;
+          fCtx.fillRect(c, r, 1, 1);
+        }
+      }
+
+      // --- Masque CSS pour le disque actuel : blanc = visible, noir = brule ---
+      mCtx.clearRect(0, 0, COLS, ROWS);
+      mCtx.fillStyle = "white";
+      // Zone non-brûlée (avant le front)
+      if (direction > 0) {
+        mCtx.fillRect(Math.round(front), 0, COLS, ROWS);
+      } else {
+        mCtx.fillRect(0, 0, Math.round(front), ROWS);
+      }
+      const maskUrl = maskCv.toDataURL("image/png", 0.5);
+      currentDisc.style.webkitMaskImage = `url(${maskUrl})`;
+      currentDisc.style.maskImage = `url(${maskUrl})`;
+      currentDisc.style.webkitMaskSize = "100% 100%";
+      currentDisc.style.maskSize = "100% 100%";
+      currentDisc.style.webkitMaskRepeat = "no-repeat";
+      currentDisc.style.maskRepeat = "no-repeat";
+
+      if (p < 1) {
+        requestAnimationFrame(fireFrame);
+      } else {
+        // Tout consomme — effacer le canvas feu puis cleanup
+        gsap.to(fireCv, { opacity: 0, duration: 0.18, onComplete: () => {
+          fireCv.remove();
+          maskCv.remove();
+          burnCleanup();
+        }});
+      }
+    }
+
+    requestAnimationFrame(fireFrame);
   }
 
   /* ---------- Flèches ---------- */
