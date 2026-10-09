@@ -9,7 +9,7 @@ import Lenis from "lenis";
 import { PROJECTS as PROJECTS_ALL, THEMES } from "./data.js";
 import { getLang, setLang, t } from "./i18n.js";
 import { initCursor, initMagneticArrows } from "./cursor.js";
-import { initAudio } from "./audio.js";
+
 
 /** Getters bilingues */
 function PROJECTS() { return PROJECTS_ALL[getLang()] || PROJECTS_ALL.fr; }
@@ -147,46 +147,6 @@ function scrollToElement(el) {
   }, 600);
 }
 
-/* ---------- Mode eco toggle ---------- */
-const PERF_KEY = "scory_perf_mode";
-
-function applyEcoMode(eco) {
-  document.body.classList.toggle("eco-mode", eco);
-}
-
-function showEcoMessage(text, color) {
-  const msg = document.getElementById("eco-message");
-  if (!msg) return;
-  msg.innerHTML = `<span class="eco-message__dot" style="background:${color};box-shadow:0 0 6px ${color}"></span>${text}`;
-  msg.classList.add("is-visible");
-  setTimeout(() => msg.classList.remove("is-visible"), 2500);
-}
-
-function toggleEcoMode() {
-  const isEco = document.body.classList.contains("eco-mode");
-  const newMode = isEco ? "full" : "eco";
-  localStorage.setItem(PERF_KEY, newMode);
-
-  showEcoMessage(
-    isEco ? "Full Performance" : "Mode Eco",
-    isEco ? "#c9a962" : "#10b981"
-  );
-
-  applyEcoMode(!isEco);
-  setTimeout(() => window.location.reload(), 1500);
-}
-
-// Bind l'interrupteur eco (meme element desktop + mobile)
-const _ecoBtn = document.getElementById("eco-toggle");
-if (_ecoBtn) {
-  _ecoBtn.addEventListener("click", toggleEcoMode);
-  _ecoBtn.addEventListener("touchend", (e) => { e.preventDefault(); toggleEcoMode(); });
-}
-
-function initEcoMode() {
-  const saved = localStorage.getItem(PERF_KEY);
-  if (saved === "eco") applyEcoMode(true);
-}
 
 async function main() {
   const stage = document.getElementById("museum-stage");
@@ -209,8 +169,6 @@ async function main() {
   if (!stage || !neuralHost || !carousel || !track) return;
 
   const reduced = prefersReducedMotion();
-  const ecoMode = document.body.classList.contains("eco-mode");
-  const skipNeural = ecoMode;
   const loader = document.getElementById("loader");
   const projectBgHost = document.getElementById("project-bg-host");
 
@@ -229,33 +187,22 @@ async function main() {
     try {
       switch (index) {
         case 0: {
-          const video = document.createElement("video");
-          video.setAttribute("preload", "none"); // Lazy — don't load 3MB until needed
-          video.poster = "./image/fondJimmy.png"; // Static poster while loading
-          video.loop = true;
-          video.muted = true;
-          video.playsInline = true;
-          video.setAttribute("webkit-playsinline", "");
-          video.className = "project-bg-canvas scory-bg-video";
-          video.style.display = "none";
-          projectBgHost.appendChild(video);
+          // Portfolio Scory — image WebP statique
+          const img = document.createElement("img");
+          img.src = "./image/mediascory.webp";
+          img.className = "project-bg-canvas scory-bg-img";
+          img.style.cssText = "display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.35;";
+          projectBgHost.appendChild(img);
           projectBgs[0] = {
-            canvas: video,
+            canvas: img,
             orb: null,
-            start() {
-              if (!video.src) video.src = "./scoryModel.mp4"; // Lazy load
-              video.play().catch(() => {
-                const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
-                document.addEventListener("touchstart", playOnce, { once: true });
-              });
-            },
-            stop() { video.pause(); }
+            start() { img.style.display = "block"; },
+            stop() { img.style.display = "none"; }
           };
           break;
         }
         case 1: { const { UniverseBackground } = await import("./universe.js"); projectBgs[1] = new UniverseBackground(projectBgHost); break; }
-        case 2: { const { AuroraBorealis } = await import("./aurora.js"); projectBgs[2] = new AuroraBorealis(projectBgHost); break; }
-        case 3: {
+        case 2: {
           // JIMMY — Image fond + titre + flicker lampadaire (sans particules 3D)
           const jimmyBgImg = document.createElement("img");
           jimmyBgImg.src = "./image/fondJimmy.png";
@@ -271,7 +218,7 @@ async function main() {
 
           let flickerInterval;
 
-          projectBgs[3] = {
+          projectBgs[2] = {
             canvas: jimmyBgImg,
             orb: title,
             start() {
@@ -321,7 +268,7 @@ async function main() {
           };
           break;
         }
-        case 4: {
+        case 3: {
           // DYG — reproduction fidele du logo SVG de la nav DYG (logo.js du site)
           const canvas = document.createElement("canvas");
           canvas.className = "project-bg-canvas dyg-bg-canvas";
@@ -386,7 +333,7 @@ async function main() {
           const dygRo = new ResizeObserver(resizeDyg);
           dygRo.observe(projectBgHost);
 
-          projectBgs[4] = {
+          projectBgs[3] = {
             canvas,
             orb: null,
             start() { resizeDyg(); if (!dygRaf) drawDyg(); },
@@ -394,39 +341,7 @@ async function main() {
           };
           break;
         }
-        case 5: {
-          // SecurEats — video fond + overlay "APP + SITE" (2-en-1)
-          const video = document.createElement("video");
-          video.src = "./fondAnime/secureEats.mp4";
-          video.loop = true;
-          video.muted = true;
-          video.playsInline = true;
-          video.setAttribute("webkit-playsinline", "");
-          video.setAttribute("preload", "metadata");
-          video.className = "project-bg-canvas secureats-bg-video";
-          video.style.cssText = "display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;";
-          projectBgHost.appendChild(video);
-
-          const label = document.createElement("div");
-          label.textContent = "APP + SITE";
-          label.className = "secureats-label";
-          label.style.cssText = "display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Bebas Neue','Cinzel',sans-serif;font-size:clamp(48px,10vw,140px);color:#fff;letter-spacing:12px;text-shadow:0 0 40px rgba(0,0,0,0.8),0 4px 20px rgba(0,0,0,0.6);z-index:2;pointer-events:none;font-weight:700;white-space:nowrap;";
-          projectBgHost.appendChild(label);
-
-          projectBgs[5] = {
-            canvas: video,
-            orb: label,
-            start() {
-              video.play().catch(() => {
-                const playOnce = () => { video.play().catch(() => {}); document.removeEventListener("touchstart", playOnce); };
-                document.addEventListener("touchstart", playOnce, { once: true });
-              });
-            },
-            stop() { video.pause(); }
-          };
-          break;
-        }
-        case 7: {
+        case 4: {
           // LYMA — pluie binaire Matrix qui converge vers le titre central
           const canvas = document.createElement("canvas");
           canvas.className = "project-bg-canvas lyma-bg-canvas";
@@ -524,7 +439,7 @@ async function main() {
           const lymaRo = new ResizeObserver(resizeLyma);
           lymaRo.observe(projectBgHost);
 
-          projectBgs[7] = {
+          projectBgs[4] = {
             canvas,
             orb: null,
             start() { resizeLyma(); if (!lymaRaf) drawLyma(); canvas.style.display = "block"; },
@@ -685,8 +600,8 @@ async function main() {
   async function showProjectBgWithSkills(index) {
     await _origShowProjectBg(index);
     fireGraffiti(index, lastNavDirection);
-    // Toggle blood cursor: ON for JIMMY (3), OFF for everything else
-    if (index === 3) {
+    // Toggle blood cursor: ON for JIMMY (2), OFF for everything else
+    if (index === 2) {
       if (window._loadBloodCursor) window._loadBloodCursor();
       // Wait for script to load then enable
       setTimeout(() => { if (window.enableBloodCursor) window.enableBloodCursor(); }, 500);
@@ -709,21 +624,19 @@ async function main() {
   }, LOADER_DELAY_MS);
 
   // ===== LENIS SMOOTH SCROLL =====
-  if (!ecoMode) {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smoothWheel: true,
-      touchMultiplier: 1.5,
-    });
-    function lenisRaf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(lenisRaf);
-    }
+  const lenis = new Lenis({
+    duration: 1.2,
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+    smoothWheel: true,
+    touchMultiplier: 1.5,
+  });
+  function lenisRaf(time) {
+    lenis.raf(time);
     requestAnimationFrame(lenisRaf);
-    // Sync GSAP ScrollTrigger si present
-    lenis.on("scroll", () => { if (window.ScrollTrigger) window.ScrollTrigger.update(); });
   }
+  requestAnimationFrame(lenisRaf);
+  // Sync GSAP ScrollTrigger si present
+  lenis.on("scroll", () => { if (window.ScrollTrigger) window.ScrollTrigger.update(); });
 
   // Three.js lance le fond quand il est pret
   threeReady.then(() => showProjectBgWithSkills(activeIndex));
@@ -966,30 +879,6 @@ async function main() {
       return;
     }
 
-    if (ecoMode) {
-      const curDisc = d[activeIndex];
-      const nxtDisc = d[nextIndex];
-      gsap.to(curDisc, {
-        opacity: 0, duration: 0.3, ease: "power2.in",
-        onComplete: () => { curDisc.removeAttribute("style"); curDisc.style.display = "none"; }
-      });
-      nxtDisc.style.display = "grid";
-      gsap.fromTo(nxtDisc, { opacity: 0 }, {
-        opacity: 1, duration: 0.3, ease: "power2.out",
-        onComplete: () => {
-          nxtDisc.style.cssText = "";
-          activeIndex = nextIndex;
-          setActiveClasses(activeIndex);
-          setLabel(activeIndex, true);
-          updateDots();
-          applyTheme(activeIndex);
-          animating = false;
-          showProjectBgWithSkills(activeIndex);
-        }
-      });
-      return;
-    }
-
     // ===== TRANSITION CODE BINAIRE PLEINE PAGE =====
     stopSpin();
     d.forEach(disc => gsap.killTweensOf(disc));
@@ -1117,7 +1006,7 @@ async function main() {
           onComplete: () => {
             cv.remove();
             animating = false;
-            if (!reduced && !ecoMode) startSpin();
+            if (!reduced) startSpin();
           }
         });
       }
@@ -1323,9 +1212,9 @@ async function main() {
           gsap.to(disc, {
             opacity: 1, scale: 1, rotation: discSpinAngle,
             duration: 0.35, ease: "back.out(1.5)",
-            onComplete: () => { if (!reduced && !ecoMode) startSpin(); }
+            onComplete: () => { if (!reduced) startSpin(); }
           });
-        } else if (!reduced && !ecoMode) {
+        } else if (!reduced) {
           startSpin();
         }
       }
@@ -1378,7 +1267,7 @@ async function main() {
       gsap.to(disc, {
         scale: 1, rotation: discSpinAngle,
         duration: 0.6, ease: "elastic.out(1, 0.5)",
-        onComplete: () => { if (!reduced && !ecoMode) startSpin(); }
+        onComplete: () => { if (!reduced) startSpin(); }
       });
     }
   }
@@ -1477,11 +1366,11 @@ async function main() {
     discSpinActive = false;
     cancelAnimationFrame(discSpinRaf);
   }
-  if (!reduced && !ecoMode) startSpin();
+  if (!reduced) startSpin();
 
   // Tilt 3D au survol (pause la rotation, ajoute le tilt)
   const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-  if (!isTouchDevice && !reduced && !ecoMode) {
+  if (!isTouchDevice && !reduced) {
     carousel.addEventListener("mouseenter", () => {
       stopSpin();
     });
@@ -1597,7 +1486,7 @@ async function main() {
 
   /* ---------- Teleportation sections (vide → mi-vide → rempli + rebond) ---------- */
   const teleportSections = document.querySelectorAll(".stats-section, .services-section, .process-section, .about-section, .testimonials-section");
-  if (teleportSections.length > 0 && !reduced && !ecoMode) {
+  if (teleportSections.length > 0 && !reduced) {
     teleportSections.forEach((section) => {
       gsap.set(section, { opacity: 0, scale: 0.3, y: 60, filter: "blur(8px)" });
       const obs = new IntersectionObserver((entries) => {
@@ -1868,9 +1757,6 @@ async function main() {
     _discHintInterval = setInterval(flashHint, 8000);
   }
 
-  /* ---------- Son ambiant (module audio.js) ---------- */
-  initAudio();
-
   /* ---------- Easter Egg (Konami Code) ---------- */
   const KONAMI = [38,38,40,40,37,39,37,39,66,65];
   let konamiIdx = 0;
@@ -1985,9 +1871,6 @@ async function main() {
 }
 
 /* ---------- Boot ---------- */
-// Applique eco-mode si sauvegarde
-initEcoMode();
-
 /* SECURITY/RESILIENCE: Graceful degradation — WebGL feature detection.
  * If WebGL is unavailable (old device, disabled GPU, corporate lockdown),
  * the site falls back to a static background instead of a blank screen. */
