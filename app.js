@@ -515,122 +515,12 @@ async function main() {
     gsap.to(projectBgHost, { opacity: 0, duration: 0.5 });
     Object.values(projectBgs).forEach((bg) => bg.stop());
     activeProjectBg = null;
-    // Clear graffiti
-    if (graffitiOverlay) graffitiOverlay.innerHTML = '';
-  }
-
-  // ==================== GRAFFITI SKILL SHOUT ====================
-  // Phrases qui explosent a l'ecran quand on change de projet
-  // Direction opposee au clic (clic droite → texte vient de gauche)
-
-  const GRAFFITI_PHRASES = [
-    "JE SAIS FAIRE CAAAAAA",
-    "ET PUIS CA",
-    "CA AUSSI C'EST MOI",
-    "AHAHAHAHA CA AUSSI",
-  ];
-  let graffitiCount = 0;
-  let graffitiOverlay = null;
-  let lastNavDirection = 1; // 1 = droite, -1 = gauche
-
-  // Style graffiti adapte au theme — indices alignes sur PROJECTS/THEMES
-  const GRAFFITI_COLORS = {
-    0: { color: "#c9a962", shadow: "rgba(201,169,98,0.4)" },  // Portfolio Scory
-    1: { color: "#DA5426", shadow: "rgba(218,84,38,0.4)" },   // 4dayvelopment
-    2: { color: "#c41e3a", shadow: "rgba(196,30,58,0.4)" },   // JIMMY
-    3: { color: "#3B82F6", shadow: "rgba(59,130,246,0.4)" },  // DYG
-    4: { color: "#9ec8ff", shadow: "rgba(158,200,255,0.4)" }, // Lyma
-  };
-
-  function createGraffitiOverlay() {
-    if (graffitiOverlay) return graffitiOverlay;
-    graffitiOverlay = document.createElement("div");
-    graffitiOverlay.style.cssText = "position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden;";
-    if (projectBgHost) projectBgHost.appendChild(graffitiOverlay);
-    return graffitiOverlay;
-  }
-
-  function fireGraffiti(projectIndex, direction) {
-    const overlay = createGraffitiOverlay();
-    const colors = GRAFFITI_COLORS[projectIndex] || GRAFFITI_COLORS[0];
-
-    // Choisir la phrase
-    let phrase;
-    if (graffitiCount === 0) {
-      phrase = GRAFFITI_PHRASES[0]; // Premier projet = "JE SAIS FAIRE CAAAAAA"
-    } else {
-      phrase = GRAFFITI_PHRASES[Math.min(graffitiCount, GRAFFITI_PHRASES.length - 1)];
-    }
-    graffitiCount++;
-
-    // Direction opposee au clic
-    const fromLeft = direction > 0; // clic droite → texte vient de gauche
-    const startX = fromLeft ? "-120%" : "120%";
-    const rotation = (Math.random() - 0.5) * 12; // leger angle aleatoire
-
-    // Creer l'element
-    const el = document.createElement("div");
-    el.textContent = phrase;
-    el.style.cssText = `
-      position: absolute;
-      top: ${35 + Math.random() * 30}%;
-      left: 50%;
-      transform: translateX(${startX}) rotate(${rotation}deg);
-      font-family: 'Syne', 'Impact', system-ui, sans-serif;
-      font-size: clamp(2rem, 6vw, 5rem);
-      font-weight: 900;
-      color: ${colors.color};
-      text-shadow: 0 0 20px ${colors.shadow}, 0 0 60px ${colors.shadow}, 4px 4px 0 rgba(0,0,0,0.3);
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      -webkit-text-stroke: 1px rgba(0,0,0,0.15);
-    `;
-
-    overlay.appendChild(el);
-
-    // Animation GSAP : slide in → shake → hold → slide out
-    gsap.timeline()
-      .to(el, {
-        x: "-50%",
-        opacity: 0.3,
-        duration: 0.4,
-        ease: "power4.out",
-      })
-      .to(el, {
-        rotation: rotation + (Math.random() - 0.5) * 6,
-        scale: 1.05,
-        duration: 0.12,
-        ease: "power2.out",
-      })
-      .to(el, {
-        rotation: rotation,
-        scale: 1,
-        duration: 0.08,
-        ease: "power2.in",
-      })
-      .to(el, {
-        opacity: 0.2,
-        duration: 2.5,
-        ease: "none",
-      })
-      .to(el, {
-        opacity: 0,
-        x: fromLeft ? "40%" : "-140%",
-        scale: 0.95,
-        duration: 1,
-        ease: "power2.in",
-        onComplete: () => el.remove(),
-      });
   }
 
   // Hook into showProjectBg
   const _origShowProjectBg = showProjectBg;
   async function showProjectBgWithSkills(index) {
     await _origShowProjectBg(index);
-    fireGraffiti(index, lastNavDirection);
     // Toggle blood cursor: ON for JIMMY (2), OFF for everything else
     if (index === 2) {
       if (window._loadBloodCursor) window._loadBloodCursor();
@@ -896,7 +786,6 @@ async function main() {
     animating = true;
     const goingRight = nextIndex > activeIndex || (activeIndex === n - 1 && nextIndex === 0);
     const direction = goingRight ? 1 : -1;
-    lastNavDirection = direction;
     triggerGlitchBurst();
 
     if (reduced) {
