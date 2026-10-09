@@ -24,6 +24,10 @@ export const TRANSLATIONS = {
   "disc.4.meta": { fr: "Do Your Game", en: "Do Your Game" },
   "disc.5.title": { fr: "SecurEats", en: "SecurEats" },
   "disc.5.meta": { fr: "App + Site", en: "App + Site" },
+  "disc.6.title": { fr: "agent-factory", en: "agent-factory" },
+  "disc.6.meta": { fr: "CLI Python", en: "Python CLI" },
+  "disc.7.title": { fr: "Lyma", en: "Lyma" },
+  "disc.7.meta": { fr: "Agent codeur", en: "Coding agent" },
   // Cartel
   "cartel.kicker": { fr: "Cartel", en: "Label" },
   // Detail panel
