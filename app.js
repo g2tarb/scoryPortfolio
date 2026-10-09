@@ -997,9 +997,13 @@ async function main() {
       return;
     }
 
-    // Stopper la rotation
+    // Stopper la rotation + tuer tout tween GSAP residuel sur tous les disques
     stopSpin();
-    gsap.killTweensOf(currentDisc);
+    d.forEach(disc => gsap.killTweensOf(disc));
+
+    // Nettoyer tout state GSAP residuel sur le nextDisc (transition precedente interrompue)
+    const nextDisc = d[nextIndex];
+    gsap.set(nextDisc, { clearProps: "all" });
 
     // Precharger le fond du prochain projet pendant l'animation
     getProjectBg(nextIndex).catch(() => {});
@@ -1007,7 +1011,6 @@ async function main() {
     // ===== TRANSITION VINYLE — spin + glissement, sans teleportation =====
     // Regle : la rotation finale du nextDisc DOIT etre 0 (= valeur CSS naturelle).
     // Ainsi clearProps:all n'a aucun effet visible, et discSpinAngle repart de 0.
-    const nextDisc = d[nextIndex];
     const spinOut = discSpinAngle; // rotation actuelle du disque sortant
 
     gsap.set(currentDisc, { zIndex: 1 });
