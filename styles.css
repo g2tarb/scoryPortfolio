@@ -483,17 +483,17 @@ p.glitch-text::before, p.glitch-text::after { white-space: inherit; max-width: 1
   will-change: filter;
 }
 
-/* Disques peek — voisins visibles aux bords */
+/* Disques peek — voisins visibles aux bords, sous le disque actif */
 .disc-peek-prev,
 .disc-peek-next {
   display: grid !important;
   position: absolute !important;
   top: 50%;
-  pointer-events: none;
+  pointer-events: none !important;
   opacity: 0.28;
   filter: blur(1.5px) saturate(0.7);
   transition: opacity 0.4s ease, filter 0.4s ease;
-  z-index: 0;
+  z-index: 1;
 }
 .disc-peek-prev {
   left: 0;
@@ -504,6 +504,12 @@ p.glitch-text::before, p.glitch-text::after { white-space: inherit; max-width: 1
   right: 0;
   transform: translateY(-50%) translateX(42%) scale(0.62) rotateY(-18deg);
   transform-origin: right center;
+}
+
+/* Disque actif devant tous les peeks */
+.project-disc.is-active {
+  z-index: 3 !important;
+  position: relative !important;
 }
 
 /* Rotation lente vinyle */
