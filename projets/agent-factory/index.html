@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#07060a" />
+    <meta name="color-scheme" content="dark" />
+    <title>agent-factory — Compilateur d'agents IA bornés · Étude de cas | Scory</title>
+    <meta name="description" content="agent-factory : une CLI Python qui compile des agents IA à capacités bornées à partir d'une mission. Un agent enfant ne peut pas dépasser son parent, vérifié à la compilation. Budgets, kill-switches, 86 tests. Étude de cas par Scory." />
+    <link rel="canonical" href="https://scory.dev/projets/agent-factory/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content="https://scory.dev/projets/agent-factory/" />
+    <meta property="og:title" content="agent-factory — Compilateur d'agents IA bornés · Étude de cas" />
+    <meta property="og:description" content="CLI Python qui compile des agents IA à capacités bornées : budgets, kill-switches, 86 tests, sécurité par conception." />
+    <meta property="og:image" content="https://scory.dev/image/og-image.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%2307060a' width='32' height='32' rx='6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='%23c9a962' font-family='serif' font-size='20' font-weight='600'%3ES%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/projets/case.css" />
+    <script type="application/ld+json">
+    [{
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "agent-factory — Compilateur d'agents IA bornés",
+      "description": "Étude de cas : une CLI Python qui compile des agents IA à capacités bornées. Un agent enfant ne peut pas dépasser son parent, vérifié à la compilation. Budgets, kill-switches, 86 tests.",
+      "author": {"@type": "Person", "name": "Scory Yana", "url": "https://scory.dev/"},
+      "publisher": {"@type": "Person", "name": "Scory Yana"},
+      "inLanguage": "fr",
+      "url": "https://scory.dev/projets/agent-factory/",
+      "about": ["Python", "Agents IA", "Sécurité par conception", "Kill-switch", "Budgets LLM", "pytest"]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://scory.dev/"},
+        {"@type": "ListItem", "position": 2, "name": "Projets", "item": "https://scory.dev/#projets"},
+        {"@type": "ListItem", "position": 3, "name": "agent-factory", "item": "https://scory.dev/projets/agent-factory/"}
+      ]
+    }]
+    </script>
+  </head>
+  <body>
+    <header class="case-top">
+      <a class="case-brand" href="/">scory<span>.dev</span></a>
+      <a class="case-back" href="/#projets">← Tous les projets</a>
+    </header>
+
+    <main>
+      <section class="case-hero wrap">
+        <p class="case-eyebrow">Étude de cas · Outillage IA · CLI Python</p>
+        <h1 class="case-title">agent&#8209;factory</h1>
+        <p class="case-lead">Un compilateur d'agents IA bornés&nbsp;: on lui donne une mission en JSON ou YAML, il produit un dossier d'artefacts autonome. Les capacités d'un agent ne peuvent pas dépasser celles déclarées, et chaque agent embarque un budget et un kill-switch.</p>
+        <ul class="case-meta">
+          <li><b>Type</b><span>CLI Python · outil local</span></li>
+          <li><b>Mon rôle</b><span>Conception &amp; développement</span></li>
+          <li><b>Stack</b><span>Python 3.11 · pytest</span></li>
+          <li><b>État</b><span>Projet personnel · MVP 0.1.0</span></li>
+        </ul>
+      </section>
+
+      <div class="case-body wrap">
+        <section class="case-section">
+          <h2 class="case-h2">Le problème</h2>
+          <p>Les agents IA sans garde-fous posent un problème structurel&nbsp;: ils peuvent consommer des ressources illimitées, dépasser leur périmètre d'action, ou être chaînés sans contrôle sur les capacités héritées. Il n'existait pas d'outil simple pour compiler un agent avec des bornes explicites, vérifiables et testables dès sa définition.</p>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Ce que j'ai construit</h2>
+          <ul class="case-list">
+            <li><strong>Compilation à partir d'une mission</strong> — un fichier JSON ou YAML décrit la mission, les outils autorisés, le budget et les capacités&nbsp;; la factory valide et compile en un dossier d'artefacts autonome (prompt système, config, runner, tests, manifest).</li>
+            <li><strong>Capacités bornées par contrat</strong> — un agent enfant ne peut pas hériter plus de permissions que son parent. Vérifié <em>à la compilation</em>, pas à l'exécution.</li>
+            <li><strong>Budgets et kill-switches</strong> — chaque agent reçoit un budget&nbsp;; <code>STOP_AGENT</code> ou <code>STOP_FACTORY</code> interrompt proprement l'exécution.</li>
+            <li><strong>Agent concepteur</strong> — un type <code>agent_builder</code> rédige des brouillons de missions&nbsp;; un humain relit chaque brouillon avant compilation. La factory ne se déploie jamais seule.</li>
+            <li><strong>Codes de sortie explicites</strong> — <code>0</code> OK · <code>1</code> tests en échec · <code>2</code> BLOCKED · <code>3</code> BUDGET_EXHAUSTED · <code>4</code> KILLED.</li>
+          </ul>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Architecture &amp; qualité</h2>
+          <p><strong>86 tests pytest</strong> organisés en 6 modules&nbsp;: budgets, CLI, compilateur, kill-switch, sécurité, validateur. Les tests de sécurité vérifient que les capacités ne peuvent pas être escaladées — pas seulement que le code compile. Un <code>LIMITS.md</code> documente explicitement ce qui n'est pas implémenté dans ce MVP, pour éviter de promettre des garanties absentes.</p>
+          <ul class="case-tags">
+            <li>Python 3.11</li><li>pytest</li><li>JSON / YAML</li><li>Architecture agents</li><li>Sécurité par conception</li><li>Kill-switch</li><li>Budgets LLM</li>
+          </ul>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Décisions techniques</h2>
+          <ul class="case-list">
+            <li><strong>Validation à la compilation, pas à l'exécution</strong> — les erreurs de périmètre doivent être détectées avant le premier appel LLM.</li>
+            <li><strong>Aucun déploiement automatique</strong> — la factory produit des artefacts locaux&nbsp;; l'envoi réseau est un acte délibéré de l'humain.</li>
+            <li><strong>Jamais de suppression</strong> — staging puis promotion, historique conservé&nbsp;; aucune opération destructive dans le cœur.</li>
+            <li><strong>LIMITS.md obligatoire</strong> — toute fonctionnalité non implémentée est documentée comme limite connue, pas cachée.</li>
+          </ul>
+        </section>
+
+        <section class="case-section">
+          <div class="case-actions">
+            <a class="case-btn case-btn--primary" href="/projets/lyma/">Voir Lyma →</a>
+            <a class="case-btn case-btn--ghost" href="mailto:contact@scory.dev">Discuter du projet</a>
+          </div>
+        </section>
+      </div>
+
+      <section class="case-cta">
+        <h2>Besoin d'un agent IA maîtrisé et borné&nbsp;?</h2>
+        <p>Architecture, budgets, sécurité — je conçois des systèmes IA qui font ce qu'on leur demande, pas plus.</p>
+        <div class="case-actions">
+          <a class="case-btn case-btn--primary" href="/#builder">Composer mon projet</a>
+          <a class="case-btn case-btn--ghost" href="mailto:contact@scory.dev">Écrire un email</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="case-foot">
+      <span>© Scory · scory.dev</span>
+      <a href="/">Retour à l'accueil</a>
+    </footer>
+  </body>
+</html>

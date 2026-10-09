@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#07060a" />
+    <meta name="color-scheme" content="dark" />
+    <title>JIMMY — Expérience narrative IA + arène de combat · Étude de cas | Scory</title>
+    <meta name="description" content="JIMMY : un roman d'horreur dark et un jeu interactif aux combats générés en temps réel par Gemini Pro. 12 000 lignes de TypeScript strict, zéro dépendance. Étude de cas par Scory." />
+    <link rel="canonical" href="https://scory.dev/projets/jimmy/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content="https://scory.dev/projets/jimmy/" />
+    <meta property="og:title" content="JIMMY — Expérience narrative IA + arène de combat · Étude de cas" />
+    <meta property="og:description" content="Roman d'horreur dark + jeu interactif, combats générés en temps réel par Gemini Pro. 12 000 lignes de TypeScript strict, zéro dépendance." />
+    <meta property="og:image" content="https://scory.dev/image/og-image.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%2307060a' width='32' height='32' rx='6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='%23c9a962' font-family='serif' font-size='20' font-weight='600'%3ES%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/projets/case.css" />
+    <script type="application/ld+json">
+    [{
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "JIMMY — Expérience narrative IA + arène de combat",
+      "description": "Étude de cas : un roman d'horreur dark et un jeu interactif aux combats générés en temps réel par Gemini Pro. 12 000 lignes de TypeScript strict, zéro dépendance.",
+      "author": {"@type": "Person", "name": "Scory Yana", "url": "https://scory.dev/"},
+      "publisher": {"@type": "Person", "name": "Scory Yana"},
+      "inLanguage": "fr",
+      "url": "https://scory.dev/projets/jimmy/",
+      "about": ["TypeScript", "Gemini Pro", "Three.js", "Jeu narratif", "IA générative"]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://scory.dev/"},
+        {"@type": "ListItem", "position": 2, "name": "Projets", "item": "https://scory.dev/#projets"},
+        {"@type": "ListItem", "position": 3, "name": "JIMMY", "item": "https://scory.dev/projets/jimmy/"}
+      ]
+    }]
+    </script>
+  </head>
+  <body>
+    <header class="case-top">
+      <a class="case-brand" href="/">scory<span>.dev</span></a>
+      <a class="case-back" href="/#projets">← Tous les projets</a>
+    </header>
+
+    <main>
+      <section class="case-hero wrap">
+        <p class="case-eyebrow">Étude de cas · Jeu narratif IA</p>
+        <h1 class="case-title">JIMMY</h1>
+        <p class="case-lead">Un roman d'horreur dark fusionné à un jeu interactif&nbsp;: les combats sont générés en temps réel par une IA, et chaque run compte. 12 000 lignes de TypeScript strict, sans aucune dépendance de framework.</p>
+        <ul class="case-meta">
+          <li><b>Type</b><span>Jeu web · expérience narrative</span></li>
+          <li><b>Mon rôle</b><span>Conception, écriture &amp; développement</span></li>
+          <li><b>Stack</b><span>TypeScript · Three.js · Gemini Pro</span></li>
+          <li><b>État</b><span>En ligne · jouable</span></li>
+        </ul>
+      </section>
+
+      <div class="case-body wrap">
+        <section class="case-section">
+          <h2 class="case-h2">L'idée</h2>
+          <p>Mélanger la densité d'un roman d'horreur et l'imprévu d'un jeu. Un récit dark de 20 000 mots structuré en trois arcs, et par-dessus, un système de combat où l'IA écrit l'issue de chaque affrontement à la volée. Concept canon&nbsp;: un jour, un vrai joueur tuera Scory, le protagoniste — et son nom entrera dans le roman.</p>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Ce que j'ai construit</h2>
+          <ul class="case-list">
+            <li><strong>Un moteur narratif</strong> — 130 événements, 3 arcs, permadeath total.</li>
+            <li><strong>Des combats générés en temps réel</strong> par Gemini Pro&nbsp;: pas de scripts figés, chaque combat est écrit à la volée.</li>
+            <li><strong>Un bestiaire évolutif</strong> — 30 démons avec hiérarchie, une boutique de 44 artefacts.</li>
+            <li><strong>Une expérience immersive</strong> — rendu Three.js, interface PWA installable.</li>
+          </ul>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Côté technique</h2>
+          <p>Tout est écrit en <strong>TypeScript strict</strong> — 12 000 lignes, <strong>zéro dépendance de framework</strong>. L'intégration de <strong>Gemini Pro</strong> génère les combats en respectant l'état du jeu (stats, inventaire, progression), ce qui demande un prompt engineering rigoureux pour rester cohérent. Rendu via <strong>Three.js</strong> et <strong>Canvas</strong>, le tout packagé en <strong>PWA</strong>.</p>
+          <ul class="case-tags">
+            <li>TypeScript</li><li>Three.js</li><li>Gemini Pro</li><li>Canvas API</li><li>PWA</li><li>Vanilla JS</li>
+          </ul>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Ce que ça démontre</h2>
+          <p>Un projet de cette taille livré en solo, c'est la preuve qu'on maîtrise la stack de bout en bout&nbsp;: architecture, intégration IA, rendu, gestion d'état et packaging — sans se cacher derrière un framework.</p>
+        </section>
+
+        <section class="case-section">
+          <div class="case-actions">
+            <a class="case-btn case-btn--primary" href="https://splendid-malasada-e630ad.netlify.app/" target="_blank" rel="noopener">Jouer à JIMMY ↗</a>
+            <a class="case-btn case-btn--ghost" href="/#builder">Estimer un projet similaire</a>
+          </div>
+        </section>
+      </div>
+
+      <section class="case-cta">
+        <h2>Un projet ambitieux en tête&nbsp;?</h2>
+        <p>Expérience interactive, intégration IA, jeu web — je conçois et code sur mesure. Parlons-en.</p>
+        <div class="case-actions">
+          <a class="case-btn case-btn--primary" href="/#builder">Composer mon projet</a>
+          <a class="case-btn case-btn--ghost" href="mailto:contact@scory.dev">Écrire un email</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="case-foot">
+      <span>© Scory · scory.dev</span>
+      <a href="/">Retour à l'accueil</a>
+    </footer>
+  </body>
+</html>

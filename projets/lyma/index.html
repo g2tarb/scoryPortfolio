@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#07060a" />
+    <meta name="color-scheme" content="dark" />
+    <title>Lyma — Agent codeur CLI multi-provider · Étude de cas | Scory</title>
+    <meta name="description" content="Lyma : un agent de code en ligne de commande, multi-provider LLM (Anthropic, OpenAI, DeepSeek, Qwen, Kimi), avec rotation des clés, fallback entre providers et pont vers agent-factory. Étude de cas par Scory." />
+    <link rel="canonical" href="https://scory.dev/projets/lyma/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content="https://scory.dev/projets/lyma/" />
+    <meta property="og:title" content="Lyma — Agent codeur CLI multi-provider · Étude de cas" />
+    <meta property="og:description" content="Agent de code CLI multi-provider avec rotation des clés, fallback entre providers et pont vers agent-factory pour compiler des sous-agents bornés." />
+    <meta property="og:image" content="https://scory.dev/image/og-image.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%2307060a' width='32' height='32' rx='6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' fill='%23c9a962' font-family='serif' font-size='20' font-weight='600'%3ES%3C/text%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/projets/case.css" />
+    <script type="application/ld+json">
+    [{
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "Lyma — Agent codeur CLI multi-provider",
+      "description": "Étude de cas : un agent de code en ligne de commande, multi-provider LLM, avec rotation des clés, fallback entre providers et pont vers agent-factory.",
+      "author": {"@type": "Person", "name": "Scory Yana", "url": "https://scory.dev/"},
+      "publisher": {"@type": "Person", "name": "Scory Yana"},
+      "inLanguage": "fr",
+      "url": "https://scory.dev/projets/lyma/",
+      "about": ["Python", "Agents IA", "LLM multi-provider", "Outils CLI", "Orchestration d'agents"]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://scory.dev/"},
+        {"@type": "ListItem", "position": 2, "name": "Projets", "item": "https://scory.dev/#projets"},
+        {"@type": "ListItem", "position": 3, "name": "Lyma", "item": "https://scory.dev/projets/lyma/"}
+      ]
+    }]
+    </script>
+  </head>
+  <body>
+    <header class="case-top">
+      <a class="case-brand" href="/">scory<span>.dev</span></a>
+      <a class="case-back" href="/#projets">← Tous les projets</a>
+    </header>
+
+    <main>
+      <section class="case-hero wrap">
+        <p class="case-eyebrow">Étude de cas · Agent IA · CLI Python</p>
+        <h1 class="case-title">Lyma</h1>
+        <p class="case-lead">Un agent codeur en ligne de commande, multi-provider LLM, avec rotation des clés et fallback entre providers. Il peut brouillonner, compiler et exécuter des sous-agents bornés via agent-factory — depuis un terminal, sans interface web.</p>
+        <ul class="case-meta">
+          <li><b>Type</b><span>CLI Python · agent local</span></li>
+          <li><b>Mon rôle</b><span>Conception &amp; développement</span></li>
+          <li><b>Stack</b><span>Python · Multi-LLM</span></li>
+          <li><b>État</b><span>Projet personnel · actif</span></li>
+        </ul>
+      </section>
+
+      <div class="case-body wrap">
+        <section class="case-section">
+          <h2 class="case-h2">Pourquoi Lyma existe</h2>
+          <p>Beaucoup d'agents de code reposent sur un seul fournisseur et une seule clé&nbsp;: en cas de rate-limit ou d'indisponibilité, le travail s'arrête. Lyma gère plusieurs clés par provider et plusieurs providers&nbsp;; si l'un sature ou tombe, le suivant configuré prend le relais. Deuxième idée&nbsp;: beaucoup d'outils ne savent pas orchestrer d'autres agents — Lyma embarque un pont natif vers agent-factory.</p>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Ce que j'ai construit</h2>
+          <ul class="case-list">
+            <li><strong>Multi-provider natif</strong> — Anthropic, OpenAI, DeepSeek, Qwen, Kimi, ou tout serveur local compatible OpenAI.</li>
+            <li><strong>Rotation des clés</strong> — plusieurs clés par provider, round-robin sur rate-limit ou erreur 5xx.</li>
+            <li><strong>Fallback entre providers</strong> — si un provider est indisponible, le suivant configuré prend le relais.</li>
+            <li><strong>Pont agent-factory</strong> — commandes <code>draft_agent</code>, <code>compile_agent</code>, <code>run_compiled_agent</code> pour orchestrer des sous-agents bornés.</li>
+            <li><strong>Blacklist de sécurité non désactivable</strong> — une liste restreinte de commandes dangereuses bloquée en dur, indépendamment de la configuration.</li>
+          </ul>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Architecture &amp; sécurité</h2>
+          <p>Configuration dans <code>~/.lyma/config.toml</code> (<code>chmod 600</code>) ou variables d'environnement. Les providers passent par un routeur commun (interfaces Anthropic et compatible-OpenAI) qui gère rotation et fallback. La blacklist de sécurité est la seule protection non désactivable&nbsp;; le reste est configurable.</p>
+          <p>Une campagne de durcissement (octobre 2026) a renforcé les garanties&nbsp;: <strong>sandbox des agents compilés</strong> et <strong>gate <code>lyma approve</code></strong> (validation humaine par hash) avant l'exécution de tout agent externe.</p>
+          <ul class="case-tags">
+            <li>Python</li><li>Anthropic</li><li>OpenAI</li><li>DeepSeek</li><li>Qwen</li><li>Multi-LLM</li><li>Rotation clés</li><li>agent-factory</li>
+          </ul>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Décisions techniques</h2>
+          <ul class="case-list">
+            <li><strong>TOML plutôt que JSON</strong> pour la config — plus lisible, commentaires inline.</li>
+            <li><strong>Blacklist non désactivable</strong> — la porte de sortie pour les commandes destructrices est physiquement absente, pas désactivable par flag.</li>
+            <li><strong>Pas de daemon</strong> — outil interactif, aucun service système ni écoute réseau&nbsp;; le contrôle reste dans la main de l'utilisateur.</li>
+          </ul>
+        </section>
+
+        <section class="case-section">
+          <h2 class="case-h2">Portée &amp; limites</h2>
+          <p>Lyma est un <strong>projet personnel</strong>, utilisé localement en terminal. C'est un banc d'essai sur l'orchestration d'agents et les garde-fous&nbsp;: la philosophie assumée est de donner de la liberté à l'agent principal, tout en bornant strictement les sous-agents compilés.</p>
+        </section>
+
+        <section class="case-section">
+          <div class="case-actions">
+            <a class="case-btn case-btn--primary" href="/projets/agent-factory/">Voir agent-factory →</a>
+            <a class="case-btn case-btn--ghost" href="mailto:contact@scory.dev">Discuter du projet</a>
+          </div>
+        </section>
+      </div>
+
+      <section class="case-cta">
+        <h2>Un système d'agents sur mesure&nbsp;?</h2>
+        <p>Orchestration, providers, sécurité — je conçois des pipelines IA adaptés à votre contrainte réelle.</p>
+        <div class="case-actions">
+          <a class="case-btn case-btn--primary" href="/#builder">Composer mon projet</a>
+          <a class="case-btn case-btn--ghost" href="mailto:contact@scory.dev">Écrire un email</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="case-foot">
+      <span>© Scory · scory.dev</span>
+      <a href="/">Retour à l'accueil</a>
+    </footer>
+  </body>
+</html>

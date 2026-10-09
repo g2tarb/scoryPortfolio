@@ -991,6 +991,16 @@ async function main() {
     }
     // Bouton CTA
     detailCtaWrap.innerHTML = "";
+    // Lien vers l'etude de cas dediee (page statique indexable), si elle existe
+    if (p.caseStudy) {
+      const cs = document.createElement("a");
+      cs.href = `/projets/${p.caseStudy}/`;
+      cs.className = "detail-panel__cta";
+      cs.innerHTML = `${getLang() === "fr" ? "Lire l'étude de cas" : "Read the case study"} <span class="detail-panel__cta-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span>`;
+      cs.addEventListener("pointerup", (e) => e.stopPropagation());
+      cs.addEventListener("click", (e) => e.stopPropagation());
+      detailCtaWrap.appendChild(cs);
+    }
     if (!p.url && activeIndex === SCORY_INDEX) {
       // Disque Scory → CTA scrolle vers le bot prospect
       const ctaLabel = getLang() === "fr" ? "Lance ta demande" : "Launch your request";
@@ -1038,8 +1048,8 @@ async function main() {
         });
         detailCtaWrap.appendChild(cta);
       }
-    } else if (!p.url) {
-      // Projets sans URL publique (repo prive) → bouton verrouille
+    } else if (!p.url && !p.caseStudy) {
+      // Projets sans URL publique ni etude de cas (repo prive) → bouton verrouille
       const isLyma = p.title === "Lyma";
       const wrap = document.createElement("div");
       wrap.style.cssText = "display:flex;flex-direction:column;align-items:flex-start;gap:6px;";
