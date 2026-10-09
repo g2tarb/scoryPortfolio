@@ -1004,8 +1004,13 @@ async function main() {
     // Precharger le fond du prochain projet pendant l'animation
     getProjectBg(nextIndex).catch(() => {});
 
-    // ===== TRANSITION VINYLE — spin sur place, le suivant sort de derriere =====
+    // ===== TRANSITION VINYLE — le disque actuel recule sur le cote,
+    //        le suivant tourne depuis derriere et se pose au centre =====
     const nextDisc = d[nextIndex];
+
+    // Le suivant passe devant pendant toute la transition
+    gsap.set(currentDisc, { zIndex: 1 });
+    gsap.set(nextDisc, { zIndex: 2 });
 
     const tl = gsap.timeline({
       onComplete: () => {
@@ -1023,35 +1028,44 @@ async function main() {
       }
     });
 
-    // Phase 1 : disque actuel accelere + retrecit vers le fond (spin out)
+    // Phase 1 : disque actuel se pousse sur le cote dans la direction + recule (reste visible)
     tl.to(currentDisc, {
-      rotation: discSpinAngle + direction * 660,
-      scale: 0,
-      duration: 0.55, ease: "power3.in",
+      x: direction * 105,
+      y: 10,
+      scale: 0.68,
+      opacity: 0.28,
+      rotation: discSpinAngle + direction * 55,
+      duration: 0.5,
+      ease: "power2.inOut",
     }, 0);
-    tl.to(currentDisc, {
-      opacity: 0,
-      duration: 0.18, ease: "power1.in",
-    }, 0.37);
 
-    // Fond projet : fade discret pendant la transition
+    // Fond projet : fade pendant la transition
     if (projectBgHost) {
-      tl.to(projectBgHost, { opacity: 0, duration: 0.2 }, 0.25);
+      tl.to(projectBgHost, { opacity: 0, duration: 0.2 }, 0.2);
     }
 
-    // Phase 2 : nouveau disque emerge du fond dans le meme sens de rotation (spin in)
-    // Il arrive depuis "derriere" avec le meme elan — effet de continuite naturelle
+    // Phase 2 : nouveau disque tourne depuis l'arriere-plan et se pose au centre
+    // Il demarre en arriere (scale 0.68), legerement decale de l'autre cote,
+    // en train de tourner — et vient se placer progressivement
     nextDisc.style.display = "grid";
     tl.fromTo(nextDisc,
-      { rotation: discSpinAngle + direction * 320, scale: 0.08, opacity: 0 },
       {
-        rotation: discSpinAngle,
-        scale: 1,
-        opacity: 1,
-        duration: 0.85,
-        ease: "expo.out",
+        x: -direction * 55,
+        y: 8,
+        scale: 0.68,
+        rotation: discSpinAngle + direction * 230,
+        opacity: 0.55,
       },
-      0.18
+      {
+        x: 0,
+        y: 0,
+        scale: 1,
+        rotation: discSpinAngle,
+        opacity: 1,
+        duration: 0.72,
+        ease: "power2.out",
+      },
+      0.1
     );
   }
 
